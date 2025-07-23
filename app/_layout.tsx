@@ -1,29 +1,53 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect } from "react";
+import "react-native-reanimated";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+import SafeAreaWrapper from "@/components/SafeAreaWrapper";
+import { toastConfig } from "@/config/toast";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Toast from "react-native-toast-message";
+import {
+  UrbanistBold,
+  UrbanistMedium,
+  UrbanistMediumItalic,
+  UrbanistRegular,
+  UrbanistSemiBold,
+} from "../assets/fonts";
+
+SplashScreen.preventAutoHideAsync();
+
+SplashScreen.setOptions({
+  duration: 400,
+  fade: true,
+});
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    "Urbanist-Bold": UrbanistBold,
+    Urbanist: UrbanistRegular,
+    "Urbanist-SemiBold": UrbanistSemiBold,
+    "Urbanist-Medium": UrbanistMedium,
+    "Urbanist-Medium-Italic": UrbanistMediumItalic,
   });
 
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <SafeAreaWrapper>
+      <GestureHandlerRootView>
+        <Stack screenOptions={{ headerShown: false }} />
+        <Toast config={toastConfig} />
+      </GestureHandlerRootView>
+    </SafeAreaWrapper>
   );
 }
