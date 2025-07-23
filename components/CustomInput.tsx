@@ -70,7 +70,7 @@ const CustomInput = ({
           styles.inputWrapper,
           {
             backgroundColor: "white",
-            borderColor: isFocused ? "#FF5A1F" : error ? COLORS.error : "#828",
+            borderColor: isFocused ? "#FF5A1F" : error ? COLORS.error : "#000",
             borderWidth: 1,
           },
         ]}

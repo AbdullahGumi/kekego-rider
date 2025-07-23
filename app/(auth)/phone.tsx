@@ -3,23 +3,22 @@ import CustomButton from "@/components/CustomButton";
 import CustomInput from "@/components/CustomInput";
 import CustomText from "@/components/CustomText";
 import { COLORS } from "@/constants/Colors";
+import { CONSTANTS } from "@/constants/constants";
 import { Layout, scale } from "@/constants/Layout";
 import useApi from "@/hooks/useApi";
-import { useAppStore } from "@/stores/useAppStore";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Keyboard, StyleSheet, View } from "react-native";
+import Toast from "react-native-toast-message";
 
 export default function PhoneNumberScreen() {
   const [phone, setPhone] = useState("");
   const [errors, setErrors] = useState<{ phone?: string }>({});
   const { loading, fetchData } = useApi();
   const router = useRouter();
-  const { setUser } = useAppStore();
 
   const validatePhoneNumber = (number: string) => {
-    // Normalize phone number to start with 0 for Nigerian numbers
     let normalizedNumber = number.replace(/[^0-9]/g, "");
     if (normalizedNumber.startsWith("234")) {
       normalizedNumber = "0" + normalizedNumber.slice(3);
@@ -42,7 +41,7 @@ export default function PhoneNumberScreen() {
     const numericText = text.replace(/[^0-9]/g, "");
     if (numericText.length <= 11) {
       setPhone(numericText);
-      setErrors({}); // Clear errors on input change
+      setErrors({});
       if (numericText.length === 11) {
         Keyboard.dismiss();
       }
@@ -71,18 +70,14 @@ export default function PhoneNumberScreen() {
       // Step 1: Check if phone number exists
       const checkResponse = await fetchData("post", "/auth/check-phone", {
         phone,
-        role: "rider",
+        role: CONSTANTS.USER_ROLE,
       });
-
-      if (!checkResponse.data.isRegistered) {
-        // If not registered, store this info for the registration flow
-        setUser({ id: "", phone, role: "rider" }, null);
-      }
 
       // Step 2: Request OTP
       const otpResponse = await fetchData("post", "/auth/request-otp", {
         phone,
       });
+
       if (otpResponse.data) {
         console.log("otp--->", otpResponse.data);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -94,14 +89,27 @@ export default function PhoneNumberScreen() {
           },
         });
       } else {
+        console.log({
+          phone: otpResponse.data.message || "Failed to send OTP",
+        });
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Toast.show({
+          type: "customToast",
+          text1: otpResponse.data.message || "Failed to send OTP",
+          props: { type: "Error" },
+        });
       }
     } catch (err: any) {
       const errorMessage =
         err.response?.data?.message ||
         "Failed to process request. Please try again.";
-      console.log("errorMessage", errorMessage);
+      console.log({ phone: errorMessage });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Toast.show({
+        type: "customToast",
+        text1: errorMessage,
+        props: { type: "Error" },
+      });
     }
   };
 
@@ -122,7 +130,7 @@ export default function PhoneNumberScreen() {
       </CustomText>
       <View style={{ width: "100%", marginTop: scale(50) }}>
         <CustomInput
-          placeholder="Enter Phone number (e.g., 08012345678)"
+          placeholder="Enter Phone number"
           placeholderTextColor={COLORS.secondaryText}
           label="Phone number"
           value={phone}

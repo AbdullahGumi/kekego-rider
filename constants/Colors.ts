@@ -4,5 +4,5 @@ export const COLORS = {
   text: '#000000', // White text
   secondaryText: '#757575', // Muted gray for subtitles
   error: '#FF4D4D', // Red for errors
-  card: '#1A1A1A', // Dark gray for cards
+  black: "#000"
 };

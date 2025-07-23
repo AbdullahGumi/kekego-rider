@@ -4,47 +4,55 @@ import Header from "@/components/Header";
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
 import useApi from "@/hooks/useApi";
+import { useAppStore } from "@/stores/useAppStore";
 import { Storage } from "@/utility/asyncStorageHelper";
+import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView, View } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
 import Toast from "react-native-toast-message";
 
-const OTPScreen = () => {
+export default function OTPScreen() {
   const [otp, setOtp] = useState("");
   const [resendTimer, setResendTimer] = useState(30);
-  const router = useRouter();
-  const { phone } = useLocalSearchParams<{ phone: string }>();
+  const { phone, isRegistered } = useLocalSearchParams<{
+    phone: string;
+    isRegistered: string;
+  }>();
   const { fetchData, loading } = useApi();
+  const router = useRouter();
+  const { setUser } = useAppStore();
 
   const sendCode = async () => {
     try {
-      const { status, data } = await fetchData(
-        "post",
-        "/auth/reset-password/request-otp",
-        {
-          phone,
-        }
-      );
+      const otpResponse = await fetchData("post", "/auth/request-otp", {
+        phone,
+      });
 
-      if (status === 200) {
+      if (otpResponse.data) {
+        console.log("otp-->", otpResponse.data);
         setResendTimer(30);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         Toast.show({
           type: "customToast",
-          text1: data.status,
-          props: {
-            type: "Success",
-          },
+          text1: "OTP sent successfully",
+          props: { type: "Success" },
+        });
+      } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Toast.show({
+          type: "customToast",
+          text1: "Failed to send OTP",
+          props: { type: "Error" },
         });
       }
     } catch (err: any) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Toast.show({
         type: "customToast",
-        text1: err.response.data.detail || "An error occurred",
-        props: {
-          type: "Error",
-        },
+        text1: err.response?.data?.message || "Failed to send OTP",
+        props: { type: "Error" },
       });
     }
   };
@@ -54,34 +62,68 @@ const OTPScreen = () => {
       const timer = setInterval(() => {
         setResendTimer((prev) => prev - 1);
       }, 1000);
-
       return () => clearInterval(timer);
     }
   }, [resendTimer]);
 
   const verifyOtp = async () => {
+    if (otp.length < 6) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Toast.show({
+        type: "customToast",
+        text1: "Please enter a 6-digit OTP",
+        props: { type: "Error" },
+      });
+      return;
+    }
+
     try {
-      const { status, data } = await fetchData("post", "/auth//verify-otp", {
+      const { status, data } = await fetchData("post", "/auth/verify-otp", {
         phone,
         otp,
       });
 
-      if (data?.token) {
-        // TODOs
-        // if user is registered
-        await Storage.set("access_token", data.access_token);
-        router.push("/(tabs)");
+      if (status === 200 && data.token) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        Toast.show({
+          type: "customToast",
+          text1: "OTP verified successfully",
+          props: { type: "Success" },
+        });
 
-        // if user is not registered
-        //     router.push({ pathname: "/(auth)/register", params: { phone } });
+        if (isRegistered === "true") {
+          // User is registered, store token and user, then navigate to tabs
+          await Storage.set("access_token", data.token);
+          await setUser(
+            {
+              id: data.user.id,
+              phone: data.user.phone,
+              role: data.user.role,
+              // name: data.user.name,
+              // email: data.user.email,
+              gender: data.user.gender,
+            },
+            data.token
+          );
+          router.push("/(tabs)");
+        } else {
+          // User is not registered, navigate to registration
+          router.push({ pathname: "/(auth)/register", params: { phone } });
+        }
+      } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Toast.show({
+          type: "customToast",
+          text1: data.message || "Invalid OTP",
+          props: { type: "Error" },
+        });
       }
     } catch (err: any) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Toast.show({
         type: "customToast",
-        text1: err.response.data.detail || "An error occurred",
-        props: {
-          type: "Error",
-        },
+        text1: err.response?.data?.message || "Failed to verify OTP",
+        props: { type: "Error" },
       });
     }
   };
@@ -92,11 +134,7 @@ const OTPScreen = () => {
         <Header />
       </View>
 
-      <View
-        style={{
-          paddingHorizontal: scale(16),
-        }}
-      >
+      <View style={{ paddingHorizontal: scale(16) }}>
         <View style={{ paddingVertical: scale(12) }}>
           <CustomText
             fontWeight="Medium"
@@ -147,12 +185,7 @@ const OTPScreen = () => {
 
         <View style={{ marginTop: scale(96), alignItems: "center" }}>
           {resendTimer > 0 ? (
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "center",
-              }}
-            >
+            <View style={{ flexDirection: "row", justifyContent: "center" }}>
               <CustomText
                 fontWeight="Medium"
                 style={{
@@ -163,7 +196,6 @@ const OTPScreen = () => {
               >
                 Ask for a new code within
               </CustomText>
-
               <CustomText
                 style={{ fontSize: scaleText(12), color: COLORS.primary }}
               >
@@ -214,6 +246,4 @@ const OTPScreen = () => {
       </View>
     </SafeAreaView>
   );
-};
-
-export default OTPScreen;
+}
