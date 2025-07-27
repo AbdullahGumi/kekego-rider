@@ -1,4 +1,5 @@
 import { COLORS } from "@/constants/Colors";
+import { usePathname } from "expo-router";
 import React, { Fragment } from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -8,13 +9,17 @@ interface SafeAreaWrapperProps {
 }
 
 const SafeAreaWrapper: React.FC<SafeAreaWrapperProps> = ({ children }) => {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
   return (
     <Fragment>
       {/* Top safe area with custom color (only rendered if not on home) */}
-      <SafeAreaView
-        edges={["top"]}
-        style={{ backgroundColor: COLORS.background }}
-      />
+      {!isHome && (
+        <SafeAreaView
+          edges={["top"]}
+          style={{ backgroundColor: COLORS.background }}
+        />
+      )}
 
       {/* Main content area with bottom, left, right insets */}
       <SafeAreaView

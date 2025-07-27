@@ -10,9 +10,27 @@ type User = {
   role: string;
 };
 
+
+type DestinationLocation = {
+  address: string;
+  coords: { latitude: string; longitude: string };
+};
+
+type PickUpLocation = {
+  address: string;
+  coords: { latitude: string; longitude: string };
+};
+  
+
+
 type AppState = {
   user: User | null;
   token: string | null;
+  destinationLocation: DestinationLocation | null;
+  pickupLocation: PickUpLocation | null;
+  setDestinationLocation: (location: DestinationLocation) => void;
+  setPickupLocation: (location: PickUpLocation) => void;
+  
 };
 
 type AppActions = {
@@ -26,6 +44,10 @@ type AppStore = AppState & AppActions;
 export const useAppStore = create<AppStore>((set) => ({
   user: null,
   token: null,
+  destinationLocation: null,
+  pickupLocation: null,
+  setDestinationLocation: (location) => set({ destinationLocation: location }),
+  setPickupLocation: (location) => set({ pickupLocation: location }),
 
   setUser: async (user, token) => {
     try {

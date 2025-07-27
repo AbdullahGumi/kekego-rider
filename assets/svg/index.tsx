@@ -717,16 +717,21 @@ export const SeatIcon = ({ color }: any) => (
 );
 
 export const ClockIcon = ({ color }: any) => (
-  <Svg width={8} height={8} fill="none">
+  <Svg
+    width="100%"
+    height="100%"
+    viewBox="0 0 8 8" // Based on your original path dimensions
+    fill="none"
+  >
     <Path
-      stroke="#6C8400"
+      stroke={color}
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={0.6}
       d="M1 4a3 3 0 1 0 6 0 3 3 0 0 0-6 0Z"
     />
     <Path
-      stroke="#6C8400"
+      stroke={color}
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={0.6}

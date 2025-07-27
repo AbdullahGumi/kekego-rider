@@ -1,41 +1,37 @@
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Drawer } from "expo-router/drawer";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-export default function TabLayout() {
+export default function DrawerLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: COLORS.black,
-        tabBarInactiveTintColor: COLORS.secondaryText,
-        tabBarStyle: {
-          backgroundColor: COLORS.background,
-          borderTopWidth: 0,
-          height: scale(70),
-          paddingBottom: scale(10),
-          paddingTop: scale(5),
-        },
-        tabBarLabelStyle: {
-          fontFamily: "Urbanist-Regular",
-          fontSize: scaleText(12),
-          marginBottom: scale(4),
-        },
-        tabBarIconStyle: {
-          marginTop: scale(4),
-        },
-        headerShown: false,
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="home-outline" size={scale(28)} color={color} />
-          ),
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Drawer
+        screenOptions={{
+          drawerActiveTintColor: COLORS.primary,
+          drawerInactiveTintColor: COLORS.secondaryText,
+          drawerStyle: {
+            backgroundColor: COLORS.background,
+            width: scale(240),
+          },
+          drawerLabelStyle: {
+            fontFamily: "Urbanist-Regular",
+            fontSize: scaleText(16),
+          },
+          headerShown: false,
         }}
-      />
-    </Tabs>
+      >
+        <Drawer.Screen
+          name="index"
+          options={{
+            drawerLabel: "Home",
+            drawerIcon: ({ color }) => (
+              <Ionicons name="home-outline" size={24} color={color} />
+            ),
+          }}
+        />
+      </Drawer>
+    </GestureHandlerRootView>
   );
 }
