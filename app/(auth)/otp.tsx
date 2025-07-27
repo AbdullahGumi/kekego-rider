@@ -1,6 +1,6 @@
-import CustomButton from "@/components/CustomButton";
-import CustomText from "@/components/CustomText";
-import Header from "@/components/Header";
+import CustomButton from "@/components/common/CustomButton";
+import CustomText from "@/components/common/CustomText";
+import Header from "@/components/common/Header";
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
 import useApi from "@/hooks/useApi";
@@ -85,11 +85,6 @@ export default function OTPScreen() {
 
       if (status === 200 && data.token) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        Toast.show({
-          type: "customToast",
-          text1: "OTP verified successfully",
-          props: { type: "Success" },
-        });
 
         if (isRegistered === "true") {
           // User is registered, store token and user, then navigate to tabs

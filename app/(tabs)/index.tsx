@@ -1,12 +1,15 @@
+import { chatApi } from "@/api/endpoints/chat";
+import { riderApi } from "@/api/endpoints/rider";
 import { KekeImage } from "@/assets/images/Index";
 import { MenuIcon } from "@/assets/svg";
-import CustomText from "@/components/CustomText";
-import LocationInput from "@/components/LocationInput";
+import CustomText from "@/components/common/CustomText";
+import LocationInput from "@/components/feature/home/LocationInput";
 import { COLORS } from "@/constants/Colors";
 import { scale } from "@/constants/Layout";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet, {
   BottomSheetFlatList,
+  BottomSheetFlatListMethods,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
 import * as Haptics from "expo-haptics";
@@ -19,6 +22,7 @@ import {
   Image,
   Keyboard,
   Platform,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -31,7 +35,7 @@ import Animated, {
   SlideOutDown,
   ZoomIn,
 } from "react-native-reanimated";
-
+import io from "socket.io-client";
 import { homeStyles } from "../../styles/home-styles";
 
 interface LocationData {
@@ -57,10 +61,21 @@ interface Driver {
   id: string;
   name: string;
   vehicle: string;
-  coords: { latitude: string; longitude: string };
-  picture: string;
-  rating: number;
-  vehicleNumber: string;
+  coordinates: { latitude: number; longitude: number };
+  picture?: string;
+  rating?: number;
+  vehicleNumber?: string;
+}
+
+interface Message {
+  id: string;
+  rideId: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
+  createdAt: string;
+  Sender: { id: string; name: string };
+  Receiver: { id: string; name: string };
 }
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE";
@@ -106,7 +121,14 @@ const MARKER_ICONS = {
 const HomeScreen = () => {
   const navigation = useNavigation<any>();
   const [stage, setStage] = useState<
-    "initial" | "input" | "confirm" | "search" | "paired" | "arrived" | "trip"
+    | "initial"
+    | "input"
+    | "confirm"
+    | "search"
+    | "paired"
+    | "arrived"
+    | "trip"
+    | "chat"
   >("initial");
   const [pickupLocation, setPickupLocation] = useState<LocationData>({
     address: "Fetching your location...",
@@ -119,15 +141,75 @@ const HomeScreen = () => {
   const [userLocation, setUserLocation] =
     useState<Location.LocationObject | null>(null);
   const [driver, setDriver] = useState<Driver | null>(null);
+  const [nearbyDrivers, setNearbyDrivers] = useState<Driver[]>([]);
   const [eta, setEta] = useState("");
   const [mapLoading, setMapLoading] = useState(true);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [geocodingLoading, setGeocodingLoading] = useState(true);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [rideId, setRideId] = useState<string | null>(null);
+  const [userId] = useState("rider1");
 
   const mapRef = useRef<MapView>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ["55%", "70%", "80%"], []);
+  const flatListRef = useRef<BottomSheetFlatListMethods>(null);
+  const socketRef = useRef<any>(null);
+  const snapPoints = useMemo(() => ["55%", "70%", "80%", "90%"], []);
+
+  // Initialize Socket.IO
+  useEffect(() => {
+    socketRef.current = io("http://172.20.10.2:3000");
+    return () => {
+      socketRef.current?.disconnect();
+    };
+  }, []);
+
+  // Join ride room when driver is assigned
+  useEffect(() => {
+    if (rideId && ["paired", "arrived", "trip", "chat"].includes(stage)) {
+      socketRef.current?.emit("join", rideId);
+      socketRef.current?.on("newMessage", (message: Message) => {
+        setMessages((prev) => [...prev, message]);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        setTimeout(
+          () => flatListRef.current?.scrollToEnd({ animated: true }),
+          100
+        );
+      });
+    }
+    return () => {
+      socketRef.current?.off("newMessage");
+    };
+  }, [rideId, stage]);
+
+  // Fetch messages when entering chat stage
+  useEffect(() => {
+    if (stage === "chat" && rideId) {
+      const fetchMessages = async () => {
+        setChatLoading(true);
+        try {
+          const response = await chatApi.getMessages(rideId);
+          setMessages(response.data || []);
+          setTimeout(
+            () => flatListRef.current?.scrollToEnd({ animated: true }),
+            100
+          );
+        } catch (error) {
+          console.error("Failed to fetch messages:", error);
+          Alert.alert(
+            "Error",
+            "Failed to load chat messages. Please try again."
+          );
+        } finally {
+          setChatLoading(false);
+        }
+      };
+      fetchMessages();
+    }
+  }, [stage, rideId]);
 
   const fetchLocation = useCallback(async () => {
     try {
@@ -194,6 +276,34 @@ const HomeScreen = () => {
   );
 
   useEffect(() => {
+    if (userLocation?.coords) {
+      riderApi
+        .getNearbyDrivers({
+          latitude: userLocation.coords.latitude,
+          longitude: userLocation.coords.longitude,
+        })
+        .then((res) => {
+          const drivers: Driver[] = res.data.map((driver: any) => ({
+            id: driver.id,
+            name: driver.name,
+            vehicle: driver.vehicle.model,
+            vehicleNumber: driver.vehicle.plateNumber,
+            coordinates: {
+              latitude: driver.coordinates.latitude,
+              longitude: driver.coordinates.longitude,
+            },
+            picture: MARKER_ICONS.user,
+            rating: 4.5,
+          }));
+          setNearbyDrivers(drivers);
+        })
+        .catch((err) => {
+          console.log("err", err.response?.data || err.message);
+        });
+    }
+  }, [userLocation?.coords]);
+
+  useEffect(() => {
     fetchLocation();
   }, [fetchLocation]);
 
@@ -222,10 +332,10 @@ const HomeScreen = () => {
         longitude: Number(destinationLocation.coords.longitude),
       },
     ];
-    if (driver?.coords && ["paired", "arrived", "trip"].includes(stage)) {
+    if (driver?.coordinates && ["paired", "arrived", "trip"].includes(stage)) {
       coords.push({
-        latitude: Number(driver.coords.latitude),
-        longitude: Number(driver.coords.longitude),
+        latitude: Number(driver.coordinates.latitude),
+        longitude: Number(driver.coordinates.longitude),
       });
     }
     mapRef.current?.fitToCoordinates(coords, {
@@ -241,7 +351,7 @@ const HomeScreen = () => {
     stage,
     pickupLocation.coords,
     destinationLocation.coords,
-    driver?.coords,
+    driver?.coordinates,
   ]);
 
   useEffect(() => {
@@ -253,14 +363,15 @@ const HomeScreen = () => {
           id: "driver1",
           name: "Abdullah Gumi",
           vehicle: "Tricycle",
-          coords: {
-            latitude: String(Number(pickupLocation.coords.latitude) + 0.001),
-            longitude: String(Number(pickupLocation.coords.longitude) + 0.001),
+          coordinates: {
+            latitude: Number(pickupLocation.coords.latitude) + 0.001,
+            longitude: Number(pickupLocation.coords.longitude) + 0.001,
           },
           picture: MARKER_ICONS.user,
           rating: 4.8,
           vehicleNumber: "1234-KEK",
         });
+        setRideId("ride123");
         setStage("paired");
         setBookingLoading(false);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -268,7 +379,17 @@ const HomeScreen = () => {
     } else if (stage === "paired") {
       timer = setTimeout(() => {
         setStage("arrived");
-        setDriver((prev) => prev && { ...prev, coords: pickupLocation.coords });
+        setDriver((prev) =>
+          prev
+            ? {
+                ...prev,
+                coordinates: {
+                  latitude: Number(pickupLocation.coords.latitude),
+                  longitude: Number(pickupLocation.coords.longitude),
+                },
+              }
+            : null
+        );
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }, 3000);
     } else if (stage === "arrived") {
@@ -288,7 +409,9 @@ const HomeScreen = () => {
               coords: { latitude: "", longitude: "" },
             });
             setDriver(null);
+            setRideId(null);
             setEta("");
+            setMessages([]);
             bottomSheetRef.current?.snapToIndex(0);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             return "";
@@ -297,7 +420,10 @@ const HomeScreen = () => {
         });
       }, 5000);
     }
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(timer);
+    };
   }, [stage, pickupLocation.coords]);
 
   const handleWhereTo = useCallback(() => {
@@ -349,9 +475,12 @@ const HomeScreen = () => {
     } else if (stage === "confirm") {
       setStage("input");
       bottomSheetRef.current?.snapToIndex(1);
+    } else if (stage === "chat") {
+      setStage(driver ? (eta ? "trip" : "arrived") : "paired");
+      bottomSheetRef.current?.snapToIndex(2);
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-  }, [stage]);
+  }, [stage, driver, eta]);
 
   const handleCancelRide = useCallback(() => {
     if (stage === "trip") {
@@ -377,6 +506,8 @@ const HomeScreen = () => {
               coords: { latitude: "", longitude: "" },
             });
             setDriver(null);
+            setRideId(null);
+            setMessages([]);
             setEta("");
             bottomSheetRef.current?.snapToIndex(0);
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -390,6 +521,22 @@ const HomeScreen = () => {
       ]
     );
   }, [stage]);
+
+  const handleSendMessage = useCallback(async () => {
+    if (!newMessage.trim() || !rideId) return;
+    setChatLoading(true);
+    try {
+      await chatApi.sendMessage(rideId, { content: newMessage });
+      setNewMessage("");
+      Keyboard.dismiss();
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      Alert.alert("Error", "Failed to send message. Please try again.");
+    } finally {
+      setChatLoading(false);
+    }
+  }, [newMessage, rideId]);
 
   const renderRecentDestination = useCallback(
     ({ item }: { item: RecentDestination }) => (
@@ -420,19 +567,6 @@ const HomeScreen = () => {
       </TouchableOpacity>
     ),
     [handleSelectRecentDestination]
-  );
-
-  const initialRegion = useMemo(
-    () =>
-      userLocation?.coords
-        ? {
-            latitude: userLocation.coords.latitude,
-            longitude: userLocation.coords.longitude,
-            latitudeDelta: 0.003810113049217634,
-            longitudeDelta: 0.001899674534795892,
-          }
-        : INITIAL_REGION,
-    [userLocation?.coords]
   );
 
   const renderLocationCard = useCallback(
@@ -483,7 +617,7 @@ const HomeScreen = () => {
                 style={homeStyles.starIcon}
               />
               <CustomText style={homeStyles.rideOptionDescription}>
-                {driver!.rating.toFixed(1)}
+                {driver!.rating?.toFixed(1)}
               </CustomText>
             </View>
             <CustomText style={homeStyles.rideOptionDescription}>
@@ -518,7 +652,15 @@ const HomeScreen = () => {
             Call
           </CustomText>
         </TouchableOpacity>
-        <TouchableOpacity style={homeStyles.contactButton} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={homeStyles.contactButton}
+          activeOpacity={0.7}
+          onPress={() => {
+            setStage("chat");
+            bottomSheetRef.current?.snapToIndex(3);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          }}
+        >
           <Ionicons
             name="chatbubble"
             size={23}
@@ -532,6 +674,88 @@ const HomeScreen = () => {
       </View>
     ),
     []
+  );
+
+  const renderMessage = useCallback(
+    ({ item }: { item: Message }) => (
+      <Animated.View
+        entering={FadeIn}
+        style={[
+          homeStyles.messageBubble,
+          item.senderId === userId
+            ? homeStyles.sentMessage
+            : homeStyles.receivedMessage,
+        ]}
+      >
+        <CustomText fontWeight="Medium" style={homeStyles.messageSender}>
+          {item.senderId === userId ? "You" : item.Sender.name}
+        </CustomText>
+        <CustomText style={homeStyles.messageText}>{item.content}</CustomText>
+        <CustomText style={homeStyles.messageTime}>
+          {new Date(item.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </CustomText>
+      </Animated.View>
+    ),
+    [userId]
+  );
+
+  const renderChat = useCallback(
+    () => (
+      <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
+        <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
+          Chat with {driver?.name}
+        </CustomText>
+        {chatLoading ? (
+          <View style={homeStyles.chatLoadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+            <CustomText style={homeStyles.searchText}>
+              Loading messages...
+            </CustomText>
+          </View>
+        ) : (
+          <>
+            <BottomSheetFlatList
+              ref={flatListRef}
+              data={messages}
+              renderItem={renderMessage}
+              keyExtractor={(item) => item.id}
+              style={homeStyles.chatList}
+              contentContainerStyle={homeStyles.chatListContent}
+              showsVerticalScrollIndicator={false}
+            />
+            <View style={homeStyles.chatInputContainer}>
+              <TextInput
+                style={homeStyles.chatInput}
+                value={newMessage}
+                onChangeText={setNewMessage}
+                placeholder="Type a message..."
+                placeholderTextColor={COLORS.secondaryText}
+                multiline
+              />
+              <TouchableOpacity
+                style={[
+                  homeStyles.sendButton,
+                  !newMessage.trim() && homeStyles.sendButtonDisabled,
+                ]}
+                onPress={handleSendMessage}
+                disabled={!newMessage.trim() || chatLoading}
+                activeOpacity={0.7}
+              >
+                {chatLoading ? (
+                  <ActivityIndicator size="small" color={COLORS.white} />
+                ) : (
+                  <Ionicons name="send" size={20} color={COLORS.white} />
+                )}
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </Animated.View>
+    ),
+    [driver, messages, newMessage, chatLoading, handleSendMessage]
   );
 
   return (
@@ -552,7 +776,16 @@ const HomeScreen = () => {
           ref={mapRef}
           provider="google"
           onPress={Keyboard.dismiss}
-          initialRegion={initialRegion}
+          initialRegion={
+            userLocation?.coords
+              ? {
+                  latitude: userLocation.coords.latitude,
+                  longitude: userLocation.coords.longitude,
+                  latitudeDelta: 0.003810113049217634,
+                  longitudeDelta: 0.001899674534795892,
+                }
+              : INITIAL_REGION
+          }
           showsUserLocation={stage === "initial" || stage === "input"}
           style={homeStyles.map}
         >
@@ -576,6 +809,11 @@ const HomeScreen = () => {
                   apikey={GOOGLE_MAPS_API_KEY}
                   strokeWidth={Platform.OS === "android" ? 3 : 4}
                   strokeColor={COLORS.primary}
+                  onReady={(result) => {
+                    console.log(result);
+                    console.log(`Distance: ${result.distance} km`);
+                    console.log(`Duration: ${result.duration} min`);
+                  }}
                 />
                 <Marker
                   coordinate={{
@@ -601,16 +839,31 @@ const HomeScreen = () => {
                 </Marker>
               </>
             )}
-          {driver?.coords && ["paired", "arrived", "trip"].includes(stage) && (
-            <Marker
-              coordinate={{
-                latitude: Number(driver.coords.latitude),
-                longitude: Number(driver.coords.longitude),
-              }}
-            >
-              <Image source={KekeImage} style={homeStyles.tricycleMarker} />
-            </Marker>
-          )}
+          {driver?.coordinates &&
+            ["paired", "arrived", "trip"].includes(stage) && (
+              <Marker
+                coordinate={{
+                  latitude: Number(driver.coordinates.latitude),
+                  longitude: Number(driver.coordinates.longitude),
+                }}
+              >
+                <Image source={KekeImage} style={homeStyles.tricycleMarker} />
+              </Marker>
+            )}
+          {["initial", "input"].includes(stage) &&
+            nearbyDrivers.map((driver) => (
+              <Marker
+                key={driver.id}
+                coordinate={{
+                  latitude: driver.coordinates.latitude,
+                  longitude: driver.coordinates.longitude,
+                }}
+                title={driver.name}
+                description={`${driver.vehicle} • ${driver.vehicleNumber}`}
+              >
+                <Image source={KekeImage} style={homeStyles.tricycleMarker} />
+              </Marker>
+            ))}
         </MapView>
       )}
 
@@ -632,7 +885,7 @@ const HomeScreen = () => {
           >
             <MenuIcon />
           </TouchableOpacity>
-        ) : stage === "input" || stage === "confirm" ? (
+        ) : stage === "input" || stage === "confirm" || stage === "chat" ? (
           <TouchableOpacity
             onPress={handleBack}
             activeOpacity={0.7}
@@ -830,7 +1083,7 @@ const HomeScreen = () => {
                         style={homeStyles.starIcon}
                       />
                       <CustomText style={homeStyles.rideOptionDescription}>
-                        {driver.rating.toFixed(1)}
+                        {driver.rating?.toFixed(1)}
                       </CustomText>
                     </View>
                     <CustomText style={homeStyles.rideOptionDescription}>
@@ -867,10 +1120,11 @@ const HomeScreen = () => {
               {renderContactButtons()}
             </Animated.View>
           )}
+
+          {stage === "chat" && driver && renderChat()}
         </BottomSheetView>
       </BottomSheet>
     </View>
   );
 };
-
 export default memo(HomeScreen);

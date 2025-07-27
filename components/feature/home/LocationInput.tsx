@@ -1,5 +1,5 @@
-import CustomInput from "@/components/CustomInput";
-import CustomText from "@/components/CustomText";
+import CustomInput from "@/components/common/CustomInput";
+import CustomText from "@/components/common/CustomText";
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
 import { debounce } from "lodash";

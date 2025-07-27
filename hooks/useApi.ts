@@ -1,4 +1,4 @@
-import apiService from "@/api/apiService";
+import apiService from "@/api/client/apiService";
 import { useState } from "react";
 
 const useApi = () => {

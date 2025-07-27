@@ -4,7 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
 
-import SafeAreaWrapper from "@/components/SafeAreaWrapper";
+import SafeAreaWrapper from "@/components/common/SafeAreaWrapper";
 import { toastConfig } from "@/config/toast";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";

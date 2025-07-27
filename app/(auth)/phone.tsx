@@ -1,11 +1,11 @@
+import { authApi } from "@/api/endpoints/auth";
 import { LogoIcon } from "@/assets/svg";
-import CustomButton from "@/components/CustomButton";
-import CustomInput from "@/components/CustomInput";
-import CustomText from "@/components/CustomText";
+import CustomButton from "@/components/common/CustomButton";
+import CustomInput from "@/components/common/CustomInput";
+import CustomText from "@/components/common/CustomText";
 import { COLORS } from "@/constants/Colors";
 import { CONSTANTS } from "@/constants/constants";
 import { Layout, scale } from "@/constants/Layout";
-import useApi from "@/hooks/useApi";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -14,8 +14,8 @@ import Toast from "react-native-toast-message";
 
 export default function PhoneNumberScreen() {
   const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ phone?: string }>({});
-  const { loading, fetchData } = useApi();
   const router = useRouter();
 
   const validatePhoneNumber = (number: string) => {
@@ -68,17 +68,18 @@ export default function PhoneNumberScreen() {
 
     try {
       // Step 1: Check if phone number exists
-      const checkResponse = await fetchData("post", "/auth/check-phone", {
+      setLoading(true);
+      const checkResponse = await authApi.checkPhone(
         phone,
-        role: CONSTANTS.USER_ROLE,
-      });
+        CONSTANTS.USER_ROLE
+      );
 
       // Step 2: Request OTP
-      const otpResponse = await fetchData("post", "/auth/request-otp", {
-        phone,
-      });
+      const otpResponse = await authApi.requestOtp(phone);
 
       if (otpResponse.data) {
+        setLoading(false);
+
         console.log("otp--->", otpResponse.data);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         router.push({
@@ -89,6 +90,7 @@ export default function PhoneNumberScreen() {
           },
         });
       } else {
+        setLoading(false);
         console.log({
           phone: otpResponse.data.message || "Failed to send OTP",
         });
@@ -100,6 +102,7 @@ export default function PhoneNumberScreen() {
         });
       }
     } catch (err: any) {
+      setLoading(false);
       const errorMessage =
         err.response?.data?.message ||
         "Failed to process request. Please try again.";

@@ -1,12 +1,12 @@
+import { authApi } from "@/api/endpoints/auth";
 import { ChevronIcon } from "@/assets/svg";
-import CustomButton from "@/components/CustomButton";
-import CustomInput from "@/components/CustomInput";
-import CustomText from "@/components/CustomText";
-import Header from "@/components/Header";
+import CustomButton from "@/components/common/CustomButton";
+import CustomInput from "@/components/common/CustomInput";
+import CustomText from "@/components/common/CustomText";
+import Header from "@/components/common/Header";
 import { COLORS } from "@/constants/Colors";
 import { CONSTANTS } from "@/constants/constants";
 import { scale, scaleText } from "@/constants/Layout";
-import useApi from "@/hooks/useApi";
 import { useAppStore } from "@/stores/useAppStore";
 import {
   BottomSheetModal,
@@ -27,17 +27,16 @@ const RegisterScreen = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState("");
-  const { phone } = useLocalSearchParams();
+  const { phone }: any = useLocalSearchParams();
 
   const [isBottomSheetOpen, setBottomSheetOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<any>({});
   const router = useRouter();
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const snapPoints = useMemo(() => ["20%"], []);
   const setUser = useAppStore((state) => state.setUser);
-
-  const { fetchData, loading } = useApi();
 
   const handlePresentModal = useCallback(() => {
     bottomSheetModalRef.current?.present();
@@ -74,18 +73,22 @@ const RegisterScreen = () => {
     }
 
     try {
-      const { data } = await fetchData("post", `/auth/register`, {
+      setLoading(true);
+      const { data } = await authApi.register({
         email,
         name: `${firstName} ${lastName}`,
         gender,
         phone,
         role: CONSTANTS.USER_ROLE,
       });
+
       if (data.token) {
+        setLoading(false);
         setUser(data.user);
         router.push(`/(tabs)`);
       }
     } catch (err: any) {
+      setLoading(false);
       console.log("err", err.response.data.error);
     }
   };

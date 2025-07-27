@@ -1,12 +1,9 @@
-import { ArrowIcon, WarningIcon } from "@/assets/svg";
-import CustomText from "@/components/CustomText";
+import { WarningIcon } from "@/assets/svg";
+import CustomText from "@/components/common/CustomText";
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
-import { Text, TouchableOpacity, View } from "react-native";
-import Toast, {
-  ToastConfig,
-  ToastConfigParams,
-} from "react-native-toast-message";
+import { View } from "react-native";
+import { ToastConfig, ToastConfigParams } from "react-native-toast-message";
 
 type ToastType = "Success" | "Info" | "Warning" | "Error";
 
