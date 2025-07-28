@@ -1,10 +1,20 @@
 import apiService from "../client/apiService";
 
 export const riderApi = {
+  
+  calculateFare: async (data: {
+    distanceInKm: number;
+    durationInMinutes: number;
+    promoCode?: string;
+  }) => {
+    return await apiService.post("/rider/calculate-fare", data);
+  },
   requestRide: async (data: {
     pickupLocation: { latitude: number; longitude: number };
     dropoffLocation: { latitude: number; longitude: number };
     paymentMethod: string;
+    distanceInKm: number,
+    durationInMinutes: number,
     promoCode?: string;
   }) => {
     return await apiService.post("/rider/request-ride", data);

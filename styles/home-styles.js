@@ -34,7 +34,8 @@ export const homeStyles = StyleSheet.create({
   buttonContainer: {
     position: "absolute",
     top: scale(60),
-    left: scale(20),
+    left: scale(25),
+    right: scale(25),
     zIndex: 1000,
   },
   menuButton: {

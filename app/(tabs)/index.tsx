@@ -5,7 +5,9 @@ import { MenuIcon } from "@/assets/svg";
 import CustomText from "@/components/common/CustomText";
 import LocationInput from "@/components/feature/home/LocationInput";
 import { COLORS } from "@/constants/Colors";
+import { CONSTANTS } from "@/constants/constants";
 import { scale } from "@/constants/Layout";
+import { formatDuration, numberWithCommas } from "@/utility";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet, {
   BottomSheetFlatList,
@@ -43,14 +45,6 @@ interface LocationData {
   coords: { latitude: string; longitude: string };
 }
 
-interface RideOption {
-  id: string;
-  type: string;
-  description: string;
-  price: string;
-  duration: string;
-}
-
 interface RecentDestination {
   id: string;
   address: string;
@@ -79,13 +73,7 @@ interface Message {
 }
 
 const GOOGLE_MAPS_API_KEY = "AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE";
-const TRICYCLE_OPTION: RideOption = {
-  id: "3",
-  type: "Tricycle",
-  description: "Local tricycle (Keke)",
-  price: "₦1,500",
-  duration: "25 min",
-};
+
 const RECENT_DESTINATIONS: RecentDestination[] = [
   {
     id: "1",
@@ -131,7 +119,7 @@ const HomeScreen = () => {
     | "chat"
   >("initial");
   const [pickupLocation, setPickupLocation] = useState<LocationData>({
-    address: "Fetching your location...",
+    address: "",
     coords: DEFAULT_COORDS,
   });
   const [destinationLocation, setDestinationLocation] = useState<LocationData>({
@@ -151,6 +139,12 @@ const HomeScreen = () => {
   const [newMessage, setNewMessage] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [rideId, setRideId] = useState<string | null>(null);
+  const [fare, setFare] = useState(null);
+  const [tripDuration, setTripDuration] = useState(null);
+  const [destinationDistance, setDestinationDistance] = useState(0);
+  const [destinationDuration, setDestinationDuration] = useState(0);
+
+  const [loading, setLoading] = useState(false);
   const [userId] = useState("rider1");
 
   const mapRef = useRef<MapView>(null);
@@ -219,7 +213,7 @@ const HomeScreen = () => {
           "Location permission denied. Please enable location services."
         );
         setPickupLocation({
-          address: "Location unavailable",
+          address: "",
           coords: DEFAULT_COORDS,
         });
         setMapLoading(false);
@@ -227,7 +221,7 @@ const HomeScreen = () => {
         return;
       }
       const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
+        accuracy: Location.Accuracy.BestForNavigation,
       });
       setUserLocation(location);
       setPickupLocation((prev) => ({
@@ -241,7 +235,7 @@ const HomeScreen = () => {
       console.error("Failed to fetch location:", error);
       setLocationError("Failed to fetch location. Using default location.");
       setPickupLocation({
-        address: "Location unavailable",
+        address: "",
         coords: DEFAULT_COORDS,
       });
       setMapLoading(false);
@@ -254,7 +248,7 @@ const HomeScreen = () => {
       setGeocodingLoading(true);
       try {
         const response = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&components=country:NG&key=${GOOGLE_MAPS_API_KEY}`
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`
         );
         const data = await response.json();
         setPickupLocation({
@@ -395,7 +389,7 @@ const HomeScreen = () => {
     } else if (stage === "arrived") {
       timer = setTimeout(() => {
         setStage("trip");
-        setEta(TRICYCLE_OPTION.duration);
+        setEta(tripDuration!);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }, 2000);
     } else if (stage === "trip") {
@@ -455,14 +449,50 @@ const HomeScreen = () => {
     }
   }, []);
 
-  const handleBookRide = useCallback(() => {
-    setBookingLoading(true);
-    setTimeout(() => {
+  const handleBookRide = useCallback(async () => {
+    try {
+      setBookingLoading(true);
+
+      const response = await riderApi.requestRide({
+        pickupLocation: {
+          latitude: Number(pickupLocation.coords.latitude),
+          longitude: Number(pickupLocation.coords.longitude),
+        },
+        dropoffLocation: {
+          latitude: Number(destinationLocation.coords.latitude),
+          longitude: Number(destinationLocation.coords.longitude),
+        },
+        distanceInKm: Number(destinationDistance),
+        durationInMinutes: Number(destinationDuration),
+        paymentMethod: "cash",
+        promoCode: "",
+      });
+
+      // Check if response is successful
+      if (response?.status === 201) {
+        setStage("search");
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success
+        );
+      } else {
+        throw new Error(response?.error || "Failed to book ride");
+      }
+    } catch (error: any) {
+      console.error("Error booking ride:", error);
+      // Optionally show error to user
+      Alert.alert(
+        "Error",
+        error.message || "Failed to book ride. Please try again."
+      );
+    } finally {
       setBookingLoading(false);
-      setStage("search");
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }, 1500);
-  }, []);
+    }
+  }, [
+    destinationLocation,
+    pickupLocation,
+    destinationDistance,
+    destinationDuration,
+  ]);
 
   const handleBack = useCallback(() => {
     if (stage === "input") {
@@ -481,6 +511,21 @@ const HomeScreen = () => {
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   }, [stage, driver, eta]);
+
+  const centerMapOnUser = useCallback(() => {
+    if (userLocation?.coords) {
+      mapRef.current?.animateToRegion(
+        {
+          latitude: userLocation.coords.latitude,
+          longitude: userLocation.coords.longitude,
+          latitudeDelta: 0.003810113049217634,
+          longitudeDelta: 0.001899674534795892,
+        },
+        1000
+      );
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+  }, [userLocation]);
 
   const handleCancelRide = useCallback(() => {
     if (stage === "trip") {
@@ -809,10 +854,27 @@ const HomeScreen = () => {
                   apikey={GOOGLE_MAPS_API_KEY}
                   strokeWidth={Platform.OS === "android" ? 3 : 4}
                   strokeColor={COLORS.primary}
-                  onReady={(result) => {
-                    console.log(result);
-                    console.log(`Distance: ${result.distance} km`);
-                    console.log(`Duration: ${result.duration} min`);
+                  onReady={async (result) => {
+                    try {
+                      setLoading(true);
+                      setDestinationDistance(result.distance);
+                      setDestinationDuration(result.duration);
+                      const response = await riderApi.calculateFare({
+                        distanceInKm: result.distance,
+                        durationInMinutes: result.duration,
+                        promoCode: "",
+                      });
+                      setFare(response.data.estimatedFare);
+                      setTripDuration(response.data.durationInMinutes);
+                    } catch (error) {
+                      console.error("Failed to calculate fare:", error);
+                      Alert.alert(
+                        "Error",
+                        "Unable to calculate fare. Please try again."
+                      );
+                    } finally {
+                      setLoading(false);
+                    }
                   }}
                 />
                 <Marker
@@ -878,23 +940,71 @@ const HomeScreen = () => {
         style={homeStyles.buttonContainer}
       >
         {stage === "initial" ? (
-          <TouchableOpacity
-            onPress={() => navigation.toggleDrawer()}
-            activeOpacity={0.7}
-            style={homeStyles.menuButton}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              width: "100%",
+              justifyContent: "space-between",
+            }}
           >
-            <MenuIcon />
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.toggleDrawer()}
+              activeOpacity={0.7}
+              style={homeStyles.menuButton}
+            >
+              <MenuIcon />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={centerMapOnUser}
+              activeOpacity={0.7}
+              style={[
+                homeStyles.menuButton,
+                {
+                  marginTop: scale(8),
+                  backgroundColor: "white",
+                  borderWidth: 1,
+                  borderColor: COLORS.primary,
+                },
+              ]}
+            >
+              <Ionicons name="locate" size={24} color={COLORS.primary} />
+            </TouchableOpacity>
+          </View>
         ) : stage === "input" || stage === "confirm" || stage === "chat" ? (
-          <TouchableOpacity
-            onPress={handleBack}
-            activeOpacity={0.7}
-            style={homeStyles.backButton}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              width: "100%",
+              justifyContent: "space-between",
+            }}
           >
-            <CustomText fontWeight="Bold" style={homeStyles.backButtonText}>
-              Back
-            </CustomText>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleBack}
+              activeOpacity={0.7}
+              style={homeStyles.backButton}
+            >
+              <CustomText fontWeight="Bold" style={homeStyles.backButtonText}>
+                Back
+              </CustomText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={centerMapOnUser}
+              activeOpacity={0.7}
+              style={[
+                homeStyles.menuButton,
+                {
+                  marginTop: scale(8),
+                  backgroundColor: "white",
+                  borderWidth: 1,
+                  borderColor: COLORS.primary,
+                },
+              ]}
+            >
+              <Ionicons name="locate" size={24} color={COLORS.primary} />
+            </TouchableOpacity>
+          </View>
         ) : stage === "search" || stage === "paired" || stage === "arrived" ? (
           <TouchableOpacity
             onPress={handleCancelRide}
@@ -983,23 +1093,30 @@ const HomeScreen = () => {
                       fontWeight="Bold"
                       style={homeStyles.rideOptionTitle}
                     >
-                      {TRICYCLE_OPTION.type}
+                      Tricycle
                     </CustomText>
                     <CustomText style={homeStyles.rideOptionDescription}>
-                      {TRICYCLE_OPTION.description}
+                      Local tricycle (Keke)
                     </CustomText>
                   </View>
                 </View>
                 <View style={homeStyles.rideOptionDetails}>
-                  <CustomText
-                    fontWeight="Bold"
-                    style={homeStyles.rideOptionPrice}
-                  >
-                    {TRICYCLE_OPTION.price}
-                  </CustomText>
-                  <CustomText style={homeStyles.rideOptionDuration}>
-                    {TRICYCLE_OPTION.duration}
-                  </CustomText>
+                  {fare === null || tripDuration === null ? (
+                    <ActivityIndicator size="small" color={COLORS.primary} />
+                  ) : (
+                    <>
+                      <CustomText
+                        fontWeight="Bold"
+                        style={homeStyles.rideOptionPrice}
+                      >
+                        {CONSTANTS.NAIRA_UNICODE}
+                        {numberWithCommas(fare)}
+                      </CustomText>
+                      <CustomText style={homeStyles.rideOptionDuration}>
+                        {formatDuration(tripDuration)}
+                      </CustomText>
+                    </>
+                  )}
                 </View>
               </View>
               <TouchableOpacity
@@ -1112,7 +1229,8 @@ const HomeScreen = () => {
                       fontWeight="Bold"
                       style={homeStyles.tripInfoValue}
                     >
-                      {TRICYCLE_OPTION.price}
+                      {CONSTANTS.NAIRA_UNICODE}
+                      {numberWithCommas(fare)}
                     </CustomText>
                   </View>
                 </View>
