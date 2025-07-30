@@ -86,7 +86,7 @@ const RegisterScreen = () => {
       if (data.token) {
         await Storage.set("access_token", data.token);
         setLoading(false);
-        setUser(data.user);
+        setUser(data.user, data.token);
         router.push(`/(tabs)`);
       }
     } catch (err: any) {
