@@ -8,6 +8,7 @@ import { COLORS } from "@/constants/Colors";
 import { CONSTANTS } from "@/constants/constants";
 import { scale, scaleText } from "@/constants/Layout";
 import { useAppStore } from "@/stores/useAppStore";
+import { Storage } from "@/utility/asyncStorageHelper";
 import {
   BottomSheetModal,
   BottomSheetModalProvider,
@@ -83,6 +84,7 @@ const RegisterScreen = () => {
       });
 
       if (data.token) {
+        await Storage.set("access_token", data.token);
         setLoading(false);
         setUser(data.user);
         router.push(`/(tabs)`);
