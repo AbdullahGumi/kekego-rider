@@ -37,8 +37,19 @@ import Animated, {
   SlideOutDown,
   ZoomIn,
 } from "react-native-reanimated";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import { homeStyles } from "../../styles/home-styles";
+
+// Global error logging utility
+const logError = (context: string, error: any) => {
+  console.error(`${context} Error:`, {
+    message: error.message,
+    stack: error.stack,
+    response: error.response?.data,
+    code: error.code,
+    timestamp: new Date().toISOString(),
+  });
+};
 
 interface LocationData {
   address: string;
@@ -56,7 +67,8 @@ interface Driver {
   name: string;
   vehicle: string;
   coordinates: { latitude: number; longitude: number };
-  picture?: string;
+  profilePicture: string;
+  phone: string;
   rating?: number;
   vehicleNumber?: string;
 }
@@ -72,39 +84,41 @@ interface Message {
   Receiver: { id: string; name: string };
 }
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE";
-
-const RECENT_DESTINATIONS: RecentDestination[] = [
-  {
-    id: "1",
-    address: "Lekki Phase 1, Lagos",
-    coords: { latitude: "6.4412", longitude: "3.4584" },
+const CONFIG = {
+  GOOGLE_MAPS_API_KEY: "AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE",
+  DEFAULT_COORDS: { latitude: "6.5244", longitude: "3.3792" },
+  INITIAL_REGION: {
+    latitude: 6.5244,
+    longitude: 3.3792,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
   },
-  {
-    id: "2",
-    address: "Ikeja City Mall, Lagos",
-    coords: { latitude: "6.6148", longitude: "3.3576" },
+  MARKER_ICONS: {
+    pickup: "https://img.icons8.com/color/48/000000/marker.png",
+    destination: "https://img.icons8.com/color/48/000000/flag.png",
+    pin: "https://img.icons8.com/ios/50/000000/pin.png",
+    user: "https://img.icons8.com/ios/50/000000/user.png",
+    star: "https://img.icons8.com/color/24/000000/star.png",
   },
-  {
-    id: "3",
-    address: "Victoria Island, Lagos",
-    coords: { latitude: "6.4299", longitude: "3.4219" },
-  },
-];
-const DEFAULT_COORDS = { latitude: "6.5244", longitude: "3.3792" };
-const INITIAL_REGION = {
-  latitude: 6.5244,
-  longitude: 3.3792,
-  latitudeDelta: 0.0922,
-  longitudeDelta: 0.0421,
-};
-const MARKER_ICONS = {
-  pickup: "https://img.icons8.com/color/48/000000/marker.png",
-  destination: "https://img.icons8.com/color/48/000000/flag.png",
-  pin: "https://img.icons8.com/ios/50/000000/pin.png",
-  user: "https://img.icons8.com/ios/50/000000/user.png",
-  star: "https://img.icons8.com/color/24/000000/star.png",
-};
+  SOCKET_URL: "http://172.20.10.2:3000",
+  RECENT_DESTINATIONS: [
+    {
+      id: "1",
+      address: "Lekki Phase 1, Lagos",
+      coords: { latitude: "6.4412", longitude: "3.4584" },
+    },
+    {
+      id: "2",
+      address: "Ikeja City Mall, Lagos",
+      coords: { latitude: "6.6148", longitude: "3.3576" },
+    },
+    {
+      id: "3",
+      address: "Victoria Island, Lagos",
+      coords: { latitude: "6.4299", longitude: "3.4219" },
+    },
+  ],
+} as const;
 
 const HomeScreen = () => {
   const navigation = useNavigation<any>();
@@ -120,7 +134,7 @@ const HomeScreen = () => {
   >("initial");
   const [pickupLocation, setPickupLocation] = useState<LocationData>({
     address: "",
-    coords: DEFAULT_COORDS,
+    coords: CONFIG.DEFAULT_COORDS,
   });
   const [destinationLocation, setDestinationLocation] = useState<LocationData>({
     address: "",
@@ -139,90 +153,211 @@ const HomeScreen = () => {
   const [newMessage, setNewMessage] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [rideId, setRideId] = useState<string | null>(null);
-  const [fare, setFare] = useState(null);
-  const [tripDuration, setTripDuration] = useState(null);
+  const [fare, setFare] = useState<number | null>(null);
+  const [tripDuration, setTripDuration] = useState<number | null>(null);
   const [destinationDistance, setDestinationDistance] = useState(0);
   const [destinationDuration, setDestinationDuration] = useState(0);
-
-  const [loading, setLoading] = useState(false);
-  const [userId] = useState("rider1");
+  const [userId, setUserId] = useState<string>("rider1"); // Initialize userId
 
   const mapRef = useRef<MapView>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const flatListRef = useRef<BottomSheetFlatListMethods>(null);
-  const socketRef = useRef<any>(null);
+  const socketRef = useRef<Socket | null>(null);
   const snapPoints = useMemo(() => ["55%", "70%", "80%", "90%"], []);
 
-  // Initialize Socket.IO
+  // Initialize Socket.IO with error handling
   useEffect(() => {
-    socketRef.current = io("http://172.20.10.2:3000");
-    return () => {
-      socketRef.current?.disconnect();
-    };
-  }, []);
+    try {
+      socketRef.current = io(CONFIG.SOCKET_URL, { transports: ["websocket"] });
+      if (rideId) {
+        socketRef.current.emit("joinRide", rideId);
+      }
 
-  // Join ride room when driver is assigned
+      socketRef.current.on("connect_error", (error) => {
+        logError("Socket Connection", error);
+        Alert.alert(
+          "Connection Error",
+          "Failed to connect to server. Please check your network."
+        );
+      });
+
+      socketRef.current.on(
+        "ride:status-update",
+        (data: {
+          rideId: string;
+          status: string;
+          driver?: {
+            driverId: string;
+            phone: string;
+            name: string;
+            profilePicture: string;
+            rating: number;
+          };
+          coordinates?: { latitude: number; longitude: number };
+        }) => {
+          try {
+            if (data.rideId !== rideId) return;
+            switch (data.status) {
+              case "accepted":
+                if (!data.driver) throw new Error("Driver data missing");
+                setDriver({
+                  id: data.driver.driverId,
+                  name: data.driver.name,
+                  vehicle: "Tricycle",
+                  coordinates: {
+                    latitude: Number(pickupLocation.coords.latitude) + 0.001,
+                    longitude: Number(pickupLocation.coords.longitude) + 0.001,
+                  },
+                  profilePicture:
+                    data.driver.profilePicture || CONFIG.MARKER_ICONS.user,
+                  phone: data.driver.phone,
+                  rating: data.driver.rating,
+                  vehicleNumber: "1234-KEK",
+                });
+                setStage("paired");
+                setBookingLoading(false);
+                Haptics.notificationAsync(
+                  Haptics.NotificationFeedbackType.Success
+                );
+                Alert.alert(
+                  "Ride Accepted",
+                  `Your ride has been accepted by ${data.driver.name}!`
+                );
+                break;
+              case "arrived":
+                setStage("arrived");
+                if (data.driver?.driverId && data.coordinates) {
+                  setDriver((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          coordinates: {
+                            latitude: data.coordinates.latitude,
+                            longitude: data.coordinates.longitude,
+                          },
+                        }
+                      : null
+                  );
+                }
+                bottomSheetRef.current?.snapToIndex(2);
+                Haptics.notificationAsync(
+                  Haptics.NotificationFeedbackType.Success
+                );
+                Alert.alert(
+                  "Driver Arrived",
+                  `Your driver ${data.driver?.name || "has"} arrived!`
+                );
+                break;
+              case "in_progress":
+                setStage("trip");
+                if (data.driver?.driverId && data.coordinates) {
+                  setDriver((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          coordinates: {
+                            latitude: data.coordinates.latitude,
+                            longitude: data.coordinates.longitude,
+                          },
+                        }
+                      : null
+                  );
+                }
+                bottomSheetRef.current?.snapToIndex(2);
+                Haptics.notificationAsync(
+                  Haptics.NotificationFeedbackType.Success
+                );
+                Alert.alert(
+                  "Trip Started",
+                  `Your trip with ${
+                    data.driver?.name || "the driver"
+                  } has started!`
+                );
+                break;
+              case "cancelled":
+              case "completed":
+                setStage("initial");
+                setDestinationLocation({
+                  address: "",
+                  coords: { latitude: "", longitude: "" },
+                });
+                setDriver(null);
+                setRideId(null);
+                setMessages([]);
+                setEta("");
+                bottomSheetRef.current?.snapToIndex(0);
+                Haptics.notificationAsync(
+                  Haptics.NotificationFeedbackType.Success
+                );
+                Alert.alert(
+                  "Ride Update",
+                  data.status === "cancelled"
+                    ? "Your ride was cancelled."
+                    : "Your ride has completed."
+                );
+                break;
+              default:
+                logError(
+                  "Unknown Ride Status",
+                  new Error(`Invalid status: ${data.status}`)
+                );
+            }
+          } catch (error) {
+            logError("Ride Status Update", error);
+            Alert.alert("Error", "Failed to process ride status update.");
+          }
+        }
+      );
+
+      return () => {
+        socketRef.current?.off("ride:status-update");
+        socketRef.current?.disconnect();
+      };
+    } catch (error) {
+      logError("Socket Initialization", error);
+      Alert.alert("Error", "Failed to initialize server connection.");
+    }
+  }, [rideId]);
+
+  // Fetch messages with error handling
   useEffect(() => {
-    if (rideId && ["paired", "arrived", "trip", "chat"].includes(stage)) {
-      socketRef.current?.emit("join", rideId);
-      socketRef.current?.on("newMessage", (message: Message) => {
-        setMessages((prev) => [...prev, message]);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (stage !== "chat" || !rideId) return;
+    const fetchMessages = async () => {
+      setChatLoading(true);
+      try {
+        const response = await chatApi.getMessages(rideId);
+        if (!Array.isArray(response.data)) {
+          throw new Error("Invalid messages response format");
+        }
+        setMessages(response.data);
         setTimeout(
           () => flatListRef.current?.scrollToEnd({ animated: true }),
           100
         );
-      });
-    }
-    return () => {
-      socketRef.current?.off("newMessage");
+      } catch (error) {
+        logError("Fetch Messages", error);
+        Alert.alert("Error", "Failed to load chat messages. Please try again.");
+        setMessages([]);
+      } finally {
+        setChatLoading(false);
+      }
     };
-  }, [rideId, stage]);
-
-  // Fetch messages when entering chat stage
-  useEffect(() => {
-    if (stage === "chat" && rideId) {
-      const fetchMessages = async () => {
-        setChatLoading(true);
-        try {
-          const response = await chatApi.getMessages(rideId);
-          setMessages(response.data || []);
-          setTimeout(
-            () => flatListRef.current?.scrollToEnd({ animated: true }),
-            100
-          );
-        } catch (error) {
-          console.error("Failed to fetch messages:", error);
-          Alert.alert(
-            "Error",
-            "Failed to load chat messages. Please try again."
-          );
-        } finally {
-          setChatLoading(false);
-        }
-      };
-      fetchMessages();
-    }
+    fetchMessages();
   }, [stage, rideId]);
 
+  // Fetch user location with error handling
   const fetchLocation = useCallback(async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        setLocationError(
-          "Location permission denied. Please enable location services."
-        );
-        setPickupLocation({
-          address: "",
-          coords: DEFAULT_COORDS,
-        });
-        setMapLoading(false);
-        setGeocodingLoading(false);
-        return;
+        throw new Error("Location permission denied");
       }
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.BestForNavigation,
       });
+      if (!location?.coords) {
+        throw new Error("Invalid location data");
+      }
       setUserLocation(location);
       setPickupLocation((prev) => ({
         ...prev,
@@ -232,31 +367,36 @@ const HomeScreen = () => {
         },
       }));
     } catch (error) {
-      console.error("Failed to fetch location:", error);
+      logError("Fetch Location", error);
       setLocationError("Failed to fetch location. Using default location.");
-      setPickupLocation({
-        address: "",
-        coords: DEFAULT_COORDS,
-      });
+      setPickupLocation({ address: "", coords: CONFIG.DEFAULT_COORDS });
+    } finally {
       setMapLoading(false);
       setGeocodingLoading(false);
     }
   }, []);
 
+  // Reverse geocode with error handling
   const reverseGeocode = useCallback(
     async (latitude: number, longitude: number) => {
       setGeocodingLoading(true);
       try {
         const response = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${CONFIG.GOOGLE_MAPS_API_KEY}`
         );
+        if (!response.ok) {
+          throw new Error(`Geocoding API error: ${response.status}`);
+        }
         const data = await response.json();
+        if (data.status !== "OK") {
+          throw new Error(`Geocoding failed: ${data.status}`);
+        }
         setPickupLocation({
           address: data.results?.[0]?.formatted_address || "Unknown Location",
           coords: { latitude: String(latitude), longitude: String(longitude) },
         });
       } catch (error) {
-        console.error("Reverse geocoding failed:", error);
+        logError("Reverse Geocode", error);
         setPickupLocation({
           address: "Unable to fetch address",
           coords: { latitude: String(latitude), longitude: String(longitude) },
@@ -269,130 +409,190 @@ const HomeScreen = () => {
     []
   );
 
+  // Fetch nearby drivers with error handling
   useEffect(() => {
-    if (userLocation?.coords) {
-      riderApi
-        .getNearbyDrivers({
+    if (!userLocation?.coords) return;
+    const fetchNearbyDrivers = async () => {
+      try {
+        const res = await riderApi.getNearbyDrivers({
           latitude: userLocation.coords.latitude,
           longitude: userLocation.coords.longitude,
-        })
-        .then((res) => {
-          const drivers: Driver[] = res.data.map((driver: any) => ({
-            id: driver.id,
-            name: driver.name,
-            vehicle: driver.vehicle.model,
-            vehicleNumber: driver.vehicle.plateNumber,
-            coordinates: {
-              latitude: driver.coordinates.latitude,
-              longitude: driver.coordinates.longitude,
-            },
-            picture: MARKER_ICONS.user,
-            rating: 4.5,
-          }));
-          setNearbyDrivers(drivers);
-        })
-        .catch((err) => {
-          console.log("err", err.response?.data || err.message);
         });
-    }
+        if (!Array.isArray(res.data)) {
+          throw new Error("Invalid nearby drivers response format");
+        }
+        const drivers: Driver[] = res.data.map((driver: any) => ({
+          id: driver.id || `driver-${Math.random()}`,
+          name: driver.name || "Unknown Driver",
+          vehicle: driver.vehicle?.model || "Tricycle",
+          vehicleNumber: driver.vehicle?.plateNumber || "N/A",
+          coordinates: {
+            latitude:
+              driver.coordinates?.latitude ||
+              Number(CONFIG.DEFAULT_COORDS.latitude),
+            longitude:
+              driver.coordinates?.longitude ||
+              Number(CONFIG.DEFAULT_COORDS.longitude),
+          },
+          profilePicture: driver.profilePicture || CONFIG.MARKER_ICONS.user,
+          rating: driver.rating || 4.5,
+          phone: driver.phone || "",
+        }));
+        setNearbyDrivers(drivers);
+      } catch (error) {
+        logError("Fetch Nearby Drivers", error);
+        setNearbyDrivers([]);
+      }
+    };
+    fetchNearbyDrivers();
   }, [userLocation?.coords]);
 
+  // Initial location fetch
   useEffect(() => {
     fetchLocation();
   }, [fetchLocation]);
 
+  // Geocode user location
   useEffect(() => {
-    if (userLocation?.coords)
+    if (userLocation?.coords) {
       reverseGeocode(
         userLocation.coords.latitude,
         userLocation.coords.longitude
       );
+    }
   }, [userLocation?.coords, reverseGeocode]);
 
+  // Map region and directions management
   useEffect(() => {
-    if (
-      !["confirm", "search", "paired", "arrived", "trip"].includes(stage) ||
-      !pickupLocation.coords.latitude ||
-      !destinationLocation.coords.latitude
-    )
-      return;
-    const coords = [
-      {
-        latitude: Number(pickupLocation.coords.latitude),
-        longitude: Number(pickupLocation.coords.longitude),
-      },
-      {
-        latitude: Number(destinationLocation.coords.latitude),
-        longitude: Number(destinationLocation.coords.longitude),
-      },
-    ];
-    if (driver?.coordinates && ["paired", "arrived", "trip"].includes(stage)) {
-      coords.push({
-        latitude: Number(driver.coordinates.latitude),
-        longitude: Number(driver.coordinates.longitude),
-      });
+    if (mapLoading || !mapRef.current) return;
+    try {
+      if (stage === "initial" || stage === "input") {
+        if (userLocation?.coords) {
+          mapRef.current.animateToRegion(
+            {
+              latitude: userLocation.coords.latitude,
+              longitude: userLocation.coords.longitude,
+              latitudeDelta: 0.005,
+              longitudeDelta: 0.005,
+            },
+            1000
+          );
+        }
+      } else if (stage === "confirm" || stage === "search") {
+        if (
+          pickupLocation.coords.latitude &&
+          destinationLocation.coords.latitude
+        ) {
+          mapRef.current.fitToCoordinates(
+            [
+              {
+                latitude: Number(pickupLocation.coords.latitude),
+                longitude: Number(pickupLocation.coords.longitude),
+              },
+              {
+                latitude: Number(destinationLocation.coords.latitude),
+                longitude: Number(destinationLocation.coords.longitude),
+              },
+            ],
+            {
+              edgePadding: {
+                top: scale(100),
+                bottom: scale(200),
+                right: scale(20),
+                left: scale(20),
+              },
+              animated: true,
+            }
+          );
+        }
+      } else if (stage === "paired") {
+        if (driver?.coordinates && pickupLocation.coords.latitude) {
+          mapRef.current.fitToCoordinates(
+            [
+              {
+                latitude: driver.coordinates.latitude,
+                longitude: driver.coordinates.longitude,
+              },
+              {
+                latitude: Number(pickupLocation.coords.latitude),
+                longitude: Number(pickupLocation.coords.longitude),
+              },
+            ],
+            {
+              edgePadding: {
+                top: scale(100),
+                bottom: scale(200),
+                right: scale(20),
+                left: scale(20),
+              },
+              animated: true,
+            }
+          );
+        }
+      } else if (stage === "arrived") {
+        if (driver?.coordinates && pickupLocation.coords.latitude) {
+          mapRef.current.animateToRegion(
+            {
+              latitude:
+                (driver.coordinates.latitude +
+                  Number(pickupLocation.coords.latitude)) /
+                2,
+              longitude:
+                (driver.coordinates.longitude +
+                  Number(pickupLocation.coords.longitude)) /
+                2,
+              latitudeDelta: 0.002,
+              longitudeDelta: 0.002,
+            },
+            1000
+          );
+        }
+      } else if (stage === "trip" || stage === "chat") {
+        if (
+          driver?.coordinates &&
+          pickupLocation.coords.latitude &&
+          destinationLocation.coords.latitude
+        ) {
+          mapRef.current.fitToCoordinates(
+            [
+              {
+                latitude: driver.coordinates.latitude,
+                longitude: driver.coordinates.longitude,
+              },
+              {
+                latitude: Number(destinationLocation.coords.latitude),
+                longitude: Number(destinationLocation.coords.longitude),
+              },
+            ],
+            {
+              edgePadding: {
+                top: scale(100),
+                bottom: scale(200),
+                right: scale(20),
+                left: scale(20),
+              },
+              animated: true,
+            }
+          );
+        }
+      }
+    } catch (error) {
+      logError("Map Region Update", error);
+      Alert.alert("Error", "Failed to update map view.");
     }
-    mapRef.current?.fitToCoordinates(coords, {
-      edgePadding: {
-        top: scale(100),
-        bottom: scale(200),
-        right: scale(20),
-        left: scale(20),
-      },
-      animated: true,
-    });
   }, [
     stage,
+    userLocation?.coords,
     pickupLocation.coords,
     destinationLocation.coords,
     driver?.coordinates,
+    mapLoading,
   ]);
 
+  // ETA timer for trip stage
   useEffect(() => {
-    let timer: any;
-    if (stage === "search") {
-      setBookingLoading(true);
-      timer = setTimeout(() => {
-        setDriver({
-          id: "driver1",
-          name: "Abdullah Gumi",
-          vehicle: "Tricycle",
-          coordinates: {
-            latitude: Number(pickupLocation.coords.latitude) + 0.001,
-            longitude: Number(pickupLocation.coords.longitude) + 0.001,
-          },
-          picture: MARKER_ICONS.user,
-          rating: 4.8,
-          vehicleNumber: "1234-KEK",
-        });
-        setRideId("ride123");
-        setStage("paired");
-        setBookingLoading(false);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }, 2000);
-    } else if (stage === "paired") {
-      timer = setTimeout(() => {
-        setStage("arrived");
-        setDriver((prev) =>
-          prev
-            ? {
-                ...prev,
-                coordinates: {
-                  latitude: Number(pickupLocation.coords.latitude),
-                  longitude: Number(pickupLocation.coords.longitude),
-                },
-              }
-            : null
-        );
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }, 3000);
-    } else if (stage === "arrived") {
-      timer = setTimeout(() => {
-        setStage("trip");
-        setEta(tripDuration!);
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }, 2000);
-    } else if (stage === "trip") {
+    let timer: any = null;
+    if (stage === "trip" && eta) {
       timer = setInterval(() => {
         setEta((prev) => {
           const [minutes] = prev.split(" ").map(Number);
@@ -415,50 +615,76 @@ const HomeScreen = () => {
       }, 5000);
     }
     return () => {
-      clearTimeout(timer);
-      clearInterval(timer);
+      if (timer) clearInterval(timer);
     };
-  }, [stage, pickupLocation.coords]);
+  }, [stage, eta]);
 
   const handleWhereTo = useCallback(() => {
-    setStage("input");
-    bottomSheetRef.current?.snapToIndex(1);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      setStage("input");
+      bottomSheetRef.current?.snapToIndex(1);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (error) {
+      logError("Handle Where To", error);
+      Alert.alert("Error", "Failed to open destination input.");
+    }
   }, []);
 
   const handleSelectRecentDestination = useCallback(
     (destination: RecentDestination) => {
-      setDestinationLocation(destination);
-      setStage("confirm");
-      bottomSheetRef.current?.snapToIndex(2);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      try {
+        setDestinationLocation(destination);
+        setStage("confirm");
+        bottomSheetRef.current?.snapToIndex(2);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } catch (error) {
+        logError("Select Recent Destination", error);
+        Alert.alert("Error", "Failed to select destination.");
+      }
     },
     []
   );
 
   const handleDestinationSelected = useCallback((destination: LocationData) => {
-    if (
-      destination.address &&
-      destination.coords.latitude &&
-      destination.coords.longitude
-    ) {
+    try {
+      if (
+        !destination.address ||
+        !destination.coords.latitude ||
+        !destination.coords.longitude
+      ) {
+        throw new Error("Invalid destination data");
+      }
       setDestinationLocation(destination);
       setStage("confirm");
       bottomSheetRef.current?.snapToIndex(2);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (error) {
+      logError("Destination Selected", error);
+      Alert.alert("Error", "Invalid destination selected.");
     }
   }, []);
 
   const handleBookRide = useCallback(async () => {
+    if (
+      !pickupLocation.coords.latitude ||
+      !destinationLocation.coords.latitude
+    ) {
+      Alert.alert(
+        "Error",
+        "Please select valid pickup and destination locations."
+      );
+      return;
+    }
+    setBookingLoading(true);
     try {
-      setBookingLoading(true);
-
       const response = await riderApi.requestRide({
         pickupLocation: {
+          address: pickupLocation.address,
           latitude: Number(pickupLocation.coords.latitude),
           longitude: Number(pickupLocation.coords.longitude),
         },
         dropoffLocation: {
+          address: destinationLocation.address,
           latitude: Number(destinationLocation.coords.latitude),
           longitude: Number(destinationLocation.coords.longitude),
         },
@@ -467,23 +693,17 @@ const HomeScreen = () => {
         paymentMethod: "cash",
         promoCode: "",
       });
-
-      // Check if response is successful
-      if (response?.status === 201) {
-        setStage("search");
-        await Haptics.notificationAsync(
-          Haptics.NotificationFeedbackType.Success
-        );
-      } else {
-        throw new Error(response?.error || "Failed to book ride");
+      if (response?.status !== 201 || !response.data?.ride?.id) {
+        throw new Error("Invalid response from ride request");
       }
-    } catch (error: any) {
-      console.error("Error booking ride:", error);
-      // Optionally show error to user
-      Alert.alert(
-        "Error",
-        error.message || "Failed to book ride. Please try again."
-      );
+      const responseRideId = response.data.ride.id;
+      setRideId(responseRideId);
+      socketRef.current?.emit("joinRide", responseRideId);
+      setStage("search");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      logError("Book Ride", error);
+      Alert.alert("Error", "Failed to book ride. Please try again.");
     } finally {
       setBookingLoading(false);
     }
@@ -495,45 +715,60 @@ const HomeScreen = () => {
   ]);
 
   const handleBack = useCallback(() => {
-    if (stage === "input") {
-      setStage("initial");
-      setDestinationLocation({
-        address: "",
-        coords: { latitude: "", longitude: "" },
-      });
-      bottomSheetRef.current?.snapToIndex(0);
-    } else if (stage === "confirm") {
-      setStage("input");
-      bottomSheetRef.current?.snapToIndex(1);
-    } else if (stage === "chat") {
-      setStage(driver ? (eta ? "trip" : "arrived") : "paired");
-      bottomSheetRef.current?.snapToIndex(2);
+    try {
+      if (stage === "input") {
+        setStage("initial");
+        setDestinationLocation({
+          address: "",
+          coords: { latitude: "", longitude: "" },
+        });
+        bottomSheetRef.current?.snapToIndex(0);
+      } else if (stage === "confirm") {
+        setStage("input");
+        bottomSheetRef.current?.snapToIndex(1);
+      } else if (stage === "chat") {
+        setStage(driver ? (eta ? "trip" : "arrived") : "paired");
+        bottomSheetRef.current?.snapToIndex(2);
+      }
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (error) {
+      logError("Handle Back", error);
+      Alert.alert("Error", "Failed to navigate back.");
     }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   }, [stage, driver, eta]);
 
   const centerMapOnUser = useCallback(() => {
-    if (userLocation?.coords) {
+    try {
+      if (!userLocation?.coords) {
+        throw new Error("User location unavailable");
+      }
       mapRef.current?.animateToRegion(
         {
           latitude: userLocation.coords.latitude,
           longitude: userLocation.coords.longitude,
-          latitudeDelta: 0.003810113049217634,
-          longitudeDelta: 0.001899674534795892,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
         },
         1000
       );
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    } catch (error) {
+      logError("Center Map On User", error);
+      Alert.alert("Error", "Failed to center map on your location.");
     }
   }, [userLocation]);
 
-  const handleCancelRide = useCallback(() => {
+  const handleCancelRide = useCallback(async () => {
     if (stage === "trip") {
       Alert.alert(
         "Cannot Cancel Ride",
         "The ride is in progress and cannot be canceled at this stage.",
         [{ text: "OK" }]
       );
+      return;
+    }
+    if (!rideId) {
+      Alert.alert("Error", "No active ride to cancel.");
       return;
     }
     Alert.alert(
@@ -544,28 +779,39 @@ const HomeScreen = () => {
         {
           text: "Yes, Cancel",
           style: "destructive",
-          onPress: () => {
-            setStage("initial");
-            setDestinationLocation({
-              address: "",
-              coords: { latitude: "", longitude: "" },
-            });
-            setDriver(null);
-            setRideId(null);
-            setMessages([]);
-            setEta("");
-            bottomSheetRef.current?.snapToIndex(0);
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            Alert.alert(
-              "Ride Cancelled",
-              "Your ride has been cancelled successfully.",
-              [{ text: "OK" }]
-            );
+          onPress: async () => {
+            try {
+              setBookingLoading(true);
+              const { status } = await riderApi.cancelRide(rideId);
+              if (status !== 200) {
+                throw new Error("Failed to cancel ride");
+              }
+              setStage("initial");
+              setDestinationLocation({
+                address: "",
+                coords: { latitude: "", longitude: "" },
+              });
+              setDriver(null);
+              setRideId(null);
+              setMessages([]);
+              setEta("");
+              bottomSheetRef.current?.snapToIndex(0);
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              Alert.alert(
+                "Ride Cancelled",
+                "Your ride has been cancelled successfully."
+              );
+            } catch (error) {
+              logError("Cancel Ride", error);
+              Alert.alert("Error", "Failed to cancel ride. Please try again.");
+            } finally {
+              setBookingLoading(false);
+            }
           },
         },
       ]
     );
-  }, [stage]);
+  }, [stage, rideId]);
 
   const handleSendMessage = useCallback(async () => {
     if (!newMessage.trim() || !rideId) return;
@@ -576,7 +822,7 @@ const HomeScreen = () => {
       Keyboard.dismiss();
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch (error) {
-      console.error("Failed to send message:", error);
+      logError("Send Message", error);
       Alert.alert("Error", "Failed to send message. Please try again.");
     } finally {
       setChatLoading(false);
@@ -593,7 +839,7 @@ const HomeScreen = () => {
         <Animated.View entering={ZoomIn.delay(100 * Number(item.id))}>
           <View style={homeStyles.recentDestinationContent}>
             <Image
-              source={{ uri: MARKER_ICONS.pin }}
+              source={{ uri: CONFIG.MARKER_ICONS.pin }}
               style={homeStyles.recentDestinationIcon}
             />
             <View>
@@ -619,7 +865,7 @@ const HomeScreen = () => {
       <View style={homeStyles.locationCard}>
         <View style={homeStyles.locationRow}>
           <Image
-            source={{ uri: MARKER_ICONS.pickup }}
+            source={{ uri: CONFIG.MARKER_ICONS.pickup }}
             style={homeStyles.locationIcon}
           />
           <CustomText style={homeStyles.locationText}>
@@ -632,11 +878,11 @@ const HomeScreen = () => {
         <View style={homeStyles.locationDivider} />
         <View style={homeStyles.locationRow}>
           <Image
-            source={{ uri: MARKER_ICONS.destination }}
+            source={{ uri: CONFIG.MARKER_ICONS.destination }}
             style={homeStyles.locationIcon}
           />
           <CustomText style={homeStyles.locationText}>
-            {destinationLocation.address}
+            {destinationLocation.address || "Select Destination"}
           </CustomText>
         </View>
       </View>
@@ -649,24 +895,25 @@ const HomeScreen = () => {
       <View style={homeStyles.confirmCard}>
         <View style={homeStyles.rideOptionHeader}>
           <Image
-            source={{ uri: driver!.picture }}
+            source={{ uri: driver?.profilePicture || CONFIG.MARKER_ICONS.user }}
             style={homeStyles.driverPicture}
           />
           <View style={homeStyles.driverInfoContainer}>
             <CustomText fontWeight="Bold" style={homeStyles.rideOptionTitle}>
-              {driver!.name}
+              {driver?.name || "Unknown Driver"}
             </CustomText>
             <View style={homeStyles.ratingContainer}>
               <Image
-                source={{ uri: MARKER_ICONS.star }}
+                source={{ uri: CONFIG.MARKER_ICONS.star }}
                 style={homeStyles.starIcon}
               />
               <CustomText style={homeStyles.rideOptionDescription}>
-                {driver!.rating?.toFixed(1)}
+                {driver?.rating?.toFixed(1) || "N/A"}
               </CustomText>
             </View>
             <CustomText style={homeStyles.rideOptionDescription}>
-              {driver!.vehicle} (Keke) • {driver!.vehicleNumber}
+              {driver?.vehicle || "Tricycle"} (Keke) •{" "}
+              {driver?.vehicleNumber || "N/A"}
             </CustomText>
           </View>
         </View>
@@ -686,6 +933,15 @@ const HomeScreen = () => {
         <TouchableOpacity
           style={[homeStyles.contactButton, { marginRight: scale(8) }]}
           activeOpacity={0.7}
+          onPress={() => {
+            try {
+              // Implement call functionality here if needed
+              Alert.alert("Call", "Calling driver is not implemented yet.");
+            } catch (error) {
+              logError("Initiate Call", error);
+              Alert.alert("Error", "Failed to initiate call.");
+            }
+          }}
         >
           <Ionicons
             name="call"
@@ -701,9 +957,14 @@ const HomeScreen = () => {
           style={homeStyles.contactButton}
           activeOpacity={0.7}
           onPress={() => {
-            setStage("chat");
-            bottomSheetRef.current?.snapToIndex(3);
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            try {
+              setStage("chat");
+              bottomSheetRef.current?.snapToIndex(3);
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            } catch (error) {
+              logError("Open Chat", error);
+              Alert.alert("Error", "Failed to open chat.");
+            }
           }}
         >
           <Ionicons
@@ -733,7 +994,7 @@ const HomeScreen = () => {
         ]}
       >
         <CustomText fontWeight="Medium" style={homeStyles.messageSender}>
-          {item.senderId === userId ? "You" : item.Sender.name}
+          {item.senderId === userId ? "You" : item.Sender?.name || "Unknown"}
         </CustomText>
         <CustomText style={homeStyles.messageText}>{item.content}</CustomText>
         <CustomText style={homeStyles.messageTime}>
@@ -751,7 +1012,7 @@ const HomeScreen = () => {
     () => (
       <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
         <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
-          Chat with {driver?.name}
+          Chat with {driver?.name || "Driver"}
         </CustomText>
         {chatLoading ? (
           <View style={homeStyles.chatLoadingContainer}>
@@ -826,19 +1087,15 @@ const HomeScreen = () => {
               ? {
                   latitude: userLocation.coords.latitude,
                   longitude: userLocation.coords.longitude,
-                  latitudeDelta: 0.003810113049217634,
-                  longitudeDelta: 0.001899674534795892,
+                  latitudeDelta: 0.005,
+                  longitudeDelta: 0.005,
                 }
-              : INITIAL_REGION
+              : CONFIG.INITIAL_REGION
           }
           showsUserLocation={stage === "initial" || stage === "input"}
           style={homeStyles.map}
         >
-          {(stage === "confirm" ||
-            stage === "search" ||
-            stage === "paired" ||
-            stage === "arrived" ||
-            stage === "trip") &&
+          {["confirm", "search"].includes(stage) &&
             pickupLocation.coords.latitude &&
             destinationLocation.coords.latitude && (
               <>
@@ -851,12 +1108,11 @@ const HomeScreen = () => {
                     latitude: Number(destinationLocation.coords.latitude),
                     longitude: Number(destinationLocation.coords.longitude),
                   }}
-                  apikey={GOOGLE_MAPS_API_KEY}
+                  apikey={CONFIG.GOOGLE_MAPS_API_KEY}
                   strokeWidth={Platform.OS === "android" ? 3 : 4}
                   strokeColor={COLORS.primary}
                   onReady={async (result) => {
                     try {
-                      setLoading(true);
                       setDestinationDistance(result.distance);
                       setDestinationDuration(result.duration);
                       const response = await riderApi.calculateFare({
@@ -864,17 +1120,27 @@ const HomeScreen = () => {
                         durationInMinutes: result.duration,
                         promoCode: "",
                       });
+                      if (
+                        !response.data?.estimatedFare ||
+                        !response.data?.durationInMinutes
+                      ) {
+                        throw new Error("Invalid fare response");
+                      }
                       setFare(response.data.estimatedFare);
                       setTripDuration(response.data.durationInMinutes);
                     } catch (error) {
-                      console.error("Failed to calculate fare:", error);
+                      logError("MapViewDirections onReady", error);
                       Alert.alert(
                         "Error",
                         "Unable to calculate fare. Please try again."
                       );
-                    } finally {
-                      setLoading(false);
+                      setFare(null);
+                      setTripDuration(null);
                     }
+                  }}
+                  onError={(error) => {
+                    logError("MapViewDirections", error);
+                    Alert.alert("Error", "Failed to load directions.");
                   }}
                 />
                 <Marker
@@ -882,9 +1148,10 @@ const HomeScreen = () => {
                     latitude: Number(pickupLocation.coords.latitude),
                     longitude: Number(pickupLocation.coords.longitude),
                   }}
+                  title="Pickup Location"
                 >
                   <Image
-                    source={{ uri: MARKER_ICONS.pickup }}
+                    source={{ uri: CONFIG.MARKER_ICONS.pickup }}
                     style={homeStyles.markerIcon}
                   />
                 </Marker>
@@ -893,24 +1160,125 @@ const HomeScreen = () => {
                     latitude: Number(destinationLocation.coords.latitude),
                     longitude: Number(destinationLocation.coords.longitude),
                   }}
+                  title="Destination"
                 >
                   <Image
-                    source={{ uri: MARKER_ICONS.destination }}
+                    source={{ uri: CONFIG.MARKER_ICONS.destination }}
                     style={homeStyles.markerIcon}
                   />
                 </Marker>
               </>
             )}
-          {driver?.coordinates &&
-            ["paired", "arrived", "trip"].includes(stage) && (
-              <Marker
-                coordinate={{
-                  latitude: Number(driver.coordinates.latitude),
-                  longitude: Number(driver.coordinates.longitude),
-                }}
-              >
-                <Image source={KekeImage} style={homeStyles.tricycleMarker} />
-              </Marker>
+          {stage === "paired" &&
+            driver?.coordinates &&
+            pickupLocation.coords.latitude && (
+              <>
+                <MapViewDirections
+                  origin={{
+                    latitude: driver.coordinates.latitude,
+                    longitude: driver.coordinates.longitude,
+                  }}
+                  destination={{
+                    latitude: Number(pickupLocation.coords.latitude),
+                    longitude: Number(pickupLocation.coords.longitude),
+                  }}
+                  apikey={CONFIG.GOOGLE_MAPS_API_KEY}
+                  strokeWidth={Platform.OS === "android" ? 3 : 4}
+                  strokeColor={COLORS.primary}
+                  onReady={(result) => {
+                    setEta(`${Math.ceil(result.duration)} min`);
+                  }}
+                  onError={(error) => {
+                    logError("MapViewDirections Paired", error);
+                    Alert.alert("Error", "Failed to load driver directions.");
+                  }}
+                />
+                <Marker
+                  coordinate={{
+                    latitude: Number(pickupLocation.coords.latitude),
+                    longitude: Number(pickupLocation.coords.longitude),
+                  }}
+                  title="Pickup Location"
+                >
+                  <Image
+                    source={{ uri: CONFIG.MARKER_ICONS.pickup }}
+                    style={homeStyles.markerIcon}
+                  />
+                </Marker>
+                <Marker
+                  coordinate={{
+                    latitude: driver.coordinates.latitude,
+                    longitude: driver.coordinates.longitude,
+                  }}
+                  title={driver.name}
+                  description={`${driver.vehicle} • ${driver.vehicleNumber}`}
+                >
+                  <Image source={KekeImage} style={homeStyles.tricycleMarker} />
+                </Marker>
+              </>
+            )}
+          {(stage === "arrived" || stage === "trip" || stage === "chat") &&
+            driver?.coordinates &&
+            pickupLocation.coords.latitude &&
+            destinationLocation.coords.latitude && (
+              <>
+                <MapViewDirections
+                  origin={{
+                    latitude: driver.coordinates.latitude,
+                    longitude: driver.coordinates.longitude,
+                  }}
+                  destination={{
+                    latitude: Number(destinationLocation.coords.latitude),
+                    longitude: Number(destinationLocation.coords.longitude),
+                  }}
+                  apikey={CONFIG.GOOGLE_MAPS_API_KEY}
+                  strokeWidth={Platform.OS === "android" ? 3 : 4}
+                  strokeColor={COLORS.primary}
+                  onReady={(result) => {
+                    if (stage !== "arrived") {
+                      setEta(`${Math.ceil(result.duration)} min`);
+                    }
+                  }}
+                  onError={(error) => {
+                    logError("MapViewDirections Trip", error);
+                    Alert.alert("Error", "Failed to load trip directions.");
+                  }}
+                />
+                <Marker
+                  coordinate={{
+                    latitude: Number(pickupLocation.coords.latitude),
+                    longitude: Number(pickupLocation.coords.longitude),
+                  }}
+                  title="Pickup Location"
+                >
+                  <Image
+                    source={{ uri: CONFIG.MARKER_ICONS.pickup }}
+                    style={homeStyles.markerIcon}
+                  />
+                </Marker>
+                <Marker
+                  coordinate={{
+                    latitude: Number(destinationLocation.coords.latitude),
+                    longitude: Number(destinationLocation.coords.longitude),
+                  }}
+                  title="Destination"
+                >
+                  <Image
+                    source={{ uri: CONFIG.MARKER_ICONS.destination }}
+                    style={homeStyles.markerIcon}
+                  />
+                </Marker>
+                <Marker
+                  coordinate={{
+                    latitude: driver.coordinates.latitude,
+                    longitude: driver.coordinates.longitude,
+                  }}
+                  title={driver.name}
+                  description={`${driver.vehicle} • ${driver.vehicleNumber}`}
+                >
+                  <Image source={KekeImage} style={homeStyles.tricycleMarker} />
+                </Marker>
+              </>
             )}
           {["initial", "input"].includes(stage) &&
             nearbyDrivers.map((driver) => (
@@ -949,7 +1317,14 @@ const HomeScreen = () => {
             }}
           >
             <TouchableOpacity
-              onPress={() => navigation.toggleDrawer()}
+              onPress={() => {
+                try {
+                  navigation.toggleDrawer();
+                } catch (error) {
+                  logError("Toggle Drawer", error);
+                  Alert.alert("Error", "Failed to open navigation menu.");
+                }
+              }}
               activeOpacity={0.7}
               style={homeStyles.menuButton}
             >
@@ -1055,7 +1430,7 @@ const HomeScreen = () => {
                 Recent Destinations
               </CustomText>
               <BottomSheetFlatList
-                data={RECENT_DESTINATIONS}
+                data={CONFIG.RECENT_DESTINATIONS}
                 renderItem={renderRecentDestination}
                 keyExtractor={(item) => item.id}
                 style={homeStyles.recentDestinationsList}
@@ -1184,7 +1559,7 @@ const HomeScreen = () => {
               <View style={homeStyles.tripCard}>
                 <View style={homeStyles.driverHeader}>
                   <Image
-                    source={{ uri: driver.picture }}
+                    source={{ uri: driver.profilePicture }}
                     style={homeStyles.driverPicture}
                   />
                   <View style={homeStyles.driverInfoContainer}>
@@ -1196,7 +1571,7 @@ const HomeScreen = () => {
                     </CustomText>
                     <View style={homeStyles.ratingContainer}>
                       <Image
-                        source={{ uri: MARKER_ICONS.star }}
+                        source={{ uri: CONFIG.MARKER_ICONS.star }}
                         style={homeStyles.starIcon}
                       />
                       <CustomText style={homeStyles.rideOptionDescription}>
@@ -1245,4 +1620,5 @@ const HomeScreen = () => {
     </View>
   );
 };
+
 export default memo(HomeScreen);

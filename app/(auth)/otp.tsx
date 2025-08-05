@@ -83,10 +83,10 @@ export default function OTPScreen() {
         otp,
       });
 
-      if (status === 200 && data.token) {
+      if (status === 200) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-        if (isRegistered === "true") {
+        if (isRegistered === "true" && data.token) {
           // User is registered, store token and user, then navigate to tabs
           await Storage.set("access_token", data.token);
           await setUser(

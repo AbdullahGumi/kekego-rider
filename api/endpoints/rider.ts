@@ -10,8 +10,8 @@ export const riderApi = {
     return await apiService.post("/rider/calculate-fare", data);
   },
   requestRide: async (data: {
-    pickupLocation: { latitude: number; longitude: number };
-    dropoffLocation: { latitude: number; longitude: number };
+    pickupLocation: { address :string,latitude: number; longitude: number };
+    dropoffLocation: { address :string,latitude: number; longitude: number };
     paymentMethod: string;
     distanceInKm: number,
     durationInMinutes: number,
