@@ -2,8 +2,7 @@ import CustomText from "@/components/common/CustomText";
 import RecentDestinationItem from "@/components/feature/home/RecentDestinationItem";
 import { CONFIG } from "@/constants/home";
 import type { RecentDestination } from "@/types/home";
-import BottomSheetFlatList from "@gorhom/bottom-sheet";
-import { TouchableOpacity } from "react-native";
+import { FlatList, TouchableOpacity } from "react-native";
 import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
 import { homeStyles } from "../../../../styles/home-styles";
 
@@ -33,7 +32,7 @@ const InitialStage: React.FC<InitialStageProps> = ({
       <CustomText fontWeight="Medium" style={homeStyles.sectionSubTitle}>
         Recent Destinations
       </CustomText>
-      <BottomSheetFlatList
+      <FlatList
         data={CONFIG.RECENT_DESTINATIONS}
         renderItem={({ item }) => (
           <RecentDestinationItem
