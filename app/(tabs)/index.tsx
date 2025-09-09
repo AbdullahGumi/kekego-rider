@@ -2,7 +2,12 @@ import { riderApi } from "@/api/endpoints/rider";
 import { KekeImage } from "@/assets/images/Index";
 import { MenuIcon } from "@/assets/svg";
 import CustomText from "@/components/common/CustomText";
+import ChatView from "@/components/feature/home/ChatView";
+import ContactButtons from "@/components/feature/home/ContactButtons";
+import DriverInfo from "@/components/feature/home/DriverInfo";
+import LocationCard from "@/components/feature/home/LocationCard";
 import LocationInput from "@/components/feature/home/LocationInput";
+import RecentDestinationItem from "@/components/feature/home/RecentDestinationItem";
 import { COLORS } from "@/constants/Colors";
 import { CONSTANTS } from "@/constants/constants";
 import { CONFIG } from "@/constants/home";
@@ -34,7 +39,6 @@ import {
   Image,
   Keyboard,
   Platform,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -48,265 +52,6 @@ import Animated, {
   ZoomIn,
 } from "react-native-reanimated";
 import { homeStyles } from "../../styles/home-styles";
-
-// Components
-
-// Sub-Components
-const RecentDestinationItem = memo(
-  ({
-    item,
-    onSelect,
-  }: {
-    item: RecentDestination;
-    onSelect: (destination: RecentDestination) => void;
-  }) => (
-    <TouchableOpacity
-      style={homeStyles.recentDestinationCard}
-      onPress={() => onSelect(item)}
-      activeOpacity={0.7}
-    >
-      <Animated.View entering={ZoomIn.delay(100 * Number(item.id))}>
-        <View style={homeStyles.recentDestinationContent}>
-          <Image
-            source={{ uri: CONFIG.MARKER_ICONS.pin }}
-            style={homeStyles.recentDestinationIcon}
-          />
-          <View>
-            <CustomText
-              fontWeight="Medium"
-              style={homeStyles.recentDestinationText}
-            >
-              {item.address}
-            </CustomText>
-            <CustomText style={homeStyles.recentDestinationSubText}>
-              Recent Trip
-            </CustomText>
-          </View>
-        </View>
-      </Animated.View>
-    </TouchableOpacity>
-  )
-);
-
-RecentDestinationItem.displayName = "RecentDestinationItem";
-
-const LocationCard = memo(
-  ({
-    pickupLocation,
-    destinationLocation,
-    geocodingLoading,
-  }: {
-    pickupLocation: LocationData;
-    destinationLocation: LocationData;
-    geocodingLoading: boolean;
-  }) => (
-    <View style={homeStyles.locationCard}>
-      <View style={homeStyles.locationRow}>
-        <Image
-          source={{ uri: CONFIG.MARKER_ICONS.pickup }}
-          style={homeStyles.locationIcon}
-        />
-        <CustomText style={homeStyles.locationText}>
-          {pickupLocation.address || "Current Location"}
-        </CustomText>
-        {geocodingLoading && (
-          <ActivityIndicator size="small" color={COLORS.primary} />
-        )}
-      </View>
-      <View style={homeStyles.locationDivider} />
-      <View style={homeStyles.locationRow}>
-        <Image
-          source={{ uri: CONFIG.MARKER_ICONS.destination }}
-          style={homeStyles.locationIcon}
-        />
-        <CustomText style={homeStyles.locationText}>
-          {destinationLocation.address || "Select Destination"}
-        </CustomText>
-      </View>
-    </View>
-  )
-);
-
-LocationCard.displayName = "LocationCard";
-
-const DriverInfo = memo(
-  ({ driver, stage }: { driver: Driver; stage: string }) => (
-    <View style={homeStyles.confirmCard}>
-      <View style={homeStyles.rideOptionHeader}>
-        <Image
-          source={{ uri: driver?.profilePicture || CONFIG.MARKER_ICONS.user }}
-          style={homeStyles.driverPicture}
-        />
-        <View style={homeStyles.driverInfoContainer}>
-          <CustomText fontWeight="Bold" style={homeStyles.rideOptionTitle}>
-            {driver?.name || "Unknown Driver"}
-          </CustomText>
-          <View style={homeStyles.ratingContainer}>
-            <Image
-              source={{ uri: CONFIG.MARKER_ICONS.star }}
-              style={homeStyles.starIcon}
-            />
-            <CustomText style={homeStyles.rideOptionDescription}>
-              {driver?.rating?.toFixed(1) || "N/A"}
-            </CustomText>
-          </View>
-          <CustomText style={homeStyles.rideOptionDescription}>
-            {driver?.vehicle || "Tricycle"} (Keke) •{" "}
-            {driver?.vehicleNumber || "N/A"}
-          </CustomText>
-        </View>
-      </View>
-      <CustomText style={homeStyles.rideOptionDescription}>
-        {stage === "paired"
-          ? "Arriving in approximately 2-3 minutes"
-          : "Your driver is at the pickup location"}
-      </CustomText>
-    </View>
-  )
-);
-
-DriverInfo.displayName = "DriverInfo";
-
-const ContactButtons = memo(
-  ({ onCall, onChat }: { onCall: () => void; onChat: () => void }) => (
-    <View style={homeStyles.contactButtonContainer}>
-      <TouchableOpacity
-        style={[homeStyles.contactButton, { marginRight: scale(8) }]}
-        activeOpacity={0.7}
-        onPress={onCall}
-      >
-        <Ionicons
-          name="call"
-          size={23}
-          color="white"
-          style={{ marginRight: scale(8) }}
-        />
-        <CustomText fontWeight="Bold" style={homeStyles.contactButtonText}>
-          Call
-        </CustomText>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={homeStyles.contactButton}
-        activeOpacity={0.7}
-        onPress={onChat}
-      >
-        <Ionicons
-          name="chatbubble"
-          size={23}
-          color="white"
-          style={{ marginRight: scale(8) }}
-        />
-        <CustomText fontWeight="Bold" style={homeStyles.contactButtonText}>
-          Chat
-        </CustomText>
-      </TouchableOpacity>
-    </View>
-  )
-);
-
-ContactButtons.displayName = "ContactButtons";
-
-const MessageItem = memo(
-  ({ item, userId }: { item: Message; userId: string }) => (
-    <Animated.View
-      entering={FadeIn}
-      style={[
-        homeStyles.messageBubble,
-        item.senderId === userId
-          ? homeStyles.sentMessage
-          : homeStyles.receivedMessage,
-      ]}
-    >
-      <CustomText fontWeight="Medium" style={homeStyles.messageSender}>
-        {item.senderId === userId ? "You" : item.Sender?.name || "Unknown"}
-      </CustomText>
-      <CustomText style={homeStyles.messageText}>{item.content}</CustomText>
-      <CustomText style={homeStyles.messageTime}>
-        {new Date(item.createdAt).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
-      </CustomText>
-    </Animated.View>
-  )
-);
-
-MessageItem.displayName = "MessageItem";
-
-const ChatView = memo(
-  ({
-    driver,
-    messages,
-    newMessage,
-    setNewMessage,
-    chatLoading,
-    handleSendMessage,
-    flatListRef,
-  }: {
-    driver: Driver | null;
-    messages: Message[];
-    newMessage: string;
-    setNewMessage: (msg: string) => void;
-    chatLoading: boolean;
-    handleSendMessage: () => void;
-    flatListRef: React.RefObject<BottomSheetFlatListMethods | null>;
-  }) => (
-    <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
-      <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
-        Chat with {driver?.name || "Driver"}
-      </CustomText>
-      {chatLoading ? (
-        <View style={homeStyles.chatLoadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <CustomText style={homeStyles.searchText}>
-            Loading messages...
-          </CustomText>
-        </View>
-      ) : (
-        <>
-          <BottomSheetFlatList
-            ref={flatListRef}
-            data={messages}
-            renderItem={({ item }) => (
-              <MessageItem item={item} userId="rider1" />
-            )}
-            keyExtractor={(item) => item.id}
-            style={homeStyles.chatList}
-            contentContainerStyle={homeStyles.chatListContent}
-            showsVerticalScrollIndicator={false}
-          />
-          <View style={homeStyles.chatInputContainer}>
-            <TextInput
-              style={homeStyles.chatInput}
-              value={newMessage}
-              onChangeText={setNewMessage}
-              placeholder="Type a message..."
-              placeholderTextColor={COLORS.secondaryText}
-              multiline
-            />
-            <TouchableOpacity
-              style={[
-                homeStyles.sendButton,
-                !newMessage.trim() && homeStyles.sendButtonDisabled,
-              ]}
-              onPress={handleSendMessage}
-              disabled={!newMessage.trim() || chatLoading}
-              activeOpacity={0.7}
-            >
-              {chatLoading ? (
-                <ActivityIndicator size="small" color={COLORS.white} />
-              ) : (
-                <Ionicons name="send" size={20} color={COLORS.white} />
-              )}
-            </TouchableOpacity>
-          </View>
-        </>
-      )}
-    </Animated.View>
-  )
-);
-
-ChatView.displayName = "ChatView";
 
 const HomeScreen = () => {
   const navigation = useNavigation<any>();
@@ -1222,7 +967,6 @@ const HomeScreen = () => {
               setNewMessage={setNewMessage}
               chatLoading={chatLoading}
               handleSendMessage={handleSendMessage}
-              flatListRef={flatListRef}
             />
           )}
         </BottomSheetView>
