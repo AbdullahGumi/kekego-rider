@@ -1,7 +1,6 @@
-import { riderApi } from "@/api/endpoints/rider";
-import { KekeImage } from "@/assets/images/Index";
 import { MenuIcon } from "@/assets/svg";
 import CustomText from "@/components/common/CustomText";
+import MapContent from "@/components/feature/home/MapContent";
 import ChatStage from "@/components/feature/home/stages/ChatStage";
 import ConfirmStage from "@/components/feature/home/stages/ConfirmStage";
 import InitialStage from "@/components/feature/home/stages/InitialStage";
@@ -14,6 +13,7 @@ import { CONFIG } from "@/constants/home";
 import { scale } from "@/constants/Layout";
 import { useChat } from "@/hooks/home/useChat";
 import { useLocation } from "@/hooks/home/useLocation";
+import { useMapRegionManager } from "@/hooks/home/useMapRegionManager";
 import { useNearbyDrivers } from "@/hooks/home/useNearbyDrivers";
 import { useRide } from "@/hooks/home/useRide";
 import { useSocket } from "@/hooks/home/useSocket";
@@ -35,14 +35,11 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Keyboard,
-  Platform,
   TouchableOpacity,
   View,
 } from "react-native";
-import MapView, { Marker } from "react-native-maps";
-import MapViewDirections from "react-native-maps-directions";
+import MapView from "react-native-maps";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { homeStyles } from "../../styles/home-styles";
 
@@ -70,7 +67,6 @@ const HomeScreen = () => {
   const [destinationDistance, setDestinationDistance] = useState(0);
   const [destinationDuration, setDestinationDuration] = useState(0);
   const [rideId, setRideId] = useState<string | null>(null);
-  const [userId] = useState<string>("rider1");
 
   const mapRef = useRef<MapView>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -122,132 +118,16 @@ const HomeScreen = () => {
     setMapLoading(false);
   }, [userLocation]);
 
-  // Map region and directions management
-  useEffect(() => {
-    if (mapLoading || !mapRef.current) return;
-    try {
-      if (stage === "initial" || stage === "input") {
-        if (userLocation?.coords) {
-          mapRef.current.animateToRegion(
-            {
-              latitude: userLocation.coords.latitude,
-              longitude: userLocation.coords.longitude,
-              latitudeDelta: 0.005,
-              longitudeDelta: 0.005,
-            },
-            1000
-          );
-        }
-      } else if (stage === "confirm" || stage === "search") {
-        if (
-          pickupLocation.coords.latitude &&
-          destinationLocation.coords.latitude
-        ) {
-          mapRef.current.fitToCoordinates(
-            [
-              {
-                latitude: Number(pickupLocation.coords.latitude),
-                longitude: Number(pickupLocation.coords.longitude),
-              },
-              {
-                latitude: Number(destinationLocation.coords.latitude),
-                longitude: Number(destinationLocation.coords.longitude),
-              },
-            ],
-            {
-              edgePadding: {
-                top: scale(100),
-                bottom: scale(200),
-                right: scale(20),
-                left: scale(20),
-              },
-              animated: true,
-            }
-          );
-        }
-      } else if (stage === "paired") {
-        if (driver?.coordinates && pickupLocation.coords.latitude) {
-          mapRef.current.fitToCoordinates(
-            [
-              {
-                latitude: driver.coordinates.latitude,
-                longitude: driver.coordinates.longitude,
-              },
-              {
-                latitude: Number(pickupLocation.coords.latitude),
-                longitude: Number(pickupLocation.coords.longitude),
-              },
-            ],
-            {
-              edgePadding: {
-                top: scale(100),
-                bottom: scale(200),
-                right: scale(20),
-                left: scale(20),
-              },
-              animated: true,
-            }
-          );
-        }
-      } else if (stage === "arrived") {
-        if (driver?.coordinates && pickupLocation.coords.latitude) {
-          mapRef.current.animateToRegion(
-            {
-              latitude:
-                (driver.coordinates.latitude +
-                  Number(pickupLocation.coords.latitude)) /
-                2,
-              longitude:
-                (driver.coordinates.longitude +
-                  Number(pickupLocation.coords.longitude)) /
-                2,
-              latitudeDelta: 0.002,
-              longitudeDelta: 0.002,
-            },
-            1000
-          );
-        }
-      } else if (stage === "trip" || stage === "chat") {
-        if (
-          driver?.coordinates &&
-          pickupLocation.coords.latitude &&
-          destinationLocation.coords.latitude
-        ) {
-          mapRef.current.fitToCoordinates(
-            [
-              {
-                latitude: driver.coordinates.latitude,
-                longitude: driver.coordinates.longitude,
-              },
-              {
-                latitude: Number(destinationLocation.coords.latitude),
-                longitude: Number(destinationLocation.coords.longitude),
-              },
-            ],
-            {
-              edgePadding: {
-                top: scale(100),
-                bottom: scale(200),
-                right: scale(20),
-                left: scale(20),
-              },
-              animated: true,
-            }
-          );
-        }
-      }
-    } catch (error) {
-      logError("Map Region Update", error);
-      Alert.alert("Error", "Failed to update map view.");
-    }
-  }, [
+  // Map region management
+  useMapRegionManager({
     stage,
+    mapLoading,
+    mapRef,
     userLocation,
     pickupLocation,
     destinationLocation,
     driver,
-    mapLoading,
-  ]);
+  });
 
   // ETA timer for trip stage
   useEffect(() => {
@@ -419,205 +299,18 @@ const HomeScreen = () => {
           showsUserLocation={stage === "initial" || stage === "input"}
           style={homeStyles.map}
         >
-          {["confirm", "search"].includes(stage) &&
-            pickupLocation.coords.latitude &&
-            destinationLocation.coords.latitude && (
-              <>
-                <MapViewDirections
-                  origin={{
-                    latitude: Number(pickupLocation.coords.latitude),
-                    longitude: Number(pickupLocation.coords.longitude),
-                  }}
-                  destination={{
-                    latitude: Number(destinationLocation.coords.latitude),
-                    longitude: Number(destinationLocation.coords.longitude),
-                  }}
-                  apikey={CONFIG.GOOGLE_MAPS_API_KEY}
-                  strokeWidth={Platform.OS === "android" ? 3 : 4}
-                  strokeColor={COLORS.primary}
-                  onReady={async (result) => {
-                    try {
-                      setDestinationDistance(result.distance);
-                      setDestinationDuration(result.duration);
-                      const response = await riderApi.calculateFare({
-                        distanceInKm: result.distance,
-                        durationInMinutes: result.duration,
-                        promoCode: "",
-                      });
-                      if (
-                        !response.data?.estimatedFare ||
-                        !response.data?.durationInMinutes
-                      ) {
-                        throw new Error("Invalid fare response");
-                      }
-                      setFare(response.data.estimatedFare);
-                      setTripDuration(response.data.durationInMinutes);
-                    } catch (error) {
-                      logError("MapViewDirections onReady", error);
-                      Alert.alert(
-                        "Error",
-                        "Unable to calculate fare. Please try again."
-                      );
-                      setFare(null);
-                      setTripDuration(null);
-                    }
-                  }}
-                  onError={(error) => {
-                    logError("MapViewDirections", error);
-                    Alert.alert("Error", "Failed to load directions.");
-                  }}
-                />
-                <Marker
-                  coordinate={{
-                    latitude: Number(pickupLocation.coords.latitude),
-                    longitude: Number(pickupLocation.coords.longitude),
-                  }}
-                  title="Pickup Location"
-                >
-                  <Image
-                    source={{ uri: CONFIG.MARKER_ICONS.pickup }}
-                    style={homeStyles.markerIcon}
-                  />
-                </Marker>
-                <Marker
-                  coordinate={{
-                    latitude: Number(destinationLocation.coords.latitude),
-                    longitude: Number(destinationLocation.coords.longitude),
-                  }}
-                  title="Destination"
-                >
-                  <Image
-                    source={{ uri: CONFIG.MARKER_ICONS.destination }}
-                    style={homeStyles.markerIcon}
-                  />
-                </Marker>
-              </>
-            )}
-          {stage === "paired" &&
-            driver?.coordinates &&
-            pickupLocation.coords.latitude && (
-              <>
-                <MapViewDirections
-                  origin={{
-                    latitude: driver.coordinates.latitude,
-                    longitude: driver.coordinates.longitude,
-                  }}
-                  destination={{
-                    latitude: Number(pickupLocation.coords.latitude),
-                    longitude: Number(pickupLocation.coords.longitude),
-                  }}
-                  apikey={CONFIG.GOOGLE_MAPS_API_KEY}
-                  strokeWidth={Platform.OS === "android" ? 3 : 4}
-                  strokeColor={COLORS.primary}
-                  onReady={(result) => {
-                    setEta(`${Math.ceil(result.duration)} min`);
-                  }}
-                  onError={(error) => {
-                    logError("MapViewDirections Paired", error);
-                    Alert.alert("Error", "Failed to load driver directions.");
-                  }}
-                />
-                <Marker
-                  coordinate={{
-                    latitude: Number(pickupLocation.coords.latitude),
-                    longitude: Number(pickupLocation.coords.longitude),
-                  }}
-                  title="Pickup Location"
-                >
-                  <Image
-                    source={{ uri: CONFIG.MARKER_ICONS.pickup }}
-                    style={homeStyles.markerIcon}
-                  />
-                </Marker>
-                <Marker
-                  coordinate={{
-                    latitude: driver.coordinates.latitude,
-                    longitude: driver.coordinates.longitude,
-                  }}
-                  title={driver.name}
-                  description={`${driver.vehicle} • ${driver.vehicleNumber}`}
-                >
-                  <Image source={KekeImage} style={homeStyles.tricycleMarker} />
-                </Marker>
-              </>
-            )}
-          {(stage === "arrived" || stage === "trip" || stage === "chat") &&
-            driver?.coordinates &&
-            pickupLocation.coords.latitude &&
-            destinationLocation.coords.latitude && (
-              <>
-                <MapViewDirections
-                  origin={{
-                    latitude: driver.coordinates.latitude,
-                    longitude: driver.coordinates.longitude,
-                  }}
-                  destination={{
-                    latitude: Number(destinationLocation.coords.latitude),
-                    longitude: Number(destinationLocation.coords.longitude),
-                  }}
-                  apikey={CONFIG.GOOGLE_MAPS_API_KEY}
-                  strokeWidth={Platform.OS === "android" ? 3 : 4}
-                  strokeColor={COLORS.primary}
-                  onReady={(result) => {
-                    if (stage !== "arrived") {
-                      setEta(`${Math.ceil(result.duration)} min`);
-                    }
-                  }}
-                  onError={(error) => {
-                    logError("MapViewDirections Trip", error);
-                    Alert.alert("Error", "Failed to load trip directions.");
-                  }}
-                />
-                <Marker
-                  coordinate={{
-                    latitude: Number(pickupLocation.coords.latitude),
-                    longitude: Number(pickupLocation.coords.longitude),
-                  }}
-                  title="Pickup Location"
-                >
-                  <Image
-                    source={{ uri: CONFIG.MARKER_ICONS.pickup }}
-                    style={homeStyles.markerIcon}
-                  />
-                </Marker>
-                <Marker
-                  coordinate={{
-                    latitude: Number(destinationLocation.coords.latitude),
-                    longitude: Number(destinationLocation.coords.longitude),
-                  }}
-                  title="Destination"
-                >
-                  <Image
-                    source={{ uri: CONFIG.MARKER_ICONS.destination }}
-                    style={homeStyles.markerIcon}
-                  />
-                </Marker>
-                <Marker
-                  coordinate={{
-                    latitude: driver.coordinates.latitude,
-                    longitude: driver.coordinates.longitude,
-                  }}
-                  title={driver.name}
-                  description={`${driver.vehicle} • ${driver.vehicleNumber}`}
-                >
-                  <Image source={KekeImage} style={homeStyles.tricycleMarker} />
-                </Marker>
-              </>
-            )}
-          {["initial", "input"].includes(stage) &&
-            nearbyDrivers.map((driver) => (
-              <Marker
-                key={driver.id}
-                coordinate={{
-                  latitude: driver.coordinates.latitude,
-                  longitude: driver.coordinates.longitude,
-                }}
-                title={driver.name}
-                description={`${driver.vehicle} • ${driver.vehicleNumber}`}
-              >
-                <Image source={KekeImage} style={homeStyles.tricycleMarker} />
-              </Marker>
-            ))}
+          <MapContent
+            stage={stage}
+            pickupLocation={pickupLocation}
+            destinationLocation={destinationLocation}
+            driver={driver}
+            nearbyDrivers={nearbyDrivers}
+            setDestinationDistance={setDestinationDistance}
+            setDestinationDuration={setDestinationDuration}
+            setFare={setFare}
+            setTripDuration={setTripDuration}
+            setEta={setEta}
+          />
         </MapView>
       )}
 
