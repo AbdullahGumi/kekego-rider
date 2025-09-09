@@ -17,6 +17,7 @@ export default function Index() {
   useEffect(() => {
     const initialize = async () => {
       const token = await Storage.get("access_token");
+      // await Storage.clear();
       // await loadFromStorage();
 
       setStatus({
