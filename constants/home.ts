@@ -1,6 +1,5 @@
-
 export const CONFIG = {
-  GOOGLE_MAPS_API_KEY: "AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE",
+  GOOGLE_MAPS_API_KEY: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "",
   DEFAULT_COORDS: { latitude: "6.5244", longitude: "3.3792" },
   INITIAL_REGION: {
     latitude: 6.5244,

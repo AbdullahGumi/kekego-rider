@@ -9,7 +9,7 @@ import { Socket } from "socket.io-client";
 export const useRide = (
   pickupLocation: LocationData,
   destinationLocation: LocationData,
-  setStage: React.Dispatch<React.SetStateAction<RideStage>>,
+  setStage: (stage: RideStage) => void,
   setRideId: React.Dispatch<React.SetStateAction<string | null>>,
   setMessages: (messages: Message[]) => void,
   setEta: (eta: string) => void,

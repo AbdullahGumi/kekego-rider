@@ -1,6 +1,6 @@
 import { CONFIG } from "@/constants/home";
+import { useErrorHandler } from "@/hooks/useErrorHandler";
 import { LocationData } from "@/types/home";
-import { logError } from "@/utility";
 import * as Location from "expo-location";
 import { useCallback, useEffect, useState } from "react";
 
@@ -13,19 +13,33 @@ export const useLocation = () => {
   });
   const [geocodingLoading, setGeocodingLoading] = useState(true);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  const { handleApiError, handleLocationError, clearError } = useErrorHandler();
 
   const fetchLocation = useCallback(async () => {
     try {
+      clearError("LOCATION_ERROR");
+      setLocationError(null);
+
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        throw new Error("Location permission denied");
+        handleLocationError(new Error("Location permission denied"), {
+          permissionStatus: status,
+        });
+        setLocationError("Location access denied. Please enable location services to use the app.");
+        setPickupLocation({ address: "Location access required", coords: CONFIG.DEFAULT_COORDS });
+        return;
       }
+
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.BestForNavigation,
       });
+
       if (!location?.coords) {
-        throw new Error("Invalid location data");
+        throw new Error("Unable to get valid location coordinates");
       }
+
       setUserLocation(location);
       setPickupLocation((prev) => ({
         ...prev,
@@ -34,44 +48,99 @@ export const useLocation = () => {
           longitude: String(location.coords.longitude),
         },
       }));
-    } catch (error) {
-      logError("Fetch Location", error);
-      setLocationError("Failed to fetch location. Using default location.");
-      setPickupLocation({ address: "", coords: CONFIG.DEFAULT_COORDS });
+
+      clearError("LOCATION_ERROR");
+    } catch (error: any) {
+      handleLocationError(error, {
+        retryCount,
+        action: "fetchLocation",
+      });
+
+      const fallbackMessage = "Using default location. You can try again by restarting the app.";
+      setLocationError(`${error?.message || "Location service unavailable"}. ${fallbackMessage}`);
+
+      setPickupLocation({
+        address: "Location unavailable - using default",
+        coords: CONFIG.DEFAULT_COORDS
+      });
+
+      // Increment retry count for potential retry logic
+      setRetryCount(prev => prev + 1);
     } finally {
       setGeocodingLoading(false);
     }
-  }, []);
+  }, [handleLocationError, clearError, retryCount]);
 
   const reverseGeocode = useCallback(
     async (latitude: number, longitude: number) => {
       setGeocodingLoading(true);
       try {
-        const response = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${CONFIG.GOOGLE_MAPS_API_KEY}`
-        );
-        if (!response.ok) {
-          throw new Error(`Geocoding API error: ${response.status}`);
+        // Check if API key is available
+        if (!CONFIG.GOOGLE_MAPS_API_KEY) {
+          throw new Error("Google Maps API key not configured");
         }
+
+        const response = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${CONFIG.GOOGLE_MAPS_API_KEY}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
         const data = await response.json();
+
         if (data.status !== "OK") {
           throw new Error(`Geocoding failed: ${data.status}`);
         }
+
+        if (!data.results || data.results.length === 0) {
+          throw new Error("No address found for these coordinates");
+        }
+
         setPickupLocation({
-          address: data.results?.[0]?.formatted_address || "Unknown Location",
+          address: data.results[0].formatted_address || "Unknown Location",
           coords: { latitude: String(latitude), longitude: String(longitude) },
         });
-      } catch (error) {
-        logError("Reverse Geocode", error);
+
+        clearError("API_ERROR");
+      } catch (error: any) {
+        // Handle different types of API errors
+        handleApiError(error, {
+          latitude,
+          longitude,
+          action: "reverseGeocode",
+          retryCount,
+          apiKeyConfigured: !!CONFIG.GOOGLE_MAPS_API_KEY,
+        });
+
+        let errorMessage = "Unable to fetch address";
+
+        if (error?.message?.includes("REQUEST_DENIED")) {
+          errorMessage = "Google Maps API access denied. Please check your API key configuration.";
+        } else if (error?.message?.includes("OVER_QUERY_LIMIT")) {
+          errorMessage = "API request limit exceeded. Please try again later.";
+        } else if (error?.message?.includes("ZERO_RESULTS")) {
+          errorMessage = "Address not found for your location.";
+        } else if (error?.message?.includes("API key not configured")) {
+          errorMessage = "Google Maps API key missing. Please configure your environment variables.";
+        }
+
         setPickupLocation({
-          address: "Unable to fetch address",
+          address: errorMessage,
           coords: { latitude: String(latitude), longitude: String(longitude) },
         });
       } finally {
         setGeocodingLoading(false);
       }
     },
-    []
+    [handleApiError, clearError, retryCount]
   );
 
   useEffect(() => {
