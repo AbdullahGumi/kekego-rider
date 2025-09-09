@@ -81,3 +81,13 @@ export const formatDuration = (minutes: number | string | null | undefined): str
   const remainingMinutes = totalMinutes % 60;
   return `${hours}h ${remainingMinutes}m`;
 };
+
+export const logError = (context: string, error: any) => {
+  console.error(`${context} Error:`, {
+    message: error.message,
+    stack: error.stack,
+    response: error.response?.data,
+    code: error.code,
+    timestamp: new Date().toISOString(),
+  });
+};

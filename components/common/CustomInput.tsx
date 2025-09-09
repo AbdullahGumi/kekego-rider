@@ -99,7 +99,7 @@ const CustomInput = ({
         <TextInput
           {...textInputProps}
           secureTextEntry={isSecure}
-          style={[styles.input, textInputProps.style]}
+          style={[styles.input, textInputProps.style] as any}
           onFocus={() => (isFocusable ? setIsFocused(true) : {})}
           onBlur={handleBlur}
         />

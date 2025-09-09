@@ -3,7 +3,6 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 
 import {
-  KronaOneRegular,
   UrbanistBold,
   UrbanistMedium, UrbanistMediumItalic, UrbanistRegular, UrbanistSemiBold,
 } from "../assets/fonts";
@@ -25,7 +24,6 @@ const useCachedResources = () => {
           "Urbanist-SemiBold": UrbanistSemiBold,
           "Urbanist-Medium": UrbanistMedium,
           "Urbanist-Medium-Italic": UrbanistMediumItalic,
-          KronaOne: KronaOneRegular
         });
       } catch (e) {
         console.warn(e);

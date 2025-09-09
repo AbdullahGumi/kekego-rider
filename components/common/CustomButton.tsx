@@ -58,7 +58,7 @@ const CustomButton = ({
               fontSize: scaleText(16),
               fontFamily: "Urbanist-Bold",
             },
-            textStyles,
+            ...(textStyles ? [textStyles] : []),
           ]}
         >
           {title}
