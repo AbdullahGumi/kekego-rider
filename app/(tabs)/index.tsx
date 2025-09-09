@@ -2,14 +2,14 @@ import { riderApi } from "@/api/endpoints/rider";
 import { KekeImage } from "@/assets/images/Index";
 import { MenuIcon } from "@/assets/svg";
 import CustomText from "@/components/common/CustomText";
-import ChatView from "@/components/feature/home/ChatView";
-import ContactButtons from "@/components/feature/home/ContactButtons";
-import DriverInfo from "@/components/feature/home/DriverInfo";
-import LocationCard from "@/components/feature/home/LocationCard";
-import LocationInput from "@/components/feature/home/LocationInput";
-import RecentDestinationItem from "@/components/feature/home/RecentDestinationItem";
+import ChatStage from "@/components/feature/home/stages/ChatStage";
+import ConfirmStage from "@/components/feature/home/stages/ConfirmStage";
+import InitialStage from "@/components/feature/home/stages/InitialStage";
+import InputStage from "@/components/feature/home/stages/InputStage";
+import PairedArrivedStage from "@/components/feature/home/stages/PairedArrivedStage";
+import SearchStage from "@/components/feature/home/stages/SearchStage";
+import TripStage from "@/components/feature/home/stages/TripStage";
 import { COLORS } from "@/constants/Colors";
-import { CONSTANTS } from "@/constants/constants";
 import { CONFIG } from "@/constants/home";
 import { scale } from "@/constants/Layout";
 import { useChat } from "@/hooks/home/useChat";
@@ -23,10 +23,9 @@ import type {
   Message,
   RecentDestination,
 } from "@/types/home";
-import { formatDuration, logError, numberWithCommas } from "@/utility";
+import { logError } from "@/utility";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet, {
-  BottomSheetFlatList,
   BottomSheetFlatListMethods,
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
@@ -44,13 +43,7 @@ import {
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
-import Animated, {
-  FadeIn,
-  FadeOut,
-  SlideInDown,
-  SlideOutDown,
-  ZoomIn,
-} from "react-native-reanimated";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { homeStyles } from "../../styles/home-styles";
 
 const HomeScreen = () => {
@@ -731,236 +724,69 @@ const HomeScreen = () => {
       >
         <BottomSheetView style={homeStyles.bottomSheetContent}>
           {stage === "initial" && (
-            <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
-              <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
-                Plan Your Ride
-              </CustomText>
-              <TouchableOpacity
-                style={homeStyles.whereToButton}
-                onPress={handleWhereTo}
-                activeOpacity={0.7}
-              >
-                <CustomText
-                  fontWeight="Bold"
-                  style={homeStyles.whereToButtonText}
-                >
-                  Where to?
-                </CustomText>
-              </TouchableOpacity>
-              <CustomText
-                fontWeight="Medium"
-                style={homeStyles.sectionSubTitle}
-              >
-                Recent Destinations
-              </CustomText>
-              <BottomSheetFlatList
-                data={CONFIG.RECENT_DESTINATIONS}
-                renderItem={({ item }) => (
-                  <RecentDestinationItem
-                    item={item}
-                    onSelect={handleSelectRecentDestination}
-                  />
-                )}
-                keyExtractor={(item) => item.id}
-                style={homeStyles.recentDestinationsList}
-                showsVerticalScrollIndicator={false}
-              />
-            </Animated.View>
+            <InitialStage
+              handleWhereTo={handleWhereTo}
+              handleSelectRecentDestination={handleSelectRecentDestination}
+            />
           )}
 
           {stage === "input" && (
-            <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
-              <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
-                Enter Your Destination
-              </CustomText>
-              <LocationInput
-                setPickupLocation={setPickupLocation}
-                setDestinationLocation={handleDestinationSelected}
-                initialPickup={pickupLocation.address}
-                initialDestination={destinationLocation.address}
-                isPickupLoading={geocodingLoading}
-              />
-            </Animated.View>
+            <InputStage
+              setPickupLocation={setPickupLocation}
+              handleDestinationSelected={handleDestinationSelected}
+              pickupAddress={pickupLocation.address}
+              destinationAddress={destinationLocation.address}
+              geocodingLoading={geocodingLoading}
+            />
           )}
 
           {stage === "confirm" && (
-            <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
-              <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
-                Confirm Your Ride
-              </CustomText>
-              <LocationCard
-                pickupLocation={pickupLocation}
-                destinationLocation={destinationLocation}
-                geocodingLoading={geocodingLoading}
-              />
-              <View style={homeStyles.confirmCard}>
-                <View style={homeStyles.rideOptionHeader}>
-                  <Image source={KekeImage} style={homeStyles.rideOptionIcon} />
-                  <View>
-                    <CustomText
-                      fontWeight="Bold"
-                      style={homeStyles.rideOptionTitle}
-                    >
-                      Tricycle
-                    </CustomText>
-                    <CustomText style={homeStyles.rideOptionDescription}>
-                      Local tricycle (Keke)
-                    </CustomText>
-                  </View>
-                </View>
-                <View style={homeStyles.rideOptionDetails}>
-                  {fare === null || tripDuration === null ? (
-                    <ActivityIndicator size="small" color={COLORS.primary} />
-                  ) : (
-                    <>
-                      <CustomText
-                        fontWeight="Bold"
-                        style={homeStyles.rideOptionPrice}
-                      >
-                        {CONSTANTS.NAIRA_UNICODE}
-                        {numberWithCommas(fare)}
-                      </CustomText>
-                      <CustomText style={homeStyles.rideOptionDuration}>
-                        {formatDuration(tripDuration)}
-                      </CustomText>
-                    </>
-                  )}
-                </View>
-              </View>
-              <TouchableOpacity
-                style={[
-                  homeStyles.bookButton,
-                  bookingLoading && homeStyles.bookButtonDisabled,
-                ]}
-                onPress={handleBookRide}
-                disabled={bookingLoading}
-                activeOpacity={0.7}
-              >
-                <Animated.View entering={FadeIn}>
-                  {bookingLoading ? (
-                    <ActivityIndicator size="small" color={COLORS.white} />
-                  ) : (
-                    <CustomText
-                      fontWeight="Bold"
-                      style={homeStyles.bookButtonText}
-                    >
-                      Book Keke Ride
-                    </CustomText>
-                  )}
-                </Animated.View>
-              </TouchableOpacity>
-            </Animated.View>
+            <ConfirmStage
+              pickupLocation={pickupLocation}
+              destinationLocation={destinationLocation}
+              geocodingLoading={geocodingLoading}
+              fare={fare}
+              tripDuration={tripDuration}
+              bookingLoading={bookingLoading}
+              handleBookRide={handleBookRide}
+            />
           )}
 
           {stage === "search" && (
-            <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
-              <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
-                Finding Your Keke...
-              </CustomText>
-              <LocationCard
-                pickupLocation={pickupLocation}
-                destinationLocation={destinationLocation}
-                geocodingLoading={geocodingLoading}
-              />
-              <Animated.View
-                entering={ZoomIn}
-                style={homeStyles.searchAnimation}
-              >
-                <ActivityIndicator size="large" color={COLORS.primary} />
-                <CustomText style={homeStyles.searchText}>
-                  Searching for nearby drivers...
-                </CustomText>
-              </Animated.View>
-            </Animated.View>
+            <SearchStage
+              pickupLocation={pickupLocation}
+              destinationLocation={destinationLocation}
+              geocodingLoading={geocodingLoading}
+            />
           )}
 
           {(stage === "paired" || stage === "arrived") && driver && (
-            <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
-              <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
-                {stage === "paired"
-                  ? "Your Keke Driver"
-                  : "Keke Driver Arrived"}
-              </CustomText>
-              <LocationCard
-                pickupLocation={pickupLocation}
-                destinationLocation={destinationLocation}
-                geocodingLoading={geocodingLoading}
-              />
-              <DriverInfo driver={driver} stage={stage} />
-              <ContactButtons onCall={handleCall} onChat={handleOpenChat} />
-            </Animated.View>
+            <PairedArrivedStage
+              driver={driver}
+              pickupLocation={pickupLocation}
+              destinationLocation={destinationLocation}
+              geocodingLoading={geocodingLoading}
+              stage={stage}
+              onCall={handleCall}
+              onChat={handleOpenChat}
+            />
           )}
 
           {stage === "trip" && driver && (
-            <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
-              <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
-                Trip started
-              </CustomText>
-              <LocationCard
-                pickupLocation={pickupLocation}
-                destinationLocation={destinationLocation}
-                geocodingLoading={geocodingLoading}
-              />
-              <View style={homeStyles.tripCard}>
-                <View style={homeStyles.driverHeader}>
-                  <Image
-                    source={{ uri: driver.profilePicture }}
-                    style={homeStyles.driverPicture}
-                  />
-                  <View style={homeStyles.driverInfoContainer}>
-                    <CustomText
-                      fontWeight="Bold"
-                      style={homeStyles.rideOptionTitle}
-                    >
-                      {driver.name}
-                    </CustomText>
-                    <View style={homeStyles.ratingContainer}>
-                      <Image
-                        source={{ uri: CONFIG.MARKER_ICONS.star }}
-                        style={homeStyles.starIcon}
-                      />
-                      <CustomText style={homeStyles.rideOptionDescription}>
-                        {driver.rating?.toFixed(1)}
-                      </CustomText>
-                    </View>
-                    <CustomText style={homeStyles.rideOptionDescription}>
-                      {driver.vehicle} (Keke) • {driver.vehicleNumber}
-                    </CustomText>
-                  </View>
-                </View>
-                <View style={homeStyles.tripInfoContainer}>
-                  <View style={homeStyles.tripInfoItem}>
-                    <CustomText style={homeStyles.tripInfoLabel}>
-                      Time of Arrival
-                    </CustomText>
-                    <CustomText
-                      fontWeight="Bold"
-                      style={homeStyles.tripInfoValue}
-                    >
-                      {eta}
-                    </CustomText>
-                  </View>
-                  <View style={homeStyles.tripInfoDivider} />
-                  <View style={homeStyles.tripInfoItem}>
-                    <CustomText style={homeStyles.tripInfoLabel}>
-                      Price
-                    </CustomText>
-                    <CustomText
-                      fontWeight="Bold"
-                      style={homeStyles.tripInfoValue}
-                    >
-                      {CONSTANTS.NAIRA_UNICODE}
-                      {numberWithCommas(fare)}
-                    </CustomText>
-                  </View>
-                </View>
-              </View>
-              <ContactButtons onCall={handleCall} onChat={handleOpenChat} />
-            </Animated.View>
+            <TripStage
+              driver={driver}
+              pickupLocation={pickupLocation}
+              destinationLocation={destinationLocation}
+              geocodingLoading={geocodingLoading}
+              eta={eta}
+              fare={fare}
+              onCall={handleCall}
+              onChat={handleOpenChat}
+            />
           )}
 
           {stage === "chat" && driver && (
-            <ChatView
+            <ChatStage
               driver={driver}
               messages={messages}
               newMessage={newMessage}
