@@ -91,3 +91,11 @@ export const logError = (context: string, error: any) => {
     timestamp: new Date().toISOString(),
   });
 };
+
+// Re-export map region service utilities
+export {
+  getMapRegionConfig,
+  shouldUpdateMapRegion, STAGE_CONFIGS, updateMapRegion, type MapRegionConfiguration,
+  type MapRegionParams
+} from "./mapRegionService";
+
