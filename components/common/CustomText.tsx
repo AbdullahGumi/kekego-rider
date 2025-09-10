@@ -19,6 +19,8 @@ interface CustomTextProps extends TextProps {
   style?: TextStyle | TextStyle[];
 }
 
+const DEFAULT_SIZE = 14;
+
 const CustomText: React.FC<CustomTextProps> = ({
   fontFamily = "Urbanist",
   fontWeight = "Regular",
@@ -27,9 +29,12 @@ const CustomText: React.FC<CustomTextProps> = ({
   children,
   ...props
 }) => {
+  // make size optional and safe
+  const resolvedSize =
+    typeof size === "number" && !isNaN(size) ? size : DEFAULT_SIZE;
   const combinedStyle: TextStyle = {
     fontFamily: fontVariants[fontWeight] || fontFamily,
-    fontSize: scaleText(size!),
+    fontSize: scaleText(resolvedSize),
   };
 
   return (
