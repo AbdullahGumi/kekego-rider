@@ -1,21 +1,21 @@
 import { CONFIG } from "@/constants/home";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
-import { LocationData } from "@/types/home";
+import { useAppStore } from "@/stores/useAppStore";
 import * as Location from "expo-location";
 import { useCallback, useEffect, useState } from "react";
 
 export const useLocation = () => {
-  const [userLocation, setUserLocation] =
-    useState<Location.LocationObject | null>(null);
-  const [pickupLocation, setPickupLocation] = useState<LocationData>({
-    address: "",
-    coords: CONFIG.DEFAULT_COORDS,
-  });
   const [geocodingLoading, setGeocodingLoading] = useState(true);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
 
   const { handleApiError, handleLocationError, clearError } = useErrorHandler();
+
+  // Use global state instead of local state
+  const userLocation = useAppStore((state) => state.userLocation);
+  const pickupLocation = useAppStore((state) => state.pickupLocation);
+  const setUserLocation = useAppStore((state) => state.setUserLocation);
+  const setPickupLocation = useAppStore((state) => state.setPickupLocation);
 
   const fetchLocation = useCallback(async () => {
     try {
@@ -41,13 +41,13 @@ export const useLocation = () => {
       }
 
       setUserLocation(location);
-      setPickupLocation((prev) => ({
-        ...prev,
+      setPickupLocation({
+        ...pickupLocation,
         coords: {
           latitude: String(location.coords.latitude),
           longitude: String(location.coords.longitude),
         },
-      }));
+      });
 
       clearError("LOCATION_ERROR");
     } catch (error: any) {

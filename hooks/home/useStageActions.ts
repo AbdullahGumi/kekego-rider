@@ -21,7 +21,6 @@ interface StageActions {
   handleSelectRecentDestination: (destination: RecentDestination) => void;
   handleDestinationSelected: (destination: LocationData) => void;
   handleBack: () => void;
-  centerMapOnUser: (userLocation: any) => void;
   handleCall: () => void;
   handleOpenChat: () => void;
   setStage: (stage: RideStage) => void;
@@ -124,18 +123,7 @@ export const useStageActions = ({
     }
   }, [setDestinationLocation, bottomSheetRef, geocodingLoading, currentStage, driver, eta]);
 
-  const centerMapOnUser = useCallback((userLocation: any) => {
-    try {
-      if (!userLocation?.coords) {
-        throw new Error("User location unavailable");
-      }
-      // Map center logic would be handled by parent component
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    } catch (error) {
-      logError("Center Map On User", error);
-      Alert.alert("Error", "Failed to center map on your location.");
-    }
-  }, []);
+
 
   const handleCall = useCallback(() => {
     Alert.alert("Call", "Calling driver is not implemented yet.");
@@ -152,7 +140,6 @@ export const useStageActions = ({
     handleSelectRecentDestination,
     handleDestinationSelected,
     handleBack,
-    centerMapOnUser,
     handleCall,
     handleOpenChat,
     setStage: (stage: RideStage) => setStage(stage), // Expose setStage to parent

@@ -155,7 +155,6 @@ export const useRideManager = ({
     handleSelectRecentDestination: stageActions.handleSelectRecentDestination,
     handleDestinationSelected: stageActions.handleDestinationSelected,
     handleBack: stageActions.handleBack,
-    centerMapOnUser: stageActions.centerMapOnUser,
     handleCall: stageActions.handleCall,
     handleOpenChat: stageActions.handleOpenChat,
 
