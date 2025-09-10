@@ -18,8 +18,7 @@ export const useRideFlow = ({ bottomSheetRef }: UseRideFlowOptions) => {
     setFare,
     setTripDuration,
     setRideId,
-    setDestinationLocation,
-    setPickupLocation,
+    setDestinationLocation, 
   } = useAppStore();
 
   // Extract values for easier access
