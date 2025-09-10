@@ -19,6 +19,11 @@ import { useRide } from "@/hooks/home/useRide";
 import { useRideFlow } from "@/hooks/home/useRideFlow";
 import { useAppStore } from "@/stores/useAppStore";
 import { logError } from "@/utility";
+import {
+  getMapRegionConfig,
+  shouldUpdateMapRegion,
+  updateMapRegion,
+} from "@/utility/mapRegionService";
 import BottomSheet, {
   BottomSheetFlatListMethods,
   BottomSheetView,
@@ -127,12 +132,6 @@ const HomeScreen = () => {
   const centerMapOnUser = useCallback(() => {
     if (userLocation?.coords) {
       // Use the existing map region manager for consistent behavior
-      const {
-        getMapRegionConfig,
-        updateMapRegion,
-        shouldUpdateMapRegion,
-      } = require("@/utility/mapRegionService");
-
       const mapParams = {
         stage: "initial", // Use initial stage to center on user
         userLocation,
@@ -164,7 +163,7 @@ const HomeScreen = () => {
     } else {
       Alert.alert("Error", "User location unavailable.");
     }
-  }, [userLocation]);
+  }, [userLocation, destinationLocation, driver, pickupLocation]);
 
   return (
     <View style={homeStyles.container}>
