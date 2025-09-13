@@ -9,7 +9,7 @@ import { Socket } from "socket.io-client";
 export const useRide = (
   pickupLocation: LocationData,
   destinationLocation: LocationData,
-  setStage: (stage: RideStage) => void,
+  setRideStage: (stage: RideStage) => void,
   setRideId: React.Dispatch<React.SetStateAction<string | null>>,
   setMessages: (messages: Message[]) => void,
   setEta: (eta: string) => void,
@@ -56,12 +56,20 @@ export const useRide = (
       const responseRideId = response.data.ride.id;
       localSetRideId(responseRideId);
       setRideId(responseRideId);
-      socketRef.current?.emit("joinRide", responseRideId);
-      setStage("search");
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (error) {
-      logError("Book Ride", error);
-      Alert.alert("Error", "Failed to book ride. Please try again.");
+
+          socketRef.current?.emit("joinRide", responseRideId, (response: any) => {
+            console.log("Join ride callback response:", response);
+            if (response.success) {
+              console.log(`✅ Successfully joined ride ${responseRideId}`);
+              setRideStage("search");
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            } else {
+              console.error("Failed to join ride:", response.error);
+              Alert.alert("Error", `Failed to join ride: ${response.error}`);
+            }
+          });
+    } catch (error: any) {
+      Alert.alert("Error", error.response.data.error.message || "Failed to book ride.");
     } finally {
       setBookingLoading(false);
     }
@@ -70,7 +78,7 @@ export const useRide = (
     pickupLocation,
     destinationDistance,
     destinationDuration,
-    setStage,
+    setRideStage,
     setRideId,
     socketRef,
   ]);
@@ -104,7 +112,7 @@ export const useRide = (
                 if (status !== 200) {
                   throw new Error("Failed to cancel ride");
                 }
-                setStage("initial");
+                setRideStage("initial");
                 setRideId(null);
                 setMessages([]);
                 setEta("");
@@ -128,7 +136,7 @@ export const useRide = (
         ]
       );
     },
-    [rideId, setStage, setRideId, setMessages, setEta, bottomSheetRef]
+    [rideId, setRideStage, setRideId, setMessages, setEta, bottomSheetRef]
   );
 
   return { bookingLoading, handleBookRide, handleCancelRide };

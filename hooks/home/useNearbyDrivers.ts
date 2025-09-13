@@ -12,6 +12,7 @@ export const useNearbyDrivers = (userLocation: Location.LocationObject | null) =
     if (!userLocation?.coords) return;
     const fetchNearbyDrivers = async () => {
       try {
+         
         const res = await riderApi.getNearbyDrivers({
           latitude: userLocation.coords.latitude,
           longitude: userLocation.coords.longitude,

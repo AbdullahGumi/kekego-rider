@@ -85,20 +85,19 @@ export default function OTPScreen() {
 
       if (status === 200) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-        if (isRegistered === "true" && data.token) {
+        if (isRegistered && data.data.token) {
           // User is registered, store token and user, then navigate to tabs
-          await Storage.set("access_token", data.token);
+          await Storage.set("access_token", data.data.token);
           await setUser(
             {
-              id: data.user.id,
-              phone: data.user.phone,
-              role: data.user.role,
-              // name: data.user.name,
-              // email: data.user.email,
-              gender: data.user.gender,
+              id: data.data.user.id,
+              phone: data.data.user.phone,
+              role: data.data.user.role,
+              name: data.data.user.name,
+              email: data.data.user.email,
+              gender: data.data.user.gender,
             },
-            data.token
+            data.data.token
           );
           router.push("/(tabs)");
         } else {
@@ -114,10 +113,11 @@ export default function OTPScreen() {
         });
       }
     } catch (err: any) {
+      console.log(err.response?.data.error);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Toast.show({
         type: "customToast",
-        text1: err.response?.data?.message || "Failed to verify OTP",
+        text1: err.response?.data?.error || "Failed to verify OTP",
         props: { type: "Error" },
       });
     }

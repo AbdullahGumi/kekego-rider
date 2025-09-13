@@ -77,16 +77,15 @@ export default function PhoneNumberScreen() {
       // Step 2: Request OTP
       const otpResponse = await authApi.requestOtp(phone);
 
-      if (otpResponse.data) {
+      if (otpResponse.data.success) {
         setLoading(false);
-
         console.log("otp--->", otpResponse.data);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         router.push({
           pathname: "/(auth)/otp",
           params: {
             phone,
-            isRegistered: checkResponse.data.isRegistered ? "true" : "false",
+            isRegistered: checkResponse.data.data.isRegistered,
           },
         });
       } else {
@@ -104,7 +103,7 @@ export default function PhoneNumberScreen() {
     } catch (err: any) {
       setLoading(false);
       const errorMessage =
-        err.response?.data?.message ||
+        err.response?.data.error ||
         "Failed to process request. Please try again.";
       console.log({ phone: errorMessage });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);

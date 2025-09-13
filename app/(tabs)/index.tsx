@@ -17,6 +17,7 @@ import { useMapRegionManager } from "@/hooks/home/useMapRegionManager";
 import { useNearbyDrivers } from "@/hooks/home/useNearbyDrivers";
 import { useRide } from "@/hooks/home/useRide";
 import { useRideFlow } from "@/hooks/home/useRideFlow";
+import { useSocket } from "@/hooks/home/useSocket";
 import { useAppStore } from "@/stores/useAppStore";
 import { logError } from "@/utility";
 import {
@@ -41,6 +42,7 @@ const HomeScreen = () => {
   const destinationLocation = useAppStore((state) => state.destinationLocation);
   const userLocation = useAppStore((state) => state.userLocation);
   const nearbyDrivers = useNearbyDrivers(userLocation);
+  console.log("nearbyDrivers", nearbyDrivers);
 
   // Extract store actions directly
   const {
@@ -51,13 +53,14 @@ const HomeScreen = () => {
     setFare,
     setTripDuration,
     setEta,
+    setDriver,
+    setRideStage,
   } = useAppStore();
 
   // Map refs
   const mapRef = useRef<MapView>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const flatListRef = useRef<BottomSheetFlatListMethods | null>(null);
-  const socketRef = useRef<any>(null); // For booking compatibility
   const snapPoints = useMemo(() => ["55%", "70%", "80%", "90%"], []);
 
   // Single useRideFlow hook replaces all duplicate handlers
@@ -93,11 +96,21 @@ const HomeScreen = () => {
     handleSendMessage,
   } = useChat(stage, rideId || "", flatListRef);
 
+  const socketRef = useSocket(
+    rideId,
+    (newStage) => setRideStage(newStage), // Access setStage from useRideFlow store
+    (driver) => setDriver(driver), // Access setDriver from useRideFlow store
+    pickupLocation,
+    setMessages,
+    setEta,
+    bottomSheetRef
+  );
+
   // Minimal booking functionality from original useRide
   const { bookingLoading, handleBookRide } = useRide(
     pickupLocation,
     destinationLocation,
-    () => {}, // setRideStage - already handled by useRideFlow
+    setRideStage,
     () => {}, // setRideIdWrapper - already handled
     setMessages,
     () => {}, // setEtaWrapper - already handled

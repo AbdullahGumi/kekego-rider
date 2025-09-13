@@ -91,7 +91,7 @@ const RegisterScreen = () => {
       }
     } catch (err: any) {
       setLoading(false);
-      console.log("err", err.response.data.error);
+      console.log("err", err.response?.data.message);
     }
   };
 
