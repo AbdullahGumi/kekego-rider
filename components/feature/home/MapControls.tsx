@@ -1,13 +1,11 @@
+import { COLORS } from "@/constants/Colors";
 import { scale } from "@/constants/Layout";
-import type { RecentDestination } from "@/types/home";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
 import { TouchableOpacity, View } from "react-native";
 
 interface MapControlsProps {
   stage: string;
-  onWhereTo: () => void;
-  onSelectRecentDestination: (destination: RecentDestination) => void;
   onBack: (geocodingLoading?: boolean) => void;
   onCenterMap: () => void;
   geocodingLoading: boolean;
@@ -15,8 +13,6 @@ interface MapControlsProps {
 
 export const MapControls: React.FC<MapControlsProps> = ({
   stage,
-  onWhereTo,
-  onSelectRecentDestination,
   onBack,
   onCenterMap,
   geocodingLoading,
@@ -71,11 +67,11 @@ export const MapControls: React.FC<MapControlsProps> = ({
             shadowRadius: 4,
             elevation: 5,
             borderWidth: 1,
-            borderColor: "#007bff",
+            borderColor: COLORS.primary,
             marginRight: scale(16),
           }}
         >
-          <Ionicons name="locate" size={24} color="#007bff" />
+          <Ionicons name="locate" size={24} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
     );
@@ -127,11 +123,11 @@ export const MapControls: React.FC<MapControlsProps> = ({
             shadowRadius: 4,
             elevation: 5,
             borderWidth: 1,
-            borderColor: "#007bff",
+            borderColor: COLORS.primary,
             marginRight: scale(16),
           }}
         >
-          <Ionicons name="locate" size={24} color="#007bff" />
+          <Ionicons name="locate" size={24} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
     );

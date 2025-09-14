@@ -3,33 +3,28 @@ import ContactButtons from "@/components/feature/home/ContactButtons";
 import LocationCard from "@/components/feature/home/LocationCard";
 import { CONSTANTS } from "@/constants/constants";
 import { CONFIG } from "@/constants/home";
-import type { Driver, LocationData } from "@/types/home";
+import { useAppStore } from "@/stores/useAppStore";
 import { numberWithCommas } from "@/utility";
 import { Image, View } from "react-native";
 import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
 import { homeStyles } from "../../../../styles/home-styles";
 
 interface TripStageProps {
-  driver: Driver;
-  pickupLocation: LocationData;
-  destinationLocation: LocationData;
   geocodingLoading: boolean;
-  eta: string;
-  fare: number | null;
   onCall: () => void;
   onChat: () => void;
 }
 
 const TripStage: React.FC<TripStageProps> = ({
-  driver,
-  pickupLocation,
-  destinationLocation,
   geocodingLoading,
-  eta,
-  fare,
   onCall,
   onChat,
 }) => {
+  const rideState = useAppStore((state) => state.rideState);
+  const pickupLocation = useAppStore((state) => state.pickupLocation);
+  const destinationLocation = useAppStore((state) => state.destinationLocation);
+
+  const { fare, driver, eta } = rideState;
   return (
     <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
       <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
@@ -43,12 +38,12 @@ const TripStage: React.FC<TripStageProps> = ({
       <View style={homeStyles.tripCard}>
         <View style={homeStyles.driverHeader}>
           <Image
-            source={{ uri: driver.profilePicture }}
+            source={{ uri: driver?.profilePicture }}
             style={homeStyles.driverPicture}
           />
           <View style={homeStyles.driverInfoContainer}>
             <CustomText fontWeight="Bold" style={homeStyles.rideOptionTitle}>
-              {driver.name}
+              {driver?.name}
             </CustomText>
             <View style={homeStyles.ratingContainer}>
               <Image
@@ -56,11 +51,11 @@ const TripStage: React.FC<TripStageProps> = ({
                 style={homeStyles.starIcon}
               />
               <CustomText style={homeStyles.rideOptionDescription}>
-                {driver.rating?.toFixed(1)}
+                {driver?.rating?.toFixed(1)}
               </CustomText>
             </View>
             <CustomText style={homeStyles.rideOptionDescription}>
-              {driver.vehicle} (Keke) • {driver.vehicleNumber}
+              {driver?.vehicle} (Keke) • {driver?.vehicleNumber}
             </CustomText>
           </View>
         </View>

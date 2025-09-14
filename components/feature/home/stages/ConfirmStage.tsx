@@ -3,7 +3,7 @@ import CustomText from "@/components/common/CustomText";
 import LocationCard from "@/components/feature/home/LocationCard";
 import { COLORS } from "@/constants/Colors";
 import { CONSTANTS } from "@/constants/constants";
-import type { LocationData } from "@/types/home";
+import { useAppStore } from "@/stores/useAppStore";
 import { formatDuration, numberWithCommas } from "@/utility";
 import { ActivityIndicator, Image, TouchableOpacity, View } from "react-native";
 import Animated, {
@@ -14,24 +14,22 @@ import Animated, {
 import { homeStyles } from "../../../../styles/home-styles";
 
 interface ConfirmStageProps {
-  pickupLocation: LocationData;
-  destinationLocation: LocationData;
   geocodingLoading: boolean;
-  fare: number | null;
-  tripDuration: number | null;
   bookingLoading: boolean;
   handleBookRide: () => void;
 }
 
 const ConfirmStage: React.FC<ConfirmStageProps> = ({
-  pickupLocation,
-  destinationLocation,
   geocodingLoading,
-  fare,
-  tripDuration,
   bookingLoading,
   handleBookRide,
 }) => {
+  const pickupLocation = useAppStore((state) => state.pickupLocation);
+  const rideState = useAppStore((state) => state.rideState);
+  const destinationLocation = useAppStore((state) => state.destinationLocation);
+
+  const { fare, tripDuration } = rideState;
+
   return (
     <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
       <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>

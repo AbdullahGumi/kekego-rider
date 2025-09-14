@@ -49,18 +49,17 @@ export const MapDirections: React.FC<MapDirectionsProps> = ({
             const response = await riderApi.calculateFare({
               distanceInKm: result.distance,
               durationInMinutes: result.duration,
-              promoCode: "",
             });
             if (
-              !response.data?.estimatedFare ||
-              !response.data?.durationInMinutes
+              !response.data?.data.estimatedFare ||
+              !response.data?.data.durationInMinutes
             ) {
               throw new Error("Invalid fare response");
             }
             onDirectionReady({
               ...result,
-              estimatedFare: response.data.estimatedFare,
-              tripDuration: response.data.durationInMinutes,
+              estimatedFare: response.data.data.estimatedFare,
+              tripDuration: response.data.data.durationInMinutes,
             });
           } catch (error) {
             logError("MapViewDirections onReady", error);

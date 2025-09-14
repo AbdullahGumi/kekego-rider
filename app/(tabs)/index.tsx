@@ -1,7 +1,6 @@
 import CustomText from "@/components/common/CustomText";
 import MapContent from "@/components/feature/home/MapContent";
 import { MapControls } from "@/components/feature/home/MapControls";
-import ChatStage from "@/components/feature/home/stages/ChatStage";
 import ConfirmStage from "@/components/feature/home/stages/ConfirmStage";
 import InitialStage from "@/components/feature/home/stages/InitialStage";
 import InputStage from "@/components/feature/home/stages/InputStage";
@@ -10,141 +9,55 @@ import SearchStage from "@/components/feature/home/stages/SearchStage";
 import TripStage from "@/components/feature/home/stages/TripStage";
 import { COLORS } from "@/constants/Colors";
 import { CONFIG } from "@/constants/home";
-import { useCallHandler } from "@/hooks/home/useCallHandler";
-import { useChat } from "@/hooks/home/useChat";
 import { useLocation } from "@/hooks/home/useLocation";
 import { useMapRegionManager } from "@/hooks/home/useMapRegionManager";
 import { useNearbyDrivers } from "@/hooks/home/useNearbyDrivers";
-import { useRide } from "@/hooks/home/useRide";
-import { useRideFlow } from "@/hooks/home/useRideFlow";
 import { useSocket } from "@/hooks/home/useSocket";
 import { useAppStore } from "@/stores/useAppStore";
-import { logError } from "@/utility";
+import { homeStyles } from "@/styles/home-styles";
 import {
   getMapRegionConfig,
   shouldUpdateMapRegion,
   updateMapRegion,
-} from "@/utility/mapRegionService";
-import BottomSheet, {
-  BottomSheetFlatListMethods,
-  BottomSheetView,
-} from "@gorhom/bottom-sheet";
-import { memo, useCallback, useEffect, useMemo, useRef } from "react";
-import { ActivityIndicator, Alert, Keyboard, View } from "react-native";
+} from "@/utility";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { ActivityIndicator, Keyboard, View } from "react-native";
 import MapView from "react-native-maps";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
-import { homeStyles } from "../../styles/home-styles";
 
 const HomeScreen = () => {
-  // Use unified state management from store
   const rideState = useAppStore((state) => state.rideState);
   const pickupLocation = useAppStore((state) => state.pickupLocation);
   const destinationLocation = useAppStore((state) => state.destinationLocation);
   const userLocation = useAppStore((state) => state.userLocation);
   const nearbyDrivers = useNearbyDrivers(userLocation);
-  console.log("nearbyDrivers", nearbyDrivers);
 
-  // Extract store actions directly
   const {
     setMapLoading,
-    setPickupLocation,
     setDestinationDistance,
     setDestinationDuration,
     setFare,
     setTripDuration,
     setEta,
-    setDriver,
     setRideStage,
+    setDestinationLocation,
   } = useAppStore();
 
-  // Map refs
+  const { mapLoading, stage, driver, eta } = rideState;
+
   const mapRef = useRef<MapView>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const flatListRef = useRef<BottomSheetFlatListMethods | null>(null);
   const snapPoints = useMemo(() => ["55%", "70%", "80%", "90%"], []);
 
-  // Single useRideFlow hook replaces all duplicate handlers
-  const {
-    stage,
-    driver,
-    eta,
-    handleWhereTo,
-    handleSelectRecentDestination,
-    handleDestinationSelected,
-    handleBack,
-    handleOpenChat,
-  } = useRideFlow({ bottomSheetRef });
+  const { geocodingLoading } = useLocation();
 
-  // Get remaining store values directly
-  const {
-    fare,
-    tripDuration,
-    rideId,
-    mapLoading,
-    destinationDistance,
-    destinationDuration,
-  } = rideState;
+  useMapRegionManager(mapRef);
 
-  // Core dependencies only
-  const { geocodingLoading, locationError } = useLocation();
-  const {
-    messages,
-    setMessages,
-    newMessage,
-    setNewMessage,
-    chatLoading,
-    handleSendMessage,
-  } = useChat(stage, rideId || "", flatListRef);
+  const socketRef = useSocket(bottomSheetRef);
 
-  const socketRef = useSocket(
-    rideId,
-    (newStage) => setRideStage(newStage), // Access setStage from useRideFlow store
-    (driver) => setDriver(driver), // Access setDriver from useRideFlow store
-    pickupLocation,
-    setMessages,
-    setEta,
-    bottomSheetRef
-  );
-
-  // Minimal booking functionality from original useRide
-  const { bookingLoading, handleBookRide } = useRide(
-    pickupLocation,
-    destinationLocation,
-    setRideStage,
-    () => {}, // setRideIdWrapper - already handled
-    setMessages,
-    () => {}, // setEtaWrapper - already handled
-    bottomSheetRef,
-    socketRef, // Use the socket ref I created
-    destinationDistance || 0, // Use actual distance from store
-    destinationDuration || 0 // Use actual duration from store
-  );
-
-  // Auto-stop loading when user location available
-  useEffect(() => {
-    if (userLocation?.coords) {
-      setMapLoading(false);
-    }
-  }, [userLocation, setMapLoading]);
-
-  // Use the existing dedicated map region management hook
-  useMapRegionManager({
-    stage,
-    mapLoading,
-    mapRef,
-    userLocation,
-    pickupLocation,
-    destinationLocation,
-    driver,
-  });
-
-  // Use centralized call handler hook
-  const { handleCall } = useCallHandler();
-
-  // Handle manual map centering via dedicated hook functionality
   const centerMapOnUser = useCallback(() => {
     if (userLocation?.coords) {
-      // Use the existing map region manager for consistent behavior
       const mapParams = {
         stage: "initial", // Use initial stage to center on user
         userLocation,
@@ -155,12 +68,7 @@ const HomeScreen = () => {
 
       const config = getMapRegionConfig("initial");
       if (config && shouldUpdateMapRegion(config, mapParams)) {
-        try {
-          updateMapRegion(mapRef.current, config, mapParams);
-        } catch (error) {
-          logError("Center Map On User", error);
-          Alert.alert("Error", "Failed to center map on your location.");
-        }
+        updateMapRegion(mapRef.current, config, mapParams);
       } else {
         // Fallback manual centering
         mapRef.current?.animateToRegion(
@@ -173,10 +81,45 @@ const HomeScreen = () => {
           1000
         );
       }
-    } else {
-      Alert.alert("Error", "User location unavailable.");
     }
   }, [userLocation, destinationLocation, driver, pickupLocation]);
+
+  useEffect(() => {
+    if (userLocation?.coords) {
+      setMapLoading(false);
+    }
+  }, [userLocation, setMapLoading]);
+
+  const handleBack = useCallback(
+    (geocodingLoading: boolean = false) => {
+      if (geocodingLoading) {
+        // Don't allow navigation while geocoding is in progress
+        return;
+      }
+
+      if (stage === "input") {
+        setRideStage("initial");
+        setDestinationLocation({
+          address: "",
+          coords: { latitude: "", longitude: "" },
+        });
+        bottomSheetRef.current?.snapToIndex(0);
+      } else if (stage === "confirm") {
+        setRideStage("input");
+        bottomSheetRef.current?.snapToIndex(1);
+      } else if (stage === "chat") {
+        // Handle chat stage back navigation based on driver state and ETA
+        setRideStage(driver ? (eta ? "trip" : "arrived") : "paired");
+        bottomSheetRef.current?.snapToIndex(2);
+      }
+    },
+    [stage, driver, eta, setRideStage, setDestinationLocation, bottomSheetRef]
+  );
+
+  const handleOpenChat = useCallback(() => {
+    setRideStage("chat");
+    bottomSheetRef.current?.snapToIndex(3);
+  }, [setRideStage, bottomSheetRef]);
 
   return (
     <View style={homeStyles.container}>
@@ -188,7 +131,7 @@ const HomeScreen = () => {
         >
           <ActivityIndicator size="large" color={COLORS.primary} />
           <CustomText fontWeight="Medium" style={homeStyles.loadingText}>
-            Loading your ride...
+            Loading your map...
           </CustomText>
         </Animated.View>
       ) : (
@@ -224,20 +167,12 @@ const HomeScreen = () => {
         </MapView>
       )}
 
-      {locationError && (
-        <Animated.View entering={FadeIn} style={homeStyles.errorContainer}>
-          <CustomText style={homeStyles.errorText}>{locationError}</CustomText>
-        </Animated.View>
-      )}
-
       <Animated.View
         entering={FadeIn.delay(200)}
         style={homeStyles.buttonContainer}
       >
         <MapControls
           stage={stage}
-          onWhereTo={handleWhereTo}
-          onSelectRecentDestination={handleSelectRecentDestination}
           onBack={handleBack}
           onCenterMap={centerMapOnUser}
           geocodingLoading={geocodingLoading}
@@ -258,68 +193,45 @@ const HomeScreen = () => {
       >
         <BottomSheetView style={homeStyles.bottomSheetContent}>
           {stage === "initial" && (
-            <InitialStage
-              handleWhereTo={handleWhereTo}
-              handleSelectRecentDestination={handleSelectRecentDestination}
-            />
+            <InitialStage bottomSheetRef={bottomSheetRef} />
           )}
 
           {stage === "input" && (
             <InputStage
-              setPickupLocation={setPickupLocation}
-              handleDestinationSelected={handleDestinationSelected}
-              pickupAddress={pickupLocation.address}
-              destinationAddress={destinationLocation.address}
+              bottomSheetRef={bottomSheetRef}
               geocodingLoading={geocodingLoading}
             />
           )}
 
           {stage === "confirm" && (
             <ConfirmStage
-              pickupLocation={pickupLocation}
-              destinationLocation={destinationLocation}
               geocodingLoading={geocodingLoading}
-              fare={fare}
-              tripDuration={tripDuration}
-              bookingLoading={bookingLoading}
-              handleBookRide={handleBookRide}
+              bookingLoading={false}
+              handleBookRide={() => {}}
             />
           )}
 
           {stage === "search" && (
-            <SearchStage
-              pickupLocation={pickupLocation}
-              destinationLocation={destinationLocation}
-              geocodingLoading={geocodingLoading}
-            />
+            <SearchStage geocodingLoading={geocodingLoading} />
           )}
 
           {(stage === "paired" || stage === "arrived") && driver && (
             <PairedArrivedStage
-              driver={driver}
-              pickupLocation={pickupLocation}
-              destinationLocation={destinationLocation}
               geocodingLoading={geocodingLoading}
-              stage={stage}
-              onCall={handleCall}
+              onCall={() => {}}
               onChat={handleOpenChat}
             />
           )}
 
           {stage === "trip" && driver && (
             <TripStage
-              driver={driver}
-              pickupLocation={pickupLocation}
-              destinationLocation={destinationLocation}
               geocodingLoading={geocodingLoading}
-              eta={eta}
-              fare={fare}
-              onCall={handleCall}
+              onCall={() => {}}
               onChat={handleOpenChat}
             />
           )}
 
-          {stage === "chat" && driver && (
+          {/* {stage === "chat" && driver && (
             <ChatStage
               driver={driver}
               messages={messages}
@@ -328,11 +240,11 @@ const HomeScreen = () => {
               chatLoading={chatLoading}
               handleSendMessage={handleSendMessage}
             />
-          )}
+          )} */}
         </BottomSheetView>
       </BottomSheet>
     </View>
   );
 };
 
-export default memo(HomeScreen);
+export default HomeScreen;

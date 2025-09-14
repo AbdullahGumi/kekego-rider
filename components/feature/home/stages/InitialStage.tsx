@@ -1,20 +1,33 @@
 import CustomText from "@/components/common/CustomText";
 import RecentDestinationItem from "@/components/feature/home/RecentDestinationItem";
 import { CONFIG } from "@/constants/home";
-import type { RecentDestination } from "@/types/home";
+import { useAppStore } from "@/stores/useAppStore";
+import { useCallback } from "react";
 import { FlatList, TouchableOpacity } from "react-native";
 import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
 import { homeStyles } from "../../../../styles/home-styles";
 
 interface InitialStageProps {
-  handleWhereTo: () => void;
-  handleSelectRecentDestination: (destination: RecentDestination) => void;
+  bottomSheetRef: any;
 }
 
-const InitialStage: React.FC<InitialStageProps> = ({
-  handleWhereTo,
-  handleSelectRecentDestination,
-}) => {
+const InitialStage: React.FC<InitialStageProps> = ({ bottomSheetRef }) => {
+  const { setRideStage, setDestinationLocation } = useAppStore();
+
+  const handleWhereTo = useCallback(() => {
+    setRideStage("input");
+    bottomSheetRef.current?.snapToIndex(1);
+  }, [setRideStage, bottomSheetRef]);
+
+  const handleSelectRecentDestination = useCallback(
+    (destination: any) => {
+      setDestinationLocation(destination);
+      setRideStage("confirm");
+      bottomSheetRef.current?.snapToIndex(2);
+    },
+    [setDestinationLocation, setRideStage, bottomSheetRef]
+  );
+
   return (
     <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
       <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>

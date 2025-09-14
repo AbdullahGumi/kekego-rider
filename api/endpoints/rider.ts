@@ -5,9 +5,8 @@ export const riderApi = {
   calculateFare: async (data: {
     distanceInKm: number;
     durationInMinutes: number;
-    promoCode?: string;
   }) => {
-    return await apiService.post("/rider/calculate-fare", data);
+    return await apiService.post("/rides/calculate-fare", data);
   },
   requestRide: async (data: {
     pickupLocation: { address :string,latitude: number; longitude: number };
