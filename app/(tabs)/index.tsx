@@ -1,20 +1,3 @@
-import CustomText from "@/components/common/CustomText";
-import MapContent from "@/components/feature/home/MapContent";
-import { MapControls } from "@/components/feature/home/MapControls";
-import ConfirmStage from "@/components/feature/home/stages/ConfirmStage";
-import InitialStage from "@/components/feature/home/stages/InitialStage";
-import InputStage from "@/components/feature/home/stages/InputStage";
-import PairedArrivedStage from "@/components/feature/home/stages/PairedArrivedStage";
-import SearchStage from "@/components/feature/home/stages/SearchStage";
-import TripStage from "@/components/feature/home/stages/TripStage";
-import { COLORS } from "@/constants/Colors";
-import { CONFIG } from "@/constants/home";
-import { useLocation } from "@/hooks/home/useLocation";
-import { useMapRegionManager } from "@/hooks/home/useMapRegionManager";
-import { useSocket } from "@/hooks/home/useSocket";
-import { useAppStore } from "@/stores/useAppStore";
-import { homeStyles } from "@/styles/home-styles";
-
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { ActivityIndicator, Keyboard, View } from "react-native";
@@ -22,36 +5,52 @@ import MapView from "react-native-maps";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { Socket } from "socket.io-client";
 
+import CustomText from "@/components/common/CustomText";
+import { COLORS } from "@/constants/Colors";
+import { CONFIG } from "@/constants/home";
+import { homeStyles } from "@/styles/home-styles";
+
+import MapContent from "@/components/feature/home/MapContent";
+import { MapControls } from "@/components/feature/home/MapControls";
+
+// Stages
+import ConfirmStage from "@/components/feature/home/stages/ConfirmStage";
+import InitialStage from "@/components/feature/home/stages/InitialStage";
+import InputStage from "@/components/feature/home/stages/InputStage";
+import PairedArrivedStage from "@/components/feature/home/stages/PairedArrivedStage";
+import SearchStage from "@/components/feature/home/stages/SearchStage";
+import TripStage from "@/components/feature/home/stages/TripStage";
+
+import { useLocation } from "@/hooks/home/useLocation";
+import { useMapRegionManager } from "@/hooks/home/useMapRegionManager";
+import { useSocket } from "@/hooks/home/useSocket";
+import { useAppStore } from "@/stores/useAppStore";
+
 const HomeScreen = () => {
   const rideState = useAppStore((state) => state.rideState);
   const userLocation = useAppStore((state) => state.userLocation);
-
   const { setMapLoading, setRideStage } = useAppStore();
-
   const { mapLoading, stage, driver } = rideState;
 
   const mapRef = useRef<MapView>(null);
-  const setMapRef = useAppStore((state) => state.setMapRef);
-
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const setBottomSheetRef = useAppStore((state) => state.setBottomSheetRef);
-
   const socketRef = useRef<Socket | null>(null);
+
+  const setMapRef = useAppStore((state) => state.setMapRef);
+  const setBottomSheetRef = useAppStore((state) => state.setBottomSheetRef);
   const setSocketRef = useAppStore((state) => state.setSocketRef);
 
+  const { geocodingLoading } = useLocation();
   const snapPoints = useMemo(() => ["55%", "70%", "80%", "90%"], []);
 
-  const { geocodingLoading } = useLocation();
+  useMapRegionManager(mapRef);
+  useSocket();
 
   useEffect(() => {
     setMapRef(mapRef);
     setBottomSheetRef(bottomSheetRef);
     setSocketRef(socketRef);
   }, [setMapRef, setBottomSheetRef, setSocketRef]);
-
-  useMapRegionManager(mapRef);
-
-  useSocket();
 
   useEffect(() => {
     if (userLocation?.coords) {
@@ -62,7 +61,7 @@ const HomeScreen = () => {
   const handleOpenChat = useCallback(() => {
     setRideStage("chat");
     bottomSheetRef.current?.snapToIndex(3);
-  }, [setRideStage, bottomSheetRef]);
+  }, [setRideStage]);
 
   return (
     <View style={homeStyles.container}>
