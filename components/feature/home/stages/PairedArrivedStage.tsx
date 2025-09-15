@@ -25,7 +25,9 @@ const PairedArrivedStage: React.FC<PairedArrivedStageProps> = ({
   return (
     <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
       <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
-        {stage === "paired" ? "Your Keke Driver" : "Keke Driver Arrived"}
+        {stage === "paired"
+          ? "Your Keke Driver"
+          : `${driver?.name} has Arrived`}
       </CustomText>
       <LocationCard
         pickupLocation={pickupLocation}

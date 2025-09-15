@@ -7,20 +7,12 @@ import { RefObject, useEffect, useRef } from "react";
 import { Alert } from "react-native";
 import io, { Socket } from "socket.io-client";
 
-export const useSocket = (
-  bottomSheetRef: RefObject<any>
-) => {
+export const useSocket = (bottomSheetRef: RefObject<any>) => {
+  const rideState = useAppStore((state) => state.rideState);
+  const pickupLocation = useAppStore((state) => state.pickupLocation);
 
-   const rideState = useAppStore((state) => state.rideState);
-    const pickupLocation = useAppStore((state) => state.pickupLocation);
-
-    const {
-      setEta,
-      setRideStage,
-      setDriver,
-      setFare,
-      resetRideState,
-    } = useAppStore();
+  const { setEta, setRideStage, setDriver, setFare, resetRideState } =
+    useAppStore();
 
   const { rideId } = rideState;
   const socketRef = useRef<Socket | null>(null);
@@ -35,20 +27,11 @@ export const useSocket = (
           },
         });
 
-
         socketRef.current.on("ride:accepted", (data) => {
-          logError("ride:accepted", data);
+          console.log("ride:accepted", data);
 
           if (data.driver) {
             setDriver(data.driver);
-          }
-
-          if (data.eta) {
-            setEta(data.eta);
-          }
-
-          if (data.fare) {
-            setFare(data.fare);
           }
 
           setRideStage("paired");
@@ -56,38 +39,38 @@ export const useSocket = (
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         });
         socketRef.current.on("ride:arrived", (data) => {
-          logError("ride:arrived", data);
-
+          console.log("ride:arrived", data);
           setRideStage("arrived");
-
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         });
         socketRef.current.on("ride:started", (data) => {
-          logError("ride:started", data);
-
-          if (data.eta) {
-            setEta(data.eta);
-          }
+          console.log("ride:started", data);
 
           setRideStage("trip");
 
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         });
         socketRef.current.on("ride:completed", (data) => {
-          logError("ride:completed", data);
+          console.log("ride:completed", data);
 
           resetRideState();
 
-          Alert.alert("Ride Completed", "Your ride has been completed successfully.");
+          Alert.alert(
+            "Ride Completed",
+            "Your ride has been completed successfully."
+          );
 
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         });
         socketRef.current.on("ride:cancelled", (data) => {
-          logError("ride:cancelled", data);
+          console.log("ride:cancelled", data);
 
           resetRideState();
 
-          Alert.alert("Ride Cancelled", "Your ride has been cancelled by the driver.");
+          Alert.alert(
+            "Ride Cancelled",
+            "Your ride has been cancelled by the driver."
+          );
         });
 
         socketRef.current.on("connect_error", (error) => {

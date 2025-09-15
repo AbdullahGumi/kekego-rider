@@ -1,5 +1,4 @@
 import CustomText from "@/components/common/CustomText";
-import ContactButtons from "@/components/feature/home/ContactButtons";
 import LocationCard from "@/components/feature/home/LocationCard";
 import { CONSTANTS } from "@/constants/constants";
 import { CONFIG } from "@/constants/home";
@@ -51,11 +50,11 @@ const TripStage: React.FC<TripStageProps> = ({
                 style={homeStyles.starIcon}
               />
               <CustomText style={homeStyles.rideOptionDescription}>
-                {driver?.rating?.toFixed(1)}
+                {/* {driver?.rating?.toFixed(1) || "N/A"} */}5
               </CustomText>
             </View>
             <CustomText style={homeStyles.rideOptionDescription}>
-              {driver?.vehicle} (Keke) • {driver?.vehicleNumber}
+              Plate number: {driver?.vehicle.plateNumber}
             </CustomText>
           </View>
         </View>
@@ -78,7 +77,6 @@ const TripStage: React.FC<TripStageProps> = ({
           </View>
         </View>
       </View>
-      <ContactButtons onCall={onCall} onChat={onChat} />
     </Animated.View>
   );
 };

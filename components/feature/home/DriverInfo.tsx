@@ -1,6 +1,6 @@
 import CustomText from "@/components/common/CustomText";
 import { CONFIG } from "@/constants/home";
-import { Driver } from "@/types/home";
+import { Driver } from "@/stores/useAppStore";
 import React, { memo } from "react";
 import { Image, View } from "react-native";
 import { homeStyles } from "../../../styles/home-styles";
@@ -27,12 +27,11 @@ const DriverInfo = memo<DriverInfoProps>(({ driver, stage }) => (
             style={homeStyles.starIcon}
           />
           <CustomText style={homeStyles.rideOptionDescription}>
-            {driver?.rating?.toFixed(1) || "N/A"}
+            {/* {driver?.rating?.toFixed(1) || "N/A"} */}5
           </CustomText>
         </View>
         <CustomText style={homeStyles.rideOptionDescription}>
-          {driver?.vehicle || "Tricycle"} (Keke) •{" "}
-          {driver?.vehicleNumber || "N/A"}
+          Plate number: {driver?.vehicle.plateNumber}
         </CustomText>
       </View>
     </View>

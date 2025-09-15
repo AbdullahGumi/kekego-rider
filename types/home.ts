@@ -10,17 +10,6 @@ export interface RecentDestination {
   coords: { latitude: string; longitude: string };
 }
 
-export interface Driver {
-  id: string;
-  name: string;
-  vehicle: string;
-  coordinates: { latitude: number; longitude: number };
-  profilePicture: string;
-  phone: string;
-  rating?: number;
-  vehicleNumber?: string;
-}
-
 export interface Message {
   id: string;
   rideId: string;

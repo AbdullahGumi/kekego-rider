@@ -1,6 +1,6 @@
 import { riderApi } from "@/api/endpoints/rider";
 import { CONFIG } from "@/constants/home";
-import { Driver } from "@/types/home";
+import { Driver } from "@/stores/useAppStore";
 import { logError } from "@/utility";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
