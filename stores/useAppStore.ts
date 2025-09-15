@@ -1,5 +1,9 @@
 import { Storage } from "@/utility/asyncStorageHelper";
+import BottomSheet from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
+import { RefObject } from "react";
+import MapView from "react-native-maps";
+import { Socket } from "socket.io-client";
 import { create } from "zustand";
 
 type User = {
@@ -55,6 +59,15 @@ type AppState = {
   user: User | null;
   token: string | null;
 
+  mapRef: RefObject<MapView | null> | null;
+  setMapRef: (ref: RefObject<MapView | null> | null) => void;
+
+  bottomSheetRef: RefObject<BottomSheet | null> | null;
+  setBottomSheetRef: (ref: RefObject<BottomSheet | null> | null) => void;
+
+  socketRef: RefObject<Socket | null> | null;
+  setSocketRef: (ref: RefObject<Socket | null> | null) => void;
+
   // Location State
   userLocation: Location.LocationObject | null;
   pickupLocation: LocationData;
@@ -97,6 +110,15 @@ type AppStore = AppState & AppActions;
 export const useAppStore = create<AppStore>((set) => ({
   user: null,
   token: null,
+
+  mapRef: null,
+  setMapRef: (ref) => set({ mapRef: ref }),
+
+  bottomSheetRef: null,
+  setBottomSheetRef: (ref) => set({ bottomSheetRef: ref }),
+
+  socketRef: null,
+  setSocketRef: (ref) => set({ socketRef: ref }),
 
   // Location state initialization
   userLocation: null,
@@ -177,7 +199,7 @@ export const useAppStore = create<AppStore>((set) => ({
         destinationDistance: 0,
         destinationDuration: 0,
         rideId: null,
-        mapLoading: true,
+        mapLoading: false,
       },
     }),
 

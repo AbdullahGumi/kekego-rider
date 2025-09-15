@@ -1,32 +1,25 @@
-import { Driver, LocationData } from "@/types/home";
+import { useNearbyDrivers } from "@/hooks/home/useNearbyDrivers";
+import { useAppStore } from "@/stores/useAppStore";
 import { MapDirections } from "./MapDirections";
 import { MapMarkers } from "./MapMarkers";
 
-interface MapContentProps {
-  stage: string;
-  pickupLocation: LocationData;
-  destinationLocation: LocationData;
-  driver: Driver | null;
-  nearbyDrivers: Driver[];
-  setDestinationDistance: (distance: number) => void;
-  setDestinationDuration: (duration: number) => void;
-  setFare: (fare: number | null) => void;
-  setTripDuration: (duration: number | null) => void;
-  setEta: (eta: string) => void;
-}
+const MapContent = () => {
+  const rideState = useAppStore((state) => state.rideState);
+  const pickupLocation = useAppStore((state) => state.pickupLocation);
+  const destinationLocation = useAppStore((state) => state.destinationLocation);
+  const userLocation = useAppStore((state) => state.userLocation);
+  const nearbyDrivers = useNearbyDrivers(userLocation);
 
-const MapContent: React.FC<MapContentProps> = ({
-  stage,
-  pickupLocation,
-  destinationLocation,
-  driver,
-  nearbyDrivers,
-  setDestinationDistance,
-  setDestinationDuration,
-  setFare,
-  setTripDuration,
-  setEta,
-}) => {
+  const {
+    setDestinationDistance,
+    setDestinationDuration,
+    setFare,
+    setTripDuration,
+    setEta,
+  } = useAppStore();
+
+  const { stage, driver } = rideState;
+
   // Handler for direction calculations and fare calculation
   const handleDirectionReady = (result: any) => {
     if (result.estimatedFare !== undefined) {

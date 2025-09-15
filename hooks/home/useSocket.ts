@@ -3,23 +3,29 @@ import { useAppStore } from "@/stores/useAppStore";
 import { logError } from "@/utility";
 import { Storage } from "@/utility/asyncStorageHelper";
 import * as Haptics from "expo-haptics";
-import { RefObject, useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { Alert } from "react-native";
-import io, { Socket } from "socket.io-client";
+import io from "socket.io-client";
 
-export const useSocket = (bottomSheetRef: RefObject<any>) => {
+export const useSocket = () => {
   const rideState = useAppStore((state) => state.rideState);
   const pickupLocation = useAppStore((state) => state.pickupLocation);
+  const bottomSheetRef = useAppStore((state) => state.bottomSheetRef);
+  const socketRef = useAppStore((state) => state.socketRef);
 
   const { setEta, setRideStage, setDriver, setFare, resetRideState } =
     useAppStore();
 
   const { rideId } = rideState;
-  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
     const initializeSocket = async () => {
       try {
+        if (!socketRef || socketRef.current) {
+          // socketRef not initialized or socket already exists
+          return;
+        }
+
         const token = await Storage.get("access_token");
         socketRef.current = io(CONFIG.SOCKET_URL, {
           auth: {
@@ -91,16 +97,8 @@ export const useSocket = (bottomSheetRef: RefObject<any>) => {
     };
 
     initializeSocket();
-  }, [
-    rideId,
-    setRideStage,
-    setDriver,
-    setEta,
-    setFare,
-    resetRideState,
-    pickupLocation,
-    bottomSheetRef,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rideId, pickupLocation, bottomSheetRef, socketRef]);
 
   return socketRef;
 };

@@ -1,25 +1,89 @@
 import { COLORS } from "@/constants/Colors";
 import { scale } from "@/constants/Layout";
+import { useAppStore } from "@/stores/useAppStore";
+import {
+  getMapRegionConfig,
+  shouldUpdateMapRegion,
+  updateMapRegion,
+} from "@/utility";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
+import { useCallback } from "react";
 import { TouchableOpacity, View } from "react-native";
 
 interface MapControlsProps {
-  stage: string;
-  onBack: (geocodingLoading?: boolean) => void;
-  onCenterMap: () => void;
   geocodingLoading: boolean;
 }
 
 export const MapControls: React.FC<MapControlsProps> = ({
-  stage,
-  onBack,
-  onCenterMap,
   geocodingLoading,
 }) => {
+  const { stage, driver, eta } = useAppStore((state) => state.rideState);
+  const pickupLocation = useAppStore((state) => state.pickupLocation);
+  const destinationLocation = useAppStore((state) => state.destinationLocation);
+  const userLocation = useAppStore((state) => state.userLocation);
+  const mapRef = useAppStore((state) => state.mapRef);
+  const bottomSheetRef = useAppStore((state) => state.bottomSheetRef);
+
+  const { setRideStage, setDestinationLocation } = useAppStore();
+
   const navigation = useNavigation<any>();
 
   const handleDrawer = () => navigation.toggleDrawer();
+
+  const centerMapOnUser = useCallback(() => {
+    if (userLocation?.coords) {
+      const mapParams = {
+        stage: "initial", // Use initial stage to center on user
+        userLocation,
+        pickupLocation,
+        destinationLocation,
+        driver,
+      };
+
+      const config = getMapRegionConfig("initial");
+      if (config && shouldUpdateMapRegion(config, mapParams)) {
+        updateMapRegion(mapRef?.current, config, mapParams);
+      } else {
+        // Fallback manual centering
+        mapRef?.current?.animateToRegion(
+          {
+            latitude: userLocation.coords.latitude,
+            longitude: userLocation.coords.longitude,
+            latitudeDelta: 0.005,
+            longitudeDelta: 0.005,
+          },
+          1000
+        );
+      }
+    }
+  }, [userLocation, destinationLocation, driver, pickupLocation]);
+
+  const handleBack = useCallback(
+    (geocodingLoading: boolean = false) => {
+      if (geocodingLoading) {
+        // Don't allow navigation while geocoding is in progress
+        return;
+      }
+
+      if (stage === "input") {
+        setRideStage("initial");
+        setDestinationLocation({
+          address: "",
+          coords: { latitude: "", longitude: "" },
+        });
+        bottomSheetRef?.current?.snapToIndex(0);
+      } else if (stage === "confirm") {
+        setRideStage("input");
+        bottomSheetRef?.current?.snapToIndex(1);
+      } else if (stage === "chat") {
+        // Handle chat stage back navigation based on driver state and ETA
+        setRideStage(driver ? (eta ? "trip" : "arrived") : "paired");
+        bottomSheetRef?.current?.snapToIndex(2);
+      }
+    },
+    [stage, driver, eta, setRideStage, setDestinationLocation, bottomSheetRef]
+  );
 
   if (stage === "initial") {
     return (
@@ -52,7 +116,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
           <Ionicons name="menu" size={24} color="#333" />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={onCenterMap}
+          onPress={centerMapOnUser}
           activeOpacity={0.7}
           style={{
             width: scale(50),
@@ -88,7 +152,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
         }}
       >
         <TouchableOpacity
-          onPress={() => onBack(geocodingLoading)}
+          onPress={() => handleBack(geocodingLoading)}
           activeOpacity={0.7}
           style={{
             width: scale(50),
@@ -108,7 +172,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
           <Ionicons name="chevron-back" size={24} color="#333" />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={onCenterMap}
+          onPress={centerMapOnUser}
           activeOpacity={0.7}
           style={{
             width: scale(50),

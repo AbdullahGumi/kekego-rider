@@ -7,23 +7,20 @@ import { FlatList, TouchableOpacity } from "react-native";
 import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
 import { homeStyles } from "../../../../styles/home-styles";
 
-interface InitialStageProps {
-  bottomSheetRef: any;
-}
-
-const InitialStage: React.FC<InitialStageProps> = ({ bottomSheetRef }) => {
+const InitialStage = () => {
   const { setRideStage, setDestinationLocation } = useAppStore();
+  const bottomSheetRef = useAppStore((state) => state.bottomSheetRef);
 
   const handleWhereTo = useCallback(() => {
     setRideStage("input");
-    bottomSheetRef.current?.snapToIndex(1);
+    bottomSheetRef?.current?.snapToIndex(1);
   }, [setRideStage, bottomSheetRef]);
 
   const handleSelectRecentDestination = useCallback(
     (destination: any) => {
       setDestinationLocation(destination);
       setRideStage("confirm");
-      bottomSheetRef.current?.snapToIndex(2);
+      bottomSheetRef?.current?.snapToIndex(2);
     },
     [setDestinationLocation, setRideStage, bottomSheetRef]
   );

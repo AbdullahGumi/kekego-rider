@@ -6,16 +6,13 @@ import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
 import { homeStyles } from "../../../../styles/home-styles";
 
 interface InputStageProps {
-  bottomSheetRef: any;
   geocodingLoading: boolean;
 }
 
-const InputStage: React.FC<InputStageProps> = ({
-  geocodingLoading,
-  bottomSheetRef,
-}) => {
+const InputStage: React.FC<InputStageProps> = ({ geocodingLoading }) => {
   const { setPickupLocation, setDestinationLocation, setRideStage } =
     useAppStore();
+  const bottomSheetRef = useAppStore((state) => state.bottomSheetRef);
 
   const pickupAddress = useAppStore((state) => state.pickupLocation.address);
   const destinationAddress = useAppStore(
@@ -33,7 +30,7 @@ const InputStage: React.FC<InputStageProps> = ({
       }
       setDestinationLocation(destination);
       setRideStage("confirm");
-      bottomSheetRef.current?.snapToIndex(2);
+      bottomSheetRef?.current?.snapToIndex(2);
     },
     [setDestinationLocation, setRideStage, bottomSheetRef]
   );

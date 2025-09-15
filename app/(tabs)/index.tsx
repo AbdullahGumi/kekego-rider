@@ -11,110 +11,53 @@ import { COLORS } from "@/constants/Colors";
 import { CONFIG } from "@/constants/home";
 import { useLocation } from "@/hooks/home/useLocation";
 import { useMapRegionManager } from "@/hooks/home/useMapRegionManager";
-import { useNearbyDrivers } from "@/hooks/home/useNearbyDrivers";
 import { useSocket } from "@/hooks/home/useSocket";
 import { useAppStore } from "@/stores/useAppStore";
 import { homeStyles } from "@/styles/home-styles";
-import {
-  getMapRegionConfig,
-  shouldUpdateMapRegion,
-  updateMapRegion,
-} from "@/utility";
+
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { ActivityIndicator, Keyboard, View } from "react-native";
 import MapView from "react-native-maps";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { Socket } from "socket.io-client";
 
 const HomeScreen = () => {
   const rideState = useAppStore((state) => state.rideState);
-  const pickupLocation = useAppStore((state) => state.pickupLocation);
-  const destinationLocation = useAppStore((state) => state.destinationLocation);
   const userLocation = useAppStore((state) => state.userLocation);
-  const nearbyDrivers = useNearbyDrivers(userLocation);
 
-  const {
-    setMapLoading,
-    setDestinationDistance,
-    setDestinationDuration,
-    setFare,
-    setTripDuration,
-    setEta,
-    setRideStage,
-    setDestinationLocation,
-  } = useAppStore();
+  const { setMapLoading, setRideStage } = useAppStore();
 
-  const { mapLoading, stage, driver, eta } = rideState;
+  const { mapLoading, stage, driver } = rideState;
 
   const mapRef = useRef<MapView>(null);
+  const setMapRef = useAppStore((state) => state.setMapRef);
+
   const bottomSheetRef = useRef<BottomSheet>(null);
+  const setBottomSheetRef = useAppStore((state) => state.setBottomSheetRef);
+
+  const socketRef = useRef<Socket | null>(null);
+  const setSocketRef = useAppStore((state) => state.setSocketRef);
+
   const snapPoints = useMemo(() => ["55%", "70%", "80%", "90%"], []);
 
   const { geocodingLoading } = useLocation();
 
+  useEffect(() => {
+    setMapRef(mapRef);
+    setBottomSheetRef(bottomSheetRef);
+    setSocketRef(socketRef);
+  }, [setMapRef, setBottomSheetRef, setSocketRef]);
+
   useMapRegionManager(mapRef);
 
-  const socketRef = useSocket(bottomSheetRef);
-
-  const centerMapOnUser = useCallback(() => {
-    if (userLocation?.coords) {
-      const mapParams = {
-        stage: "initial", // Use initial stage to center on user
-        userLocation,
-        pickupLocation,
-        destinationLocation,
-        driver,
-      };
-
-      const config = getMapRegionConfig("initial");
-      if (config && shouldUpdateMapRegion(config, mapParams)) {
-        updateMapRegion(mapRef.current, config, mapParams);
-      } else {
-        // Fallback manual centering
-        mapRef.current?.animateToRegion(
-          {
-            latitude: userLocation.coords.latitude,
-            longitude: userLocation.coords.longitude,
-            latitudeDelta: 0.005,
-            longitudeDelta: 0.005,
-          },
-          1000
-        );
-      }
-    }
-  }, [userLocation, destinationLocation, driver, pickupLocation]);
+  useSocket();
 
   useEffect(() => {
     if (userLocation?.coords) {
       setMapLoading(false);
     }
   }, [userLocation, setMapLoading]);
-
-  const handleBack = useCallback(
-    (geocodingLoading: boolean = false) => {
-      if (geocodingLoading) {
-        // Don't allow navigation while geocoding is in progress
-        return;
-      }
-
-      if (stage === "input") {
-        setRideStage("initial");
-        setDestinationLocation({
-          address: "",
-          coords: { latitude: "", longitude: "" },
-        });
-        bottomSheetRef.current?.snapToIndex(0);
-      } else if (stage === "confirm") {
-        setRideStage("input");
-        bottomSheetRef.current?.snapToIndex(1);
-      } else if (stage === "chat") {
-        // Handle chat stage back navigation based on driver state and ETA
-        setRideStage(driver ? (eta ? "trip" : "arrived") : "paired");
-        bottomSheetRef.current?.snapToIndex(2);
-      }
-    },
-    [stage, driver, eta, setRideStage, setDestinationLocation, bottomSheetRef]
-  );
 
   const handleOpenChat = useCallback(() => {
     setRideStage("chat");
@@ -152,18 +95,7 @@ const HomeScreen = () => {
           showsUserLocation={stage === "initial" || stage === "input"}
           style={homeStyles.map}
         >
-          <MapContent
-            stage={stage}
-            pickupLocation={pickupLocation}
-            destinationLocation={destinationLocation}
-            driver={driver}
-            nearbyDrivers={nearbyDrivers}
-            setDestinationDistance={setDestinationDistance}
-            setDestinationDuration={setDestinationDuration}
-            setFare={setFare}
-            setTripDuration={setTripDuration}
-            setEta={setEta}
-          />
+          <MapContent />
         </MapView>
       )}
 
@@ -171,12 +103,7 @@ const HomeScreen = () => {
         entering={FadeIn.delay(200)}
         style={homeStyles.buttonContainer}
       >
-        <MapControls
-          stage={stage}
-          onBack={handleBack}
-          onCenterMap={centerMapOnUser}
-          geocodingLoading={geocodingLoading}
-        />
+        <MapControls geocodingLoading={geocodingLoading} />
       </Animated.View>
 
       <BottomSheet
@@ -192,23 +119,14 @@ const HomeScreen = () => {
         animateOnMount
       >
         <BottomSheetView style={homeStyles.bottomSheetContent}>
-          {stage === "initial" && (
-            <InitialStage bottomSheetRef={bottomSheetRef} />
-          )}
+          {stage === "initial" && <InitialStage />}
 
           {stage === "input" && (
-            <InputStage
-              bottomSheetRef={bottomSheetRef}
-              geocodingLoading={geocodingLoading}
-            />
+            <InputStage geocodingLoading={geocodingLoading} />
           )}
 
           {stage === "confirm" && (
-            <ConfirmStage
-              geocodingLoading={geocodingLoading}
-              bookingLoading={false}
-              handleBookRide={() => {}}
-            />
+            <ConfirmStage geocodingLoading={geocodingLoading} />
           )}
 
           {stage === "search" && (
