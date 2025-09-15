@@ -12,7 +12,6 @@ import { CONFIG } from "@/constants/home";
 import { useLocation } from "@/hooks/home/useLocation";
 import { useMapRegionManager } from "@/hooks/home/useMapRegionManager";
 import { useNearbyDrivers } from "@/hooks/home/useNearbyDrivers";
-import { useSocket } from "@/hooks/home/useSocket";
 import { useAppStore } from "@/stores/useAppStore";
 import { homeStyles } from "@/styles/home-styles";
 import {
@@ -54,7 +53,7 @@ const HomeScreen = () => {
 
   useMapRegionManager(mapRef);
 
-  const socketRef = useSocket(bottomSheetRef);
+  // const socketRef = useSocket(bottomSheetRef);
 
   const centerMapOnUser = useCallback(() => {
     if (userLocation?.coords) {

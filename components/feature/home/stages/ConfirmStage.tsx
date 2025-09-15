@@ -1,3 +1,4 @@
+import { riderApi } from "@/api/endpoints/rider";
 import { KekeImage } from "@/assets/images/Index";
 import CustomText from "@/components/common/CustomText";
 import LocationCard from "@/components/feature/home/LocationCard";
@@ -5,7 +6,15 @@ import { COLORS } from "@/constants/Colors";
 import { CONSTANTS } from "@/constants/constants";
 import { useAppStore } from "@/stores/useAppStore";
 import { formatDuration, numberWithCommas } from "@/utility";
-import { ActivityIndicator, Image, TouchableOpacity, View } from "react-native";
+import * as Haptics from "expo-haptics";
+import { useCallback, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Animated, {
   FadeIn,
   SlideInDown,
@@ -15,20 +24,72 @@ import { homeStyles } from "../../../../styles/home-styles";
 
 interface ConfirmStageProps {
   geocodingLoading: boolean;
-  bookingLoading: boolean;
-  handleBookRide: () => void;
 }
 
-const ConfirmStage: React.FC<ConfirmStageProps> = ({
-  geocodingLoading,
-  bookingLoading,
-  handleBookRide,
-}) => {
+const ConfirmStage: React.FC<ConfirmStageProps> = ({ geocodingLoading }) => {
   const pickupLocation = useAppStore((state) => state.pickupLocation);
   const rideState = useAppStore((state) => state.rideState);
   const destinationLocation = useAppStore((state) => state.destinationLocation);
+  const { setRideId, setRideStage } = useAppStore();
+  const [bookingLoading, setBookingLoading] = useState(false);
 
-  const { fare, tripDuration } = rideState;
+  const { fare, tripDuration, destinationDistance, destinationDuration } =
+    rideState;
+
+  const handleBookRide = useCallback(async () => {
+    if (
+      !pickupLocation.coords.latitude ||
+      !destinationLocation.coords.latitude
+    ) {
+      Alert.alert(
+        "Error",
+        "Please select valid pickup and destination locations."
+      );
+      return;
+    }
+    setBookingLoading(true);
+    try {
+      const response = await riderApi.requestRide({
+        pickupLocation: {
+          address: pickupLocation.address,
+          coords: {
+            latitude: Number(pickupLocation.coords.latitude),
+            longitude: Number(pickupLocation.coords.longitude),
+          },
+        },
+        dropoffLocation: {
+          address: destinationLocation.address,
+          coords: {
+            latitude: Number(destinationLocation.coords.latitude),
+            longitude: Number(destinationLocation.coords.longitude),
+          },
+        },
+        distanceInKm: Number(destinationDistance),
+        durationInMinutes: Number(destinationDuration),
+        paymentMethod: "cash",
+      });
+      if (response.data.data.ride.status === "requested") {
+        const responseRideId = response.data.data.ride.id;
+        setRideId(responseRideId);
+        setRideStage("search");
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    } catch (error: any) {
+      Alert.alert(
+        "Error",
+        error.response.data.message || "Failed to book ride."
+      );
+    } finally {
+      setBookingLoading(false);
+    }
+  }, [
+    destinationLocation,
+    pickupLocation,
+    destinationDistance,
+    destinationDuration,
+    setRideStage,
+    setRideId,
+  ]);
 
   return (
     <Animated.View entering={SlideInDown} exiting={SlideOutDown}>

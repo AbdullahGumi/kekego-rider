@@ -56,12 +56,12 @@ const RegisterScreen = () => {
     if (!lastName.trim()) newErrors.lastName = "Last name is required";
     if (!gender) newErrors.gender = "Gender is required";
 
-    // Email validation
-    if (email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        newErrors.email = "Please enter a valid email address";
-      }
+    // Email validation (Joi-style)
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!emailRegex.test(email)) {
+      newErrors.email = "Please enter a valid email address";
     }
 
     setErrors(newErrors);
@@ -83,10 +83,10 @@ const RegisterScreen = () => {
         role: CONSTANTS.USER_ROLE,
       });
 
-      if (data.token) {
-        await Storage.set("access_token", data.token);
+      if (data.data.token) {
+        await Storage.set("access_token", data.data.token);
         setLoading(false);
-        setUser(data.user, data.token);
+        setUser(data.data.user, data.data.token);
         router.push(`/(tabs)`);
       }
     } catch (err: any) {

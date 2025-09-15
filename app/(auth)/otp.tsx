@@ -1,3 +1,4 @@
+import { authApi } from "@/api/endpoints/auth";
 import CustomButton from "@/components/common/CustomButton";
 import CustomText from "@/components/common/CustomText";
 import Header from "@/components/common/Header";
@@ -26,9 +27,7 @@ export default function OTPScreen() {
 
   const sendCode = async () => {
     try {
-      const otpResponse = await fetchData("post", "/auth/request-otp", {
-        phone,
-      });
+      const otpResponse = await authApi.requestOtp(phone);
 
       if (otpResponse.data) {
         console.log("otp-->", otpResponse.data);
@@ -78,14 +77,11 @@ export default function OTPScreen() {
     }
 
     try {
-      const { status, data } = await fetchData("post", "/auth/verify-otp", {
-        phone,
-        otp,
-      });
+      const { status, data } = await authApi.verifyOtp(phone, otp);
 
       if (status === 200) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        if (isRegistered && data.data.token) {
+        if (isRegistered === "true" && data.data.token) {
           // User is registered, store token and user, then navigate to tabs
           await Storage.set("access_token", data.data.token);
           await setUser(

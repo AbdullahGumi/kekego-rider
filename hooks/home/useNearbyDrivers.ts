@@ -5,22 +5,23 @@ import { logError } from "@/utility";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
 
-export const useNearbyDrivers = (userLocation: Location.LocationObject | null) => {
+export const useNearbyDrivers = (
+  userLocation: Location.LocationObject | null
+) => {
   const [nearbyDrivers, setNearbyDrivers] = useState<Driver[]>([]);
 
   useEffect(() => {
     if (!userLocation?.coords) return;
     const fetchNearbyDrivers = async () => {
       try {
-         
         const res = await riderApi.getNearbyDrivers({
-          latitude: userLocation.coords.latitude,
-          longitude: userLocation.coords.longitude,
+          coords: {
+            latitude: userLocation.coords.latitude,
+            longitude: userLocation.coords.longitude,
+          },
         });
-        if (!Array.isArray(res.data)) {
-          throw new Error("Invalid nearby drivers response format");
-        }
-        const drivers: Driver[] = res.data.map((driver: any) => ({
+
+        const drivers: Driver[] = res.data.data.drivers.map((driver: any) => ({
           id: driver.id || `driver-${Math.random()}`,
           name: driver.name || "Unknown Driver",
           vehicle: driver.vehicle?.model || "Tricycle",

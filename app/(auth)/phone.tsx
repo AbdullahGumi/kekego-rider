@@ -73,7 +73,7 @@ export default function PhoneNumberScreen() {
         phone,
         CONSTANTS.USER_ROLE
       );
-
+      console.log("checkResponse", checkResponse.data);
       // Step 2: Request OTP
       const otpResponse = await authApi.requestOtp(phone);
 
@@ -103,7 +103,7 @@ export default function PhoneNumberScreen() {
     } catch (err: any) {
       setLoading(false);
       const errorMessage =
-        err.response?.data.error ||
+        err.response?.data.message ||
         "Failed to process request. Please try again.";
       console.log({ phone: errorMessage });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
