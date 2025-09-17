@@ -26,12 +26,12 @@ export const useNearbyDrivers = (
           name: driver.name || "Unknown Driver",
           vehicle: driver.vehicle?.model || "Tricycle",
           vehicleNumber: driver.vehicle?.plateNumber || "N/A",
-          coordinates: {
+          location: {
             latitude:
-              driver.coordinates?.latitude ||
+              driver.location?.latitude ||
               Number(CONFIG.DEFAULT_COORDS.latitude),
             longitude:
-              driver.coordinates?.longitude ||
+              driver.location?.longitude ||
               Number(CONFIG.DEFAULT_COORDS.longitude),
           },
           profilePicture: driver.profilePicture || CONFIG.MARKER_ICONS.user,

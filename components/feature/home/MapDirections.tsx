@@ -1,7 +1,8 @@
 import { riderApi } from "@/api/endpoints/rider";
 import { COLORS } from "@/constants/Colors";
 import { CONFIG } from "@/constants/home";
-import { Driver, LocationData } from "@/types/home";
+import { Driver } from "@/stores/useAppStore";
+import { LocationData } from "@/types/home";
 import { logError } from "@/utility";
 import { Alert, Platform } from "react-native";
 import MapViewDirections from "react-native-maps-directions";
@@ -79,14 +80,14 @@ export const MapDirections: React.FC<MapDirectionsProps> = ({
   // Route from driver to pickup (paired stage)
   if (
     stage === "paired" &&
-    driver?.coordinates &&
+    driver?.location &&
     pickupLocation.coords.latitude
   ) {
     return (
       <MapViewDirections
         origin={{
-          latitude: driver.coordinates.latitude,
-          longitude: driver.coordinates.longitude,
+          latitude: driver.location.latitude,
+          longitude: driver.location.longitude,
         }}
         destination={{
           latitude: Number(pickupLocation.coords.latitude),
@@ -113,15 +114,15 @@ export const MapDirections: React.FC<MapDirectionsProps> = ({
   // Route from driver to destination (arrived/trip/chat stages)
   if (
     (stage === "arrived" || stage === "trip" || stage === "chat") &&
-    driver?.coordinates &&
+    driver?.location &&
     pickupLocation.coords.latitude &&
     destinationLocation.coords.latitude
   ) {
     return (
       <MapViewDirections
         origin={{
-          latitude: driver.coordinates.latitude,
-          longitude: driver.coordinates.longitude,
+          latitude: driver.location.latitude,
+          longitude: driver.location.longitude,
         }}
         destination={{
           latitude: Number(destinationLocation.coords.latitude),
@@ -141,7 +142,8 @@ export const MapDirections: React.FC<MapDirectionsProps> = ({
           }
         }}
         onError={(error) => {
-          logError("MapViewDirections Trip", error);
+          console.log("error", error);
+          // logError("MapViewDirections Trip", error);
           Alert.alert("Error", "Failed to load trip directions.");
           onDirectionError(error);
         }}

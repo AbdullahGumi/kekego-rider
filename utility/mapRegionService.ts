@@ -1,5 +1,6 @@
 import { scale } from "@/constants/Layout";
-import type { Driver, LocationData } from "@/types/home";
+import { Driver } from "@/stores/useAppStore";
+import type { LocationData } from "@/types/home";
 
 export interface MapRegionConfiguration {
   condition: (params: any) => boolean;
@@ -29,7 +30,7 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
         },
         1000
       );
-    }
+    },
   },
   input: {
     condition: ({ userLocation }) =>
@@ -44,7 +45,7 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
         },
         1000
       );
-    }
+    },
   },
   confirm: {
     condition: ({ pickupLocation, destinationLocation }) =>
@@ -71,7 +72,7 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
           animated: true,
         }
       );
-    }
+    },
   },
   search: {
     condition: ({ pickupLocation, destinationLocation }) =>
@@ -98,17 +99,17 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
           animated: true,
         }
       );
-    }
+    },
   },
   paired: {
     condition: ({ driver, pickupLocation }) =>
-      !!(driver?.coordinates && pickupLocation.coords.latitude),
+      !!(driver?.location && pickupLocation.coords.latitude),
     action: (mapView: any, { driver, pickupLocation }) => {
       mapView.fitToCoordinates(
         [
           {
-            latitude: driver!.coordinates.latitude,
-            longitude: driver!.coordinates.longitude,
+            latitude: driver!.location.latitude,
+            longitude: driver!.location.longitude,
           },
           {
             latitude: Number(pickupLocation.coords.latitude),
@@ -125,7 +126,7 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
           animated: true,
         }
       );
-    }
+    },
   },
   arrived: {
     condition: ({ driver, pickupLocation }) =>
@@ -133,8 +134,8 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
     action: (mapView: any, { driver, pickupLocation }) => {
       const pickupLat = Number(pickupLocation.coords.latitude);
       const pickupLng = Number(pickupLocation.coords.longitude);
-      const driverLat = driver!.coordinates.latitude;
-      const driverLng = driver!.coordinates.longitude;
+      const driverLat = driver!.location.latitude;
+      const driverLng = driver!.location.longitude;
 
       mapView.animateToRegion(
         {
@@ -145,17 +146,21 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
         },
         1000
       );
-    }
+    },
   },
   trip: {
     condition: ({ driver, pickupLocation, destinationLocation }) =>
-      !!(driver?.coordinates && pickupLocation.coords.latitude && destinationLocation.coords.latitude),
+      !!(
+        driver?.location &&
+        pickupLocation.coords.latitude &&
+        destinationLocation.coords.latitude
+      ),
     action: (mapView: any, { driver, destinationLocation }) => {
       mapView.fitToCoordinates(
         [
           {
-            latitude: driver!.coordinates.latitude,
-            longitude: driver!.coordinates.longitude,
+            latitude: driver!.location.latitude,
+            longitude: driver!.location.longitude,
           },
           {
             latitude: Number(destinationLocation.coords.latitude),
@@ -172,17 +177,21 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
           animated: true,
         }
       );
-    }
+    },
   },
   chat: {
     condition: ({ driver, pickupLocation, destinationLocation }) =>
-      !!(driver?.coordinates && pickupLocation.coords.latitude && destinationLocation.coords.latitude),
+      !!(
+        driver?.location &&
+        pickupLocation.coords.latitude &&
+        destinationLocation.coords.latitude
+      ),
     action: (mapView: any, { driver, destinationLocation }) => {
       mapView.fitToCoordinates(
         [
           {
-            latitude: driver!.coordinates.latitude,
-            longitude: driver!.coordinates.longitude,
+            latitude: driver!.location.latitude,
+            longitude: driver!.location.longitude,
           },
           {
             latitude: Number(destinationLocation.coords.latitude),
@@ -199,14 +208,16 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
           animated: true,
         }
       );
-    }
-  }
+    },
+  },
 };
 
 /**
  * Get the appropriate map region configuration for a given stage
  */
-export const getMapRegionConfig = (stage: string): MapRegionConfiguration | null => {
+export const getMapRegionConfig = (
+  stage: string
+): MapRegionConfiguration | null => {
   return STAGE_CONFIGS[stage] || null;
 };
 

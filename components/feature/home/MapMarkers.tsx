@@ -1,7 +1,8 @@
 import { KekeImage } from "@/assets/images/Index";
 import { CONFIG } from "@/constants/home";
+import { Driver } from "@/stores/useAppStore";
 import { homeStyles } from "@/styles/home-styles";
-import { Driver, LocationData } from "@/types/home";
+import { LocationData } from "@/types/home";
 import { Image } from "react-native";
 import { Marker } from "react-native-maps";
 
@@ -28,11 +29,11 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
           <Marker
             key={nearbyDriver.id}
             coordinate={{
-              latitude: nearbyDriver.coordinates.latitude,
-              longitude: nearbyDriver.coordinates.longitude,
+              latitude: nearbyDriver.location.latitude,
+              longitude: nearbyDriver.location.longitude,
             }}
             title={nearbyDriver.name}
-            description={`${nearbyDriver.vehicle} • ${nearbyDriver.vehicleNumber}`}
+            description={`${nearbyDriver.vehicle.plateNumber}`}
           >
             <Image source={KekeImage} style={homeStyles.tricycleMarker} />
           </Marker>
@@ -72,7 +73,7 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
 
       {/* Driver to pickup markers (paired stage) */}
       {stage === "paired" &&
-        driver?.coordinates &&
+        driver?.location &&
         pickupLocation.coords.latitude && (
           <>
             <Marker
@@ -89,11 +90,11 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
             </Marker>
             <Marker
               coordinate={{
-                latitude: driver.coordinates.latitude,
-                longitude: driver.coordinates.longitude,
+                latitude: driver.location.latitude,
+                longitude: driver.location.longitude,
               }}
               title={driver.name}
-              description={`${driver.vehicle} • ${driver.vehicleNumber}`}
+              description={`${driver.vehicle.plateNumber}`}
             >
               <Image source={KekeImage} style={homeStyles.tricycleMarker} />
             </Marker>
@@ -102,22 +103,10 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
 
       {/* Trip markers (arrived/trip/chat stages) */}
       {(stage === "arrived" || stage === "trip" || stage === "chat") &&
-        driver?.coordinates &&
+        driver?.location &&
         pickupLocation.coords.latitude &&
         destinationLocation.coords.latitude && (
           <>
-            <Marker
-              coordinate={{
-                latitude: Number(pickupLocation.coords.latitude),
-                longitude: Number(pickupLocation.coords.longitude),
-              }}
-              title="Pickup Location"
-            >
-              <Image
-                source={{ uri: CONFIG.MARKER_ICONS.pickup }}
-                style={homeStyles.markerIcon}
-              />
-            </Marker>
             <Marker
               coordinate={{
                 latitude: Number(destinationLocation.coords.latitude),
@@ -132,11 +121,11 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
             </Marker>
             <Marker
               coordinate={{
-                latitude: driver.coordinates.latitude,
-                longitude: driver.coordinates.longitude,
+                latitude: driver.location.latitude,
+                longitude: driver.location.longitude,
               }}
               title={driver.name}
-              description={`${driver.vehicle} • ${driver.vehicleNumber}`}
+              description={`${driver.vehicle.plateNumber}`}
             >
               <Image source={KekeImage} style={homeStyles.tricycleMarker} />
             </Marker>

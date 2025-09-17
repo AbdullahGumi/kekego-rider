@@ -81,7 +81,7 @@ type AppState = {
   setPickupLocation: (location: LocationData) => void;
   setDestinationLocation: (location: LocationData) => void;
   // Add this to the store actions:
-  updateDriverLocation: (coordinates: {
+  updateDriverLocation: (location: {
     latitude: number;
     longitude: number;
   }) => void;
@@ -147,14 +147,14 @@ export const useAppStore = create<AppStore>((set) => ({
   setUserLocation: (location) => set({ userLocation: location }),
   setPickupLocation: (location) => set({ pickupLocation: location }),
   setDestinationLocation: (location) => set({ destinationLocation: location }),
-  updateDriverLocation: (coordinates) =>
+  updateDriverLocation: (location) =>
     set((state) => ({
       rideState: {
         ...state.rideState,
         driver: state.rideState.driver
           ? {
               ...state.rideState.driver,
-              location: coordinates,
+              location: location,
             }
           : null,
       },
