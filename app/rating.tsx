@@ -21,12 +21,21 @@ import { useAppStore } from "@/stores/useAppStore";
 
 const RatingScreen: React.FC = () => {
   const router = useRouter();
-  const { rideState, resetRideState, setDestinationLocation } = useAppStore();
+  const { rideState, resetRideState, setDestinationLocation, bottomSheetRef } =
+    useAppStore();
   const { rideId } = rideState;
 
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const resetState = () => {
+    router.back();
+    setTimeout(() => {
+      bottomSheetRef?.current?.snapToIndex(0);
+      resetRideState();
+    }, 500);
+  };
 
   const handleStarPress = (starIndex: number) => {
     setRating(starIndex + 1); // Since 0-based
@@ -52,12 +61,11 @@ const RatingScreen: React.FC = () => {
         text1: "Rating Submitted",
         text2: "Thank you for your feedback!",
       });
-      resetRideState();
       setDestinationLocation({
         address: "",
         coords: { latitude: "", longitude: "" },
       });
-      router.back();
+      resetState();
     } catch (error: any) {
       console.log("error", error.response.data);
       Toast.show({
@@ -81,7 +89,7 @@ const RatingScreen: React.FC = () => {
             padding: 16,
             alignItems: "flex-start",
           }}
-          onPress={() => router.back()}
+          onPress={resetState}
         >
           <Ionicons name="chevron-back" size={24} color={COLORS.primary} />
         </TouchableOpacity>
@@ -158,7 +166,8 @@ const RatingScreen: React.FC = () => {
           />
 
           <CustomButton
-            title={loading ? "" : "Submit Rating"}
+            title={"Submit Rating"}
+            loading={loading}
             disabled={rating === 0 || loading}
             onPress={handleSubmit}
             style={{ marginBottom: 24 }}
