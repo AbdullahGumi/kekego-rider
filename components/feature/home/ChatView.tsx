@@ -1,6 +1,7 @@
 import CustomText from "@/components/common/CustomText";
 import { COLORS } from "@/constants/Colors";
-import { Driver, Message } from "@/types/home";
+import { Driver } from "@/stores/useAppStore";
+import { Message } from "@/types/home";
 import { Ionicons } from "@expo/vector-icons";
 import React, { memo } from "react";
 import {

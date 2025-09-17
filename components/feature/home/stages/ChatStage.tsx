@@ -1,5 +1,6 @@
 import ChatView from "@/components/feature/home/ChatView";
-import type { Driver, Message } from "@/types/home";
+import { Driver } from "@/stores/useAppStore";
+import type { Message } from "@/types/home";
 
 interface ChatStageProps {
   driver: Driver;

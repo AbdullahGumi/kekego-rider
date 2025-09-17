@@ -49,7 +49,7 @@ export const riderApi = {
     });
   },
 
-  submitRating: async (rideId: string, rating: string, feedback: string) => {
+  submitRating: async (rideId: string, rating: number, feedback: string) => {
     return await apiService.post(`/rider/submit-rating`, {
       rideId,
       rating,

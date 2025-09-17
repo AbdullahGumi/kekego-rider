@@ -3,6 +3,7 @@ import { useAppStore } from "@/stores/useAppStore";
 import { logError } from "@/utility";
 import { Storage } from "@/utility/asyncStorageHelper";
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
 import { useEffect } from "react";
 import { Alert } from "react-native";
 import io from "socket.io-client";
@@ -13,13 +14,8 @@ export const useSocket = () => {
   const bottomSheetRef = useAppStore((state) => state.bottomSheetRef);
   const socketRef = useAppStore((state) => state.socketRef);
 
-  const {
-    setEta,
-    setRideStage,
-    setDriver,
-    updateDriverLocation,
-    resetRideState,
-  } = useAppStore();
+  const { setRideStage, setDriver, updateDriverLocation, resetRideState } =
+    useAppStore();
 
   const { rideId } = rideState;
 
@@ -76,14 +72,7 @@ export const useSocket = () => {
         });
         socketRef.current.on("ride:completed", (data) => {
           console.log("ride:completed", data);
-
-          resetRideState();
-
-          Alert.alert(
-            "Ride Completed",
-            "Your ride has been completed successfully."
-          );
-
+          router.push("/rating");
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         });
         socketRef.current.on("ride:cancelled", (data) => {

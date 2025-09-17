@@ -1,22 +1,22 @@
 import { useAppStore } from "@/stores/useAppStore";
-import { getMapRegionConfig, logError, shouldUpdateMapRegion, updateMapRegion } from "@/utility";
+import {
+  getMapRegionConfig,
+  logError,
+  shouldUpdateMapRegion,
+  updateMapRegion,
+} from "@/utility";
 import type { RefObject } from "react";
 import { useEffect } from "react";
 import { Alert } from "react-native";
 import MapView from "react-native-maps";
 
-interface UseMapRegionManagerParams {
-  mapRef: RefObject<MapView | null>;
-}
-
 export const useMapRegionManager = (mapRef: RefObject<MapView | null>) => {
-
   const rideState = useAppStore((state) => state.rideState);
-    const pickupLocation = useAppStore((state) => state.pickupLocation);
-    const destinationLocation = useAppStore((state) => state.destinationLocation);
-    const userLocation = useAppStore((state) => state.userLocation); 
-  
-    const { mapLoading, stage, driver } = rideState;
+  const pickupLocation = useAppStore((state) => state.pickupLocation);
+  const destinationLocation = useAppStore((state) => state.destinationLocation);
+  const userLocation = useAppStore((state) => state.userLocation);
+
+  const { mapLoading, stage, driver } = rideState;
   useEffect(() => {
     if (mapLoading || !mapRef.current) return;
 
