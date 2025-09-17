@@ -1,3 +1,4 @@
+import { riderApi } from "@/api/endpoints/rider";
 import { COLORS } from "@/constants/Colors";
 import { scale } from "@/constants/Layout";
 import { useAppStore } from "@/stores/useAppStore";
@@ -18,14 +19,23 @@ interface MapControlsProps {
 export const MapControls: React.FC<MapControlsProps> = ({
   geocodingLoading,
 }) => {
-  const { stage, driver, eta } = useAppStore((state) => state.rideState);
+  const { stage, driver, eta, rideId } = useAppStore(
+    (state) => state.rideState
+  );
   const pickupLocation = useAppStore((state) => state.pickupLocation);
   const destinationLocation = useAppStore((state) => state.destinationLocation);
   const userLocation = useAppStore((state) => state.userLocation);
   const mapRef = useAppStore((state) => state.mapRef);
   const bottomSheetRef = useAppStore((state) => state.bottomSheetRef);
 
-  const { setRideStage, setDestinationLocation } = useAppStore();
+  const {
+    setRideStage,
+    setDestinationLocation,
+    setFare,
+    setDriver,
+    setEta,
+    setRideId,
+  } = useAppStore();
 
   const navigation = useNavigation<any>();
 
@@ -59,6 +69,39 @@ export const MapControls: React.FC<MapControlsProps> = ({
     }
   }, [userLocation, destinationLocation, driver, pickupLocation]);
 
+  const handleCancel = useCallback(async () => {
+    try {
+      // Cancel ride request and return to initial state
+      const response = await riderApi.cancelRide(rideId!, "Rider cancelled");
+
+      if (response?.data?.success) {
+        setRideStage("initial");
+        setDestinationLocation({
+          address: "",
+          coords: { latitude: "", longitude: "" },
+        });
+        setFare(null);
+        setDriver(null);
+        setEta("");
+        setRideId(null);
+        bottomSheetRef?.current?.snapToIndex(0);
+      } else {
+        console.warn("Ride cancellation failed:", response?.data);
+      }
+    } catch (error: any) {
+      console.error("Error cancelling ride:", error.response.data.message);
+    }
+  }, [
+    setRideStage,
+    setDestinationLocation,
+    setFare,
+    setDriver,
+    setEta,
+    setRideId,
+    rideId,
+    bottomSheetRef,
+  ]);
+
   const handleBack = useCallback(
     (geocodingLoading: boolean = false) => {
       if (geocodingLoading) {
@@ -85,118 +128,161 @@ export const MapControls: React.FC<MapControlsProps> = ({
     [stage, driver, eta, setRideStage, setDestinationLocation, bottomSheetRef]
   );
 
-  if (stage === "initial") {
-    return (
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          width: "100%",
-          justifyContent: "space-between",
-        }}
-      >
+  // Define common button styles
+  const baseButtonStyle = {
+    width: scale(50),
+    height: scale(50),
+    borderRadius: scale(25),
+    backgroundColor: "white",
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  };
+
+  const locationButtonStyle = {
+    ...baseButtonStyle,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    marginRight: scale(16),
+  };
+
+  const actionButtonStyle = {
+    ...baseButtonStyle,
+    marginLeft: scale(16),
+  };
+
+  // Render controls based on stage
+  let leftButton = null;
+  let rightButton = null;
+
+  switch (stage) {
+    case "initial":
+      leftButton = (
         <TouchableOpacity
           onPress={handleDrawer}
           activeOpacity={0.7}
-          style={{
-            width: scale(50),
-            height: scale(50),
-            borderRadius: scale(25),
-            backgroundColor: "white",
-            justifyContent: "center",
-            alignItems: "center",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-            elevation: 5,
-            marginLeft: scale(16),
-          }}
+          style={actionButtonStyle}
         >
           <Ionicons name="menu" size={24} color="#333" />
         </TouchableOpacity>
+      );
+      rightButton = (
         <TouchableOpacity
           onPress={centerMapOnUser}
           activeOpacity={0.7}
-          style={{
-            width: scale(50),
-            height: scale(50),
-            borderRadius: scale(25),
-            backgroundColor: "white",
-            justifyContent: "center",
-            alignItems: "center",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-            elevation: 5,
-            borderWidth: 1,
-            borderColor: COLORS.primary,
-            marginRight: scale(16),
-          }}
+          style={locationButtonStyle}
         >
           <Ionicons name="locate" size={24} color={COLORS.primary} />
         </TouchableOpacity>
-      </View>
-    );
-  }
+      );
+      break;
 
-  if (["input", "confirm", "chat"].includes(stage)) {
-    return (
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          width: "100%",
-          justifyContent: "space-between",
-        }}
-      >
+    case "input":
+    case "confirm":
+      leftButton = (
         <TouchableOpacity
           onPress={() => handleBack(geocodingLoading)}
           activeOpacity={0.7}
-          style={{
-            width: scale(50),
-            height: scale(50),
-            borderRadius: scale(25),
-            backgroundColor: "white",
-            justifyContent: "center",
-            alignItems: "center",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-            elevation: 5,
-            marginLeft: scale(16),
-          }}
+          style={actionButtonStyle}
         >
           <Ionicons name="chevron-back" size={24} color="#333" />
         </TouchableOpacity>
+      );
+      rightButton = (
         <TouchableOpacity
           onPress={centerMapOnUser}
           activeOpacity={0.7}
-          style={{
-            width: scale(50),
-            height: scale(50),
-            borderRadius: scale(25),
-            backgroundColor: "white",
-            justifyContent: "center",
-            alignItems: "center",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-            elevation: 5,
-            borderWidth: 1,
-            borderColor: COLORS.primary,
-            marginRight: scale(16),
-          }}
+          style={locationButtonStyle}
         >
           <Ionicons name="locate" size={24} color={COLORS.primary} />
         </TouchableOpacity>
-      </View>
-    );
+      );
+      break;
+
+    case "search":
+    case "paired":
+      leftButton = (
+        <TouchableOpacity
+          onPress={handleCancel}
+          activeOpacity={0.7}
+          style={actionButtonStyle}
+        >
+          <Ionicons name="close" size={24} color="#333" />
+        </TouchableOpacity>
+      );
+      rightButton = (
+        <TouchableOpacity
+          onPress={centerMapOnUser}
+          activeOpacity={0.7}
+          style={locationButtonStyle}
+        >
+          <Ionicons name="locate" size={24} color={COLORS.primary} />
+        </TouchableOpacity>
+      );
+      break;
+
+    case "arrived":
+    case "trip":
+      leftButton = (
+        <TouchableOpacity
+          onPress={handleDrawer}
+          activeOpacity={0.7}
+          style={actionButtonStyle}
+        >
+          <Ionicons name="menu" size={24} color="#333" />
+        </TouchableOpacity>
+      );
+      rightButton = (
+        <TouchableOpacity
+          onPress={centerMapOnUser}
+          activeOpacity={0.7}
+          style={locationButtonStyle}
+        >
+          <Ionicons name="locate" size={24} color={COLORS.primary} />
+        </TouchableOpacity>
+      );
+      break;
+
+    case "chat":
+      leftButton = (
+        <TouchableOpacity
+          onPress={() => handleBack(geocodingLoading)}
+          activeOpacity={0.7}
+          style={actionButtonStyle}
+        >
+          <Ionicons name="chevron-back" size={24} color="#333" />
+        </TouchableOpacity>
+      );
+      rightButton = (
+        <TouchableOpacity
+          onPress={centerMapOnUser}
+          activeOpacity={0.7}
+          style={locationButtonStyle}
+        >
+          <Ionicons name="locate" size={24} color={COLORS.primary} />
+        </TouchableOpacity>
+      );
+      break;
+
+    default:
+      return null;
   }
 
-  // Return null for other stages - they handle their own controls
-  return null;
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        width: "100%",
+        justifyContent: "space-between",
+      }}
+    >
+      {leftButton}
+      {rightButton}
+    </View>
+  );
 };

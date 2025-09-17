@@ -91,10 +91,7 @@ export const useSocket = () => {
 
           resetRideState();
 
-          Alert.alert(
-            "Ride Cancelled",
-            "Your ride has been cancelled by the driver."
-          );
+          Alert.alert("Ride Cancelled", data.reason);
         });
 
         socketRef.current.on("connect_error", (error) => {

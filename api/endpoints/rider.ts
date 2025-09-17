@@ -29,12 +29,8 @@ export const riderApi = {
     return await apiService.post("/rider/request-ride", data);
   },
 
-  getRideStatus: async (rideId: string) => {
-    return await apiService.get(`/rider/ride-status/${rideId}`);
-  },
-
-  cancelRide: async (rideId: string) => {
-    return await apiService.post(`/rider/ride/${rideId}/cancel`, {});
+  cancelRide: async (rideId: string, reason: string) => {
+    return await apiService.post(`/rider/cancel-ride`, { rideId, reason });
   },
 
   getNearbyDrivers: async (data: {
