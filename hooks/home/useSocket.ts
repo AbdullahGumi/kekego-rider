@@ -13,8 +13,13 @@ export const useSocket = () => {
   const bottomSheetRef = useAppStore((state) => state.bottomSheetRef);
   const socketRef = useAppStore((state) => state.socketRef);
 
-  const { setEta, setRideStage, setDriver, setFare, resetRideState } =
-    useAppStore();
+  const {
+    setEta,
+    setRideStage,
+    setDriver,
+    updateDriverLocation,
+    resetRideState,
+  } = useAppStore();
 
   const { rideId } = rideState;
 
@@ -44,6 +49,19 @@ export const useSocket = () => {
 
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         });
+
+        socketRef.current.on("ride:join-room", ({ rideId }) => {
+          socketRef.current?.emit("ride:join-room", { rideId }); // Client emits back for server to handle
+        });
+
+        socketRef.current.on(`driver:location-update`, (data) => {
+          updateDriverLocation({
+            latitude: data.latitude,
+            longitude: data.longitude,
+          });
+          console.log("driver:location-update", data.coordinates);
+        });
+
         socketRef.current.on("ride:arrived", (data) => {
           console.log("ride:arrived", data);
           setRideStage("arrived");
