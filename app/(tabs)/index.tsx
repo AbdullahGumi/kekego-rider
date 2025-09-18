@@ -1,5 +1,5 @@
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { ActivityIndicator, Keyboard, View } from "react-native";
 import MapView from "react-native-maps";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
@@ -29,7 +29,7 @@ import { useAppStore } from "@/stores/useAppStore";
 const HomeScreen = () => {
   const rideState = useAppStore((state) => state.rideState);
   const userLocation = useAppStore((state) => state.userLocation);
-  const { setMapLoading, setRideStage } = useAppStore();
+  const { setMapLoading } = useAppStore();
   const { mapLoading, stage, driver } = rideState;
 
   const mapRef = useRef<MapView>(null);
@@ -57,11 +57,6 @@ const HomeScreen = () => {
       setMapLoading(false);
     }
   }, [userLocation, setMapLoading]);
-
-  const handleOpenChat = useCallback(() => {
-    setRideStage("chat");
-    bottomSheetRef.current?.snapToIndex(3);
-  }, [setRideStage]);
 
   return (
     <View style={homeStyles.container}>
@@ -136,28 +131,12 @@ const HomeScreen = () => {
             <PairedArrivedStage
               geocodingLoading={geocodingLoading}
               onCall={() => {}}
-              onChat={handleOpenChat}
             />
           )}
 
           {stage === "trip" && driver && (
-            <TripStage
-              geocodingLoading={geocodingLoading}
-              onCall={() => {}}
-              onChat={handleOpenChat}
-            />
+            <TripStage geocodingLoading={geocodingLoading} onCall={() => {}} />
           )}
-
-          {/* {stage === "chat" && driver && (
-            <ChatStage
-              driver={driver}
-              messages={messages}
-              newMessage={newMessage}
-              setNewMessage={setNewMessage}
-              chatLoading={chatLoading}
-              handleSendMessage={handleSendMessage}
-            />
-          )} */}
         </BottomSheetView>
       </BottomSheet>
     </View>

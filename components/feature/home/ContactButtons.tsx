@@ -6,10 +6,9 @@ import { homeStyles } from "../../../styles/home-styles";
 
 interface ContactButtonsProps {
   onCall: () => void;
-  onChat: () => void;
 }
 
-const ContactButtons = memo<ContactButtonsProps>(({ onCall, onChat }) => (
+const ContactButtons = memo<ContactButtonsProps>(({ onCall }) => (
   <View style={homeStyles.contactButtonContainer}>
     <TouchableOpacity
       style={[homeStyles.contactButton, { marginRight: 8 }]}
@@ -29,7 +28,6 @@ const ContactButtons = memo<ContactButtonsProps>(({ onCall, onChat }) => (
     <TouchableOpacity
       style={homeStyles.contactButton}
       activeOpacity={0.7}
-      onPress={onChat}
     >
       <Ionicons
         name="chatbubble"

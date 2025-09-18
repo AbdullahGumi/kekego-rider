@@ -11,14 +11,9 @@ import { homeStyles } from "../../../../styles/home-styles";
 interface TripStageProps {
   geocodingLoading: boolean;
   onCall: () => void;
-  onChat: () => void;
 }
 
-const TripStage: React.FC<TripStageProps> = ({
-  geocodingLoading,
-  onCall,
-  onChat,
-}) => {
+const TripStage: React.FC<TripStageProps> = ({ geocodingLoading, onCall }) => {
   const rideState = useAppStore((state) => state.rideState);
   const pickupLocation = useAppStore((state) => state.pickupLocation);
   const destinationLocation = useAppStore((state) => state.destinationLocation);

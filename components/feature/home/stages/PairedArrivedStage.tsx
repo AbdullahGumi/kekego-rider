@@ -9,13 +9,11 @@ import { homeStyles } from "../../../../styles/home-styles";
 interface PairedArrivedStageProps {
   geocodingLoading: boolean;
   onCall: () => void;
-  onChat: () => void;
 }
 
 const PairedArrivedStage: React.FC<PairedArrivedStageProps> = ({
   geocodingLoading,
   onCall,
-  onChat,
 }) => {
   const rideState = useAppStore((state) => state.rideState);
   const pickupLocation = useAppStore((state) => state.pickupLocation);
@@ -35,7 +33,7 @@ const PairedArrivedStage: React.FC<PairedArrivedStageProps> = ({
         geocodingLoading={geocodingLoading}
       />
       <DriverInfo driver={driver!} stage={stage} />
-      <ContactButtons onCall={onCall} onChat={onChat} />
+      <ContactButtons onCall={onCall} />
     </Animated.View>
   );
 };
