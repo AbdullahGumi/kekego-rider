@@ -1,5 +1,6 @@
 import CustomText from "@/components/common/CustomText";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
 import { homeStyles } from "../../../styles/home-styles";
@@ -20,7 +21,11 @@ const ContactButtons = () => (
         Call
       </CustomText>
     </TouchableOpacity>
-    <TouchableOpacity style={homeStyles.contactButton} activeOpacity={0.7}>
+    <TouchableOpacity
+      onPress={() => router.push("/chat")}
+      style={homeStyles.contactButton}
+      activeOpacity={0.7}
+    >
       <Ionicons
         name="chatbubble"
         size={23}
