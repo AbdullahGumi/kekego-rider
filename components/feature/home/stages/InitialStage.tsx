@@ -20,7 +20,7 @@ const InitialStage = () => {
     (destination: any) => {
       setDestinationLocation(destination);
       setRideStage("confirm");
-      bottomSheetRef?.current?.snapToIndex(2);
+      bottomSheetRef?.current?.snapToIndex(0);
     },
     [setDestinationLocation, setRideStage, bottomSheetRef]
   );

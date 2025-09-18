@@ -1,7 +1,6 @@
 import { riderApi } from "@/api/endpoints/rider";
 import { KekeImage } from "@/assets/images/Index";
 import CustomText from "@/components/common/CustomText";
-import LocationCard from "@/components/feature/home/LocationCard";
 import { COLORS } from "@/constants/Colors";
 import { CONSTANTS } from "@/constants/constants";
 import { useAppStore } from "@/stores/useAppStore";
@@ -22,11 +21,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { homeStyles } from "../../../../styles/home-styles";
 
-interface ConfirmStageProps {
-  geocodingLoading: boolean;
-}
-
-const ConfirmStage: React.FC<ConfirmStageProps> = ({ geocodingLoading }) => {
+const ConfirmStage = () => {
   const pickupLocation = useAppStore((state) => state.pickupLocation);
   const rideState = useAppStore((state) => state.rideState);
   const destinationLocation = useAppStore((state) => state.destinationLocation);
@@ -96,11 +91,6 @@ const ConfirmStage: React.FC<ConfirmStageProps> = ({ geocodingLoading }) => {
       <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
         Confirm Your Ride
       </CustomText>
-      <LocationCard
-        pickupLocation={pickupLocation}
-        destinationLocation={destinationLocation}
-        geocodingLoading={geocodingLoading}
-      />
       <View style={homeStyles.confirmCard}>
         <View style={homeStyles.rideOptionHeader}>
           <Image source={KekeImage} style={homeStyles.rideOptionIcon} />
