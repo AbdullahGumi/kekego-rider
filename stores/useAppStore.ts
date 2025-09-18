@@ -2,6 +2,7 @@ import { Storage } from "@/utility/asyncStorageHelper";
 import BottomSheet from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
 import { RefObject } from "react";
+import { GiftedChat, IMessage } from "react-native-gifted-chat";
 import MapView from "react-native-maps";
 import { Socket } from "socket.io-client";
 import { create } from "zustand";
@@ -76,11 +77,13 @@ type AppState = {
   // Ride State
   rideState: RideState;
 
+  // Chat State
+  messages: IMessage[];
+
   // Actions
   setUserLocation: (location: Location.LocationObject | null) => void;
   setPickupLocation: (location: LocationData) => void;
   setDestinationLocation: (location: LocationData) => void;
-  // Add this to the store actions:
   updateDriverLocation: (location: {
     latitude: number;
     longitude: number;
@@ -96,6 +99,10 @@ type AppState = {
   setDestinationDuration: (duration: number) => void;
   setRideId: (rideId: string | null) => void;
   setMapLoading: (loading: boolean) => void;
+
+  // Chat Actions
+  setMessages: (messages: IMessage[]) => void;
+  addMessage: (message: IMessage) => void;
 
   // Bulk actions
   updateRideState: (updates: Partial<RideState>) => void;
@@ -143,6 +150,9 @@ export const useAppStore = create<AppStore>((set) => ({
     mapLoading: true,
   },
 
+  // Chat state initialization
+  messages: [],
+
   // Location actions
   setUserLocation: (location) => set({ userLocation: location }),
   setPickupLocation: (location) => set({ pickupLocation: location }),
@@ -160,7 +170,7 @@ export const useAppStore = create<AppStore>((set) => ({
       },
     })),
 
-  // Ride state actions - Properly merge with existing state
+  // Ride state actions
   setRideStage: (stage) =>
     set((state) => ({
       rideState: { ...state.rideState, stage },
@@ -198,6 +208,13 @@ export const useAppStore = create<AppStore>((set) => ({
       rideState: { ...state.rideState, mapLoading: loading },
     })),
 
+  // Chat actions
+  setMessages: (messages) => set({ messages }),
+  addMessage: (message) =>
+    set((state) => ({
+      messages: GiftedChat.append(state.messages, [message]),
+    })),
+
   // Bulk actions
   updateRideState: (updates) =>
     set((state) => ({
@@ -218,6 +235,7 @@ export const useAppStore = create<AppStore>((set) => ({
         rideId: null,
         mapLoading: false,
       },
+      messages: [], // also reset messages when ride ends
     }),
 
   setUser: async (user, token) => {
@@ -255,7 +273,7 @@ export const useAppStore = create<AppStore>((set) => ({
         Storage.remove("user"),
         Storage.remove("access_token"),
       ]);
-      set({ user: null, token: null });
+      set({ user: null, token: null, messages: [] });
     } catch (err) {
       console.error("Failed to reset store", err);
     }

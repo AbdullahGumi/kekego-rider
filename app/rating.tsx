@@ -23,7 +23,7 @@ const RatingScreen: React.FC = () => {
   const router = useRouter();
   const { rideState, resetRideState, setDestinationLocation, bottomSheetRef } =
     useAppStore();
-  const { rideId } = rideState;
+  const { rideId, fare } = rideState;
 
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
@@ -108,6 +108,20 @@ const RatingScreen: React.FC = () => {
           >
             Rate Your Trip
           </CustomText>
+
+          {fare !== undefined && (
+            <CustomText
+              fontWeight="Bold"
+              style={{
+                fontSize: 20,
+                textAlign: "center",
+                marginBottom: 32,
+                color: COLORS.black,
+              }}
+            >
+              Fare: ₦{fare?.toLocaleString()}
+            </CustomText>
+          )}
 
           <View
             style={{

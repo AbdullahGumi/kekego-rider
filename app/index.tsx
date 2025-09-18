@@ -1,3 +1,4 @@
+import { useAppStore } from "@/stores/useAppStore";
 import { Storage } from "@/utility/asyncStorageHelper";
 import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
@@ -12,13 +13,13 @@ export default function Index() {
     isAuthenticated: false,
   });
 
-  // const loadFromStorage = useAppStore((state) => state.loadFromStorage);
+  const loadFromStorage = useAppStore((state) => state.loadFromStorage);
 
   useEffect(() => {
     const initialize = async () => {
       const token = await Storage.get("access_token");
       // await Storage.clear();
-      // await loadFromStorage();
+      await loadFromStorage();
 
       setStatus({
         loading: false,

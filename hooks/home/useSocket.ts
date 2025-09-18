@@ -14,8 +14,13 @@ export const useSocket = () => {
   const bottomSheetRef = useAppStore((state) => state.bottomSheetRef);
   const socketRef = useAppStore((state) => state.socketRef);
 
-  const { setRideStage, setDriver, updateDriverLocation, resetRideState } =
-    useAppStore();
+  const {
+    setRideStage,
+    setDriver,
+    updateDriverLocation,
+    resetRideState,
+    addMessage,
+  } = useAppStore();
 
   const { rideId } = rideState;
 
@@ -48,6 +53,10 @@ export const useSocket = () => {
 
         socketRef.current.on("ride:join-room", ({ rideId }) => {
           socketRef.current?.emit("ride:join-room", { rideId }); // Client emits back for server to handle
+        });
+
+        socketRef.current.on("message:receive", (msg) => {
+          addMessage(msg);
         });
 
         socketRef.current.on(`driver:location-update`, (data) => {

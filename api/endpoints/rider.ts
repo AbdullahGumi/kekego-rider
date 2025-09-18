@@ -56,4 +56,8 @@ export const riderApi = {
       feedback,
     });
   },
+
+  getRideMessages: async (rideId: string) => {
+    return await apiService.get(`/rider/messages/${rideId}`);
+  },
 };
