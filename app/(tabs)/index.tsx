@@ -128,14 +128,11 @@ const HomeScreen = () => {
           )}
 
           {(stage === "paired" || stage === "arrived") && driver && (
-            <PairedArrivedStage
-              geocodingLoading={geocodingLoading}
-              onCall={() => {}}
-            />
+            <PairedArrivedStage geocodingLoading={geocodingLoading} />
           )}
 
           {stage === "trip" && driver && (
-            <TripStage geocodingLoading={geocodingLoading} onCall={() => {}} />
+            <TripStage geocodingLoading={geocodingLoading} />
           )}
         </BottomSheetView>
       </BottomSheet>

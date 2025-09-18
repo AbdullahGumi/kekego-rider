@@ -1,19 +1,14 @@
 import CustomText from "@/components/common/CustomText";
 import { Ionicons } from "@expo/vector-icons";
-import React, { memo } from "react";
+import React from "react";
 import { TouchableOpacity, View } from "react-native";
 import { homeStyles } from "../../../styles/home-styles";
 
-interface ContactButtonsProps {
-  onCall: () => void;
-}
-
-const ContactButtons = memo<ContactButtonsProps>(({ onCall }) => (
+const ContactButtons = () => (
   <View style={homeStyles.contactButtonContainer}>
     <TouchableOpacity
       style={[homeStyles.contactButton, { marginRight: 8 }]}
       activeOpacity={0.7}
-      onPress={onCall}
     >
       <Ionicons
         name="call"
@@ -25,10 +20,7 @@ const ContactButtons = memo<ContactButtonsProps>(({ onCall }) => (
         Call
       </CustomText>
     </TouchableOpacity>
-    <TouchableOpacity
-      style={homeStyles.contactButton}
-      activeOpacity={0.7}
-    >
+    <TouchableOpacity style={homeStyles.contactButton} activeOpacity={0.7}>
       <Ionicons
         name="chatbubble"
         size={23}
@@ -40,7 +32,7 @@ const ContactButtons = memo<ContactButtonsProps>(({ onCall }) => (
       </CustomText>
     </TouchableOpacity>
   </View>
-));
+);
 
 ContactButtons.displayName = "ContactButtons";
 

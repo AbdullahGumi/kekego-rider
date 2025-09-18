@@ -27,8 +27,13 @@ export const useLocation = () => {
         handleLocationError(new Error("Location permission denied"), {
           permissionStatus: status,
         });
-        setLocationError("Location access denied. Please enable location services to use the app.");
-        setPickupLocation({ address: "Location access required", coords: CONFIG.DEFAULT_COORDS });
+        setLocationError(
+          "Location access denied. Please enable location services to use the app."
+        );
+        setPickupLocation({
+          address: "Location access required",
+          coords: CONFIG.DEFAULT_COORDS,
+        });
         return;
       }
 
@@ -56,16 +61,21 @@ export const useLocation = () => {
         action: "fetchLocation",
       });
 
-      const fallbackMessage = "Using default location. You can try again by restarting the app.";
-      setLocationError(`${error?.message || "Location service unavailable"}. ${fallbackMessage}`);
+      const fallbackMessage =
+        "Using default location. You can try again by restarting the app.";
+      setLocationError(
+        `${
+          error?.message || "Location service unavailable"
+        }. ${fallbackMessage}`
+      );
 
       setPickupLocation({
         address: "Location unavailable - using default",
-        coords: CONFIG.DEFAULT_COORDS
+        coords: CONFIG.DEFAULT_COORDS,
       });
 
       // Increment retry count for potential retry logic
-      setRetryCount(prev => prev + 1);
+      setRetryCount((prev) => prev + 1);
     } finally {
       setGeocodingLoading(false);
     }
@@ -123,13 +133,15 @@ export const useLocation = () => {
         let errorMessage = "Unable to fetch address";
 
         if (error?.message?.includes("REQUEST_DENIED")) {
-          errorMessage = "Google Maps API access denied. Please check your API key configuration.";
+          errorMessage =
+            "Google Maps API access denied. Please check your API key configuration.";
         } else if (error?.message?.includes("OVER_QUERY_LIMIT")) {
           errorMessage = "API request limit exceeded. Please try again later.";
         } else if (error?.message?.includes("ZERO_RESULTS")) {
           errorMessage = "Address not found for your location.";
         } else if (error?.message?.includes("API key not configured")) {
-          errorMessage = "Google Maps API key missing. Please configure your environment variables.";
+          errorMessage =
+            "Google Maps API key missing. Please configure your environment variables.";
         }
 
         setPickupLocation({
