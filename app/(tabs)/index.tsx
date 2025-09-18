@@ -119,16 +119,14 @@ const HomeScreen = () => {
             <InputStage geocodingLoading={geocodingLoading} />
           )}
 
-          {stage === "confirm" && (
-            <ConfirmStage geocodingLoading={geocodingLoading} />
-          )}
+          {stage === "confirm" && <ConfirmStage />}
 
           {stage === "search" && (
             <SearchStage geocodingLoading={geocodingLoading} />
           )}
 
           {(stage === "paired" || stage === "arrived") && driver && (
-            <PairedArrivedStage geocodingLoading={geocodingLoading} />
+            <PairedArrivedStage />
           )}
 
           {stage === "trip" && driver && (
