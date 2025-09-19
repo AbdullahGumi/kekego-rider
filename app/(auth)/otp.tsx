@@ -4,7 +4,6 @@ import CustomText from "@/components/common/CustomText";
 import Header from "@/components/common/Header";
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
-import useApi from "@/hooks/useApi";
 import { useAppStore } from "@/stores/useAppStore";
 import { Storage } from "@/utility/asyncStorageHelper";
 import * as Haptics from "expo-haptics";
@@ -17,11 +16,11 @@ import Toast from "react-native-toast-message";
 export default function OTPScreen() {
   const [otp, setOtp] = useState("");
   const [resendTimer, setResendTimer] = useState(30);
+  const [loading, setLoading] = useState(false);
   const { phone, isRegistered } = useLocalSearchParams<{
     phone: string;
     isRegistered: string;
   }>();
-  const { fetchData, loading } = useApi();
   const router = useRouter();
   const { setUser } = useAppStore();
 
