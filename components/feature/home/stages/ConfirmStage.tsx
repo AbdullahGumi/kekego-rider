@@ -5,6 +5,7 @@ import { COLORS } from "@/constants/Colors";
 import { CONSTANTS } from "@/constants/constants";
 import { useAppStore } from "@/stores/useAppStore";
 import { formatDuration, numberWithCommas } from "@/utility";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useCallback, useState } from "react";
 import {
@@ -21,12 +22,15 @@ import Animated, {
 } from "react-native-reanimated";
 import { homeStyles } from "../../../../styles/home-styles";
 
+type PaymentMethod = "cash" | "wallet";
+
 const ConfirmStage = () => {
   const pickupLocation = useAppStore((state) => state.pickupLocation);
   const rideState = useAppStore((state) => state.rideState);
   const destinationLocation = useAppStore((state) => state.destinationLocation);
   const { setRideId, setRideStage } = useAppStore();
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
 
   const { fare, tripDuration, destinationDistance, destinationDuration } =
     rideState;
@@ -61,7 +65,7 @@ const ConfirmStage = () => {
         },
         distanceInKm: Number(destinationDistance),
         durationInMinutes: Number(destinationDuration),
-        paymentMethod: "cash",
+        paymentMethod: paymentMethod,
       });
       if (response.data.data.ride.status === "requested") {
         const responseRideId = response.data.data.ride.id;
@@ -82,10 +86,14 @@ const ConfirmStage = () => {
     pickupLocation,
     destinationDistance,
     destinationDuration,
+    paymentMethod,
     setRideStage,
     setRideId,
   ]);
 
+  const handlePaymentMethodChange = useCallback((method: PaymentMethod) => {
+    setPaymentMethod(method);
+  }, []);
   return (
     <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
       <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
@@ -119,6 +127,82 @@ const ConfirmStage = () => {
           )}
         </View>
       </View>
+
+      {/* Payment Method Selector */}
+      <View style={homeStyles.paymentMethodContainer}>
+        <CustomText fontWeight="SemiBold" style={homeStyles.paymentMethodTitle}>
+          Select Payment Method
+        </CustomText>
+        <View style={homeStyles.paymentMethodOptions}>
+          <TouchableOpacity
+            style={[
+              homeStyles.paymentMethodOption,
+              paymentMethod === "cash"
+                ? homeStyles.paymentMethodOptionSelected
+                : {},
+              {
+                flexDirection: "row",
+                justifyContent: "center",
+              },
+            ]}
+            onPress={() => handlePaymentMethodChange("cash")}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="cash-outline"
+              size={20}
+              style={{ marginRight: 6 }}
+              color={
+                paymentMethod === "cash" ? COLORS.background : COLORS.black
+              }
+            />
+            <CustomText
+              style={[
+                homeStyles.paymentMethodOptionText,
+                paymentMethod === "cash"
+                  ? homeStyles.paymentMethodOptionTextSelected
+                  : {},
+              ]}
+            >
+              Cash
+            </CustomText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              homeStyles.paymentMethodOption,
+              paymentMethod === "wallet"
+                ? homeStyles.paymentMethodOptionSelected
+                : {},
+              {
+                flexDirection: "row",
+                justifyContent: "center",
+              },
+            ]}
+            onPress={() => handlePaymentMethodChange("wallet")}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="wallet-outline"
+              size={20}
+              style={{ marginRight: 6 }}
+              color={
+                paymentMethod === "wallet" ? COLORS.background : COLORS.black
+              }
+            />
+            <CustomText
+              style={[
+                homeStyles.paymentMethodOptionText,
+                paymentMethod === "wallet"
+                  ? homeStyles.paymentMethodOptionTextSelected
+                  : {},
+              ]}
+            >
+              Wallet
+            </CustomText>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <TouchableOpacity
         style={[
           homeStyles.bookButton,

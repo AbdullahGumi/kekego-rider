@@ -60,4 +60,8 @@ export const riderApi = {
   getRideMessages: async (rideId: string) => {
     return await apiService.get(`/rider/messages/${rideId}`);
   },
+
+  getRideHistory: async () => {
+    return await apiService.get(`/rider/rides`);
+  },
 };

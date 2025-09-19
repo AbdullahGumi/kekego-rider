@@ -1,4 +1,5 @@
 import { riderApi } from "@/api/endpoints/rider";
+import DrawerButton from "@/components/common/DrawerButton";
 import { COLORS } from "@/constants/Colors";
 import { scale } from "@/constants/Layout";
 import { useAppStore } from "@/stores/useAppStore";
@@ -132,7 +133,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
   const baseButtonStyle = {
     width: scale(50),
     height: scale(50),
-    borderRadius: scale(25),
+    borderRadius: scale(50),
     backgroundColor: "white",
     justifyContent: "center" as const,
     alignItems: "center" as const,
@@ -147,12 +148,10 @@ export const MapControls: React.FC<MapControlsProps> = ({
     ...baseButtonStyle,
     borderWidth: 1,
     borderColor: COLORS.primary,
-    marginRight: scale(16),
   };
 
   const actionButtonStyle = {
     ...baseButtonStyle,
-    marginLeft: scale(16),
   };
 
   // Render controls based on stage
@@ -161,20 +160,18 @@ export const MapControls: React.FC<MapControlsProps> = ({
 
   switch (stage) {
     case "initial":
-      leftButton = (
-        <TouchableOpacity
-          onPress={handleDrawer}
-          activeOpacity={0.7}
-          style={actionButtonStyle}
-        >
-          <Ionicons name="menu" size={24} color="#333" />
-        </TouchableOpacity>
-      );
+      leftButton = <DrawerButton />;
       rightButton = (
         <TouchableOpacity
           onPress={centerMapOnUser}
           activeOpacity={0.7}
-          style={locationButtonStyle}
+          style={[
+            locationButtonStyle,
+            {
+              width: scale(50),
+              height: scale(50),
+            },
+          ]}
         >
           <Ionicons name="locate" size={24} color={COLORS.primary} />
         </TouchableOpacity>
@@ -196,7 +193,13 @@ export const MapControls: React.FC<MapControlsProps> = ({
         <TouchableOpacity
           onPress={centerMapOnUser}
           activeOpacity={0.7}
-          style={locationButtonStyle}
+          style={[
+            locationButtonStyle,
+            {
+              width: scale(50),
+              height: scale(50),
+            },
+          ]}
         >
           <Ionicons name="locate" size={24} color={COLORS.primary} />
         </TouchableOpacity>
@@ -218,7 +221,13 @@ export const MapControls: React.FC<MapControlsProps> = ({
         <TouchableOpacity
           onPress={centerMapOnUser}
           activeOpacity={0.7}
-          style={locationButtonStyle}
+          style={[
+            locationButtonStyle,
+            {
+              width: scale(50),
+              height: scale(50),
+            },
+          ]}
         >
           <Ionicons name="locate" size={24} color={COLORS.primary} />
         </TouchableOpacity>
@@ -227,20 +236,18 @@ export const MapControls: React.FC<MapControlsProps> = ({
 
     case "arrived":
     case "trip":
-      leftButton = (
-        <TouchableOpacity
-          onPress={handleDrawer}
-          activeOpacity={0.7}
-          style={actionButtonStyle}
-        >
-          <Ionicons name="menu" size={24} color="#333" />
-        </TouchableOpacity>
-      );
+      leftButton = <DrawerButton />;
       rightButton = (
         <TouchableOpacity
           onPress={centerMapOnUser}
           activeOpacity={0.7}
-          style={locationButtonStyle}
+          style={[
+            locationButtonStyle,
+            {
+              width: scale(50),
+              height: scale(50),
+            },
+          ]}
         >
           <Ionicons name="locate" size={24} color={COLORS.primary} />
         </TouchableOpacity>
@@ -261,7 +268,13 @@ export const MapControls: React.FC<MapControlsProps> = ({
         <TouchableOpacity
           onPress={centerMapOnUser}
           activeOpacity={0.7}
-          style={locationButtonStyle}
+          style={[
+            locationButtonStyle,
+            {
+              width: scale(50),
+              height: scale(50),
+            },
+          ]}
         >
           <Ionicons name="locate" size={24} color={COLORS.primary} />
         </TouchableOpacity>

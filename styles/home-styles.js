@@ -315,4 +315,46 @@ export const homeStyles = StyleSheet.create({
     backgroundColor: COLORS.secondaryText,
     opacity: 0.2,
   },
+  paymentMethodContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: scale(12),
+    padding: scale(16),
+    marginBottom: scale(16),
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  paymentMethodTitle: {
+    fontSize: scaleText(16),
+    color: COLORS.text,
+    fontWeight: "700",
+    marginBottom: scale(12),
+  },
+  paymentMethodOptions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: scale(12),
+  },
+  paymentMethodOption: {
+    flex: 1,
+    borderRadius: scale(8),
+    padding: scale(12),
+    alignItems: "center",
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.secondaryText,
+  },
+  paymentMethodOptionSelected: {
+    backgroundColor: COLORS.black,
+  },
+  paymentMethodOptionText: {
+    fontSize: scaleText(14),
+    color: COLORS.secondaryText,
+    fontWeight: "600",
+  },
+  paymentMethodOptionTextSelected: {
+    color: COLORS.white,
+  },
 });
