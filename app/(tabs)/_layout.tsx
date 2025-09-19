@@ -31,6 +31,15 @@ export default function DrawerLayout() {
             ),
           }}
         />
+        <Drawer.Screen
+          name="ride-history"
+          options={{
+            drawerLabel: "Ride History",
+            drawerIcon: ({ color }) => (
+              <Ionicons name="time-outline" size={24} color={color} />
+            ),
+          }}
+        />
       </Drawer>
     </GestureHandlerRootView>
   );
