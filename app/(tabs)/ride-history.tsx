@@ -175,12 +175,12 @@ export default function RideHistoryScreen() {
               fontWeight="SemiBold"
               style={{ fontSize: scaleText(16), color: COLORS.text }}
             >
-              {item.driver.name}
+              {item.driver?.name}
             </CustomText>
             <CustomText
               style={{ fontSize: scaleText(14), color: COLORS.secondaryText }}
             >
-              {item.driver.phone}
+              {item.driver?.phone}
             </CustomText>
           </View>
         </View>
