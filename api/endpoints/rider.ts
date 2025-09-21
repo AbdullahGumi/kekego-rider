@@ -68,4 +68,20 @@ export const riderApi = {
   }) => {
     return await apiService.get("/rider/rides", params);
   },
+
+  getWalletBalance: async () => {
+    return await apiService.get("rider/wallet/balance");
+  },
+  getWalletTransactions: async (params?: { page?: number; limit?: number }) => {
+    return await apiService.get("rider/wallet/transactions", params);
+  },
+  initiateWalletTopUp: async (amount: string, callbackUrl: string) => {
+    return await apiService.post("rider/wallet/topup/initiate", {
+      amount,
+      callbackUrl,
+    });
+  },
+  completeWalletTopUp: async (reference: string) => {
+    return await apiService.post("rider/wallet/topup/complete", { reference });
+  },
 };
