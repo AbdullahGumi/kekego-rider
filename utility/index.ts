@@ -54,7 +54,9 @@ export const numberWithCommas = (
     : formattedInteger;
 };
 
-export const removeCommas = (value: string | number | null | undefined): string => {
+export const removeCommas = (
+  value: string | number | null | undefined
+): string => {
   if (value === null || value === undefined) return "";
 
   const str = value.toString();
@@ -67,7 +69,9 @@ export const formatDateToDDMMYY = (date?: dayjs.ConfigType): string => {
   return dayjs(date).format("DD/MM/YY");
 };
 
-export const formatDuration = (minutes: number | string | null | undefined): string => {
+export const formatDuration = (
+  minutes: number | string | null | undefined
+): string => {
   if (minutes === null || minutes === undefined || isNaN(Number(minutes))) {
     return "";
   }
@@ -95,7 +99,16 @@ export const logError = (context: string, error: any) => {
 // Re-export map region service utilities
 export {
   getMapRegionConfig,
-  shouldUpdateMapRegion, STAGE_CONFIGS, updateMapRegion, type MapRegionConfiguration,
-  type MapRegionParams
+  shouldUpdateMapRegion,
+  STAGE_CONFIGS,
+  updateMapRegion,
+  type MapRegionConfiguration,
+  type MapRegionParams,
 } from "./mapRegionService";
 
+export const generateReference = () => {
+  const prefix = "TXN";
+  const timestamp = Date.now(); // current time in ms
+  const random = Math.floor(Math.random() * 100000); // 5-digit random
+  return `${prefix}_${timestamp}_${random}`;
+};

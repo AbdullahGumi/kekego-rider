@@ -7,6 +7,7 @@ import "react-native-reanimated";
 import SafeAreaWrapper from "@/components/common/SafeAreaWrapper";
 import { toastConfig } from "@/config/toast";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { PaystackProvider } from "react-native-paystack-webview";
 import Toast from "react-native-toast-message";
 import {
   UrbanistBold,
@@ -45,8 +46,20 @@ export default function RootLayout() {
   return (
     <SafeAreaWrapper>
       <GestureHandlerRootView>
-        <Stack screenOptions={{ headerShown: false }} />
-        <Toast config={toastConfig} />
+        <PaystackProvider
+          publicKey="pk_test_08bb5667257d01d52862726307e6f91c5cd1a25b"
+          defaultChannels={[
+            "card",
+            "bank",
+            "ussd",
+            "qr",
+            "mobile_money",
+            "bank_transfer",
+          ]}
+        >
+          <Stack screenOptions={{ headerShown: false }} />
+          <Toast config={toastConfig} />
+        </PaystackProvider>
       </GestureHandlerRootView>
     </SafeAreaWrapper>
   );

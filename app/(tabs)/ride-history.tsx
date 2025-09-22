@@ -15,6 +15,7 @@ import CustomText from "@/components/common/CustomText";
 import DrawerButton from "@/components/common/DrawerButton";
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
+import { numberWithCommas } from "@/utility";
 
 interface Driver {
   id: string;
@@ -256,7 +257,7 @@ export default function RideHistoryScreen() {
           <CustomText
             style={{ fontSize: scaleText(14), color: COLORS.secondaryText }}
           >
-            Fare: ₦{item.actualFare || item.estimatedFare}
+            Fare: ₦{numberWithCommas(item.actualFare || item.estimatedFare)}
           </CustomText>
         </View>
         {item.myRating && (
