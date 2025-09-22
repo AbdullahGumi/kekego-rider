@@ -38,6 +38,19 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4fbdeb48-29da-4590-9698-b71daff7a19a"
+      }
+    },
+    "owner": "abdullahgumi",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/4fbdeb48-29da-4590-9698-b71daff7a19a"
     }
   }
 }
