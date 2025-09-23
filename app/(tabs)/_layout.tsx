@@ -79,6 +79,7 @@ export default function DrawerLayout() {
           name="index"
           options={{
             drawerLabel: "Home",
+            headerShown: false,
             drawerIcon: ({ color }) => (
               <Ionicons name="home-outline" size={24} color={color} />
             ),
@@ -88,6 +89,7 @@ export default function DrawerLayout() {
           name="wallet"
           options={{
             drawerLabel: "Wallet",
+            headerShown: false,
             drawerIcon: ({ color }) => (
               <Ionicons name="wallet-outline" size={24} color={color} />
             ),
@@ -97,6 +99,7 @@ export default function DrawerLayout() {
           name="ride-history"
           options={{
             drawerLabel: "Ride History",
+            headerShown: false,
             drawerIcon: ({ color }) => (
               <Ionicons name="time-outline" size={24} color={color} />
             ),
