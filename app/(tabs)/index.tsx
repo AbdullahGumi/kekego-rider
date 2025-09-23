@@ -74,6 +74,7 @@ const HomeScreen = () => {
       ) : (
         <MapView
           ref={mapRef}
+          showsMyLocationButton={false}
           provider="google"
           onPress={Keyboard.dismiss}
           initialRegion={
