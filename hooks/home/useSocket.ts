@@ -27,8 +27,12 @@ export const useSocket = () => {
   useEffect(() => {
     const initializeSocket = async () => {
       try {
-        if (!socketRef || socketRef.current) {
-          // socketRef not initialized or socket already exists
+        if (!socketRef) {
+          // ref not set in store yet
+          return;
+        }
+        if (socketRef.current) {
+          // socket already exists, skip initialization
           return;
         }
 

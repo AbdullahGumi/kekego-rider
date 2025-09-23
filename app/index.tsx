@@ -17,13 +17,21 @@ export default function Index() {
 
   useEffect(() => {
     const initialize = async () => {
-      const token = await Storage.get("access_token");
-      await loadFromStorage();
+      try {
+        const token = await Storage.get("access_token");
+        await loadFromStorage();
 
-      setStatus({
-        loading: false,
-        isAuthenticated: !!token,
-      });
+        setStatus({
+          loading: false,
+          isAuthenticated: !!token,
+        });
+      } catch (error) {
+        console.error("Error initializing app:", error);
+        setStatus({
+          loading: false,
+          isAuthenticated: false,
+        });
+      }
     };
 
     initialize();

@@ -2,6 +2,8 @@
 import { Storage } from "@/utility/asyncStorageHelper";
 import axios from "axios";
 
+import { useAppStore } from "@/stores/useAppStore";
+
 const apiClient = axios.create({
   // baseURL: "http://172.20.10.2:3000/api",
   baseURL: "https://api.betterkaduna.com/api",
@@ -26,8 +28,7 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      await Storage.remove("access_token");
-      // TODO: Logout or redirect user
+      await useAppStore.getState().resetStore();
     }
     return Promise.reject(error);
   }
