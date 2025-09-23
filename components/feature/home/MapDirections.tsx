@@ -80,7 +80,8 @@ export const MapDirections: React.FC<MapDirectionsProps> = ({
   // Route from driver to pickup (paired stage)
   if (
     stage === "paired" &&
-    driver?.location &&
+    driver?.location?.latitude &&
+    driver?.location?.longitude &&
     pickupLocation.coords.latitude
   ) {
     return (
@@ -114,7 +115,8 @@ export const MapDirections: React.FC<MapDirectionsProps> = ({
   // Route from driver to destination (arrived/trip/chat stages)
   if (
     (stage === "arrived" || stage === "trip" || stage === "chat") &&
-    driver?.location &&
+    driver?.location?.latitude &&
+    driver?.location?.longitude &&
     pickupLocation.coords.latitude &&
     destinationLocation.coords.latitude
   ) {

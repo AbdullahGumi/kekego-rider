@@ -61,10 +61,9 @@ export const useSocket = () => {
 
         socketRef.current.on(`driver:location-update`, (data) => {
           updateDriverLocation({
-            latitude: data.latitude,
-            longitude: data.longitude,
+            latitude: data.coordinates?.latitude,
+            longitude: data.coordinates?.longitude,
           });
-          console.log("driver:location-update", data.coordinates);
         });
 
         socketRef.current.on("ride:arrived", (data) => {
