@@ -16,6 +16,16 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "FOREGROUND_SERVICE"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE"
+        }
+      },
       "edgeToEdgeEnabled": true
     },
     "web": {
