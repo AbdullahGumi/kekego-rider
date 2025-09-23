@@ -322,7 +322,7 @@ export default function WalletScreen() {
           alignItems: "center",
           justifyContent: "space-between",
           paddingHorizontal: scale(16),
-          paddingTop: scale(60),
+          paddingTop: scale(10),
         }}
       >
         <DrawerButton />
@@ -337,7 +337,7 @@ export default function WalletScreen() {
         >
           Wallet
         </CustomText>
-        <View style={{ width: 40 }} />
+        <View style={{ width: scale(50) }} />
       </View>
 
       {loading ? (

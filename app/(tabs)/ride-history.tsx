@@ -326,7 +326,7 @@ export default function RideHistoryScreen() {
           alignItems: "center",
           justifyContent: "space-between",
           paddingHorizontal: scale(16),
-          paddingTop: scale(60),
+          paddingTop: scale(10),
         }}
       >
         <DrawerButton />
@@ -341,7 +341,7 @@ export default function RideHistoryScreen() {
         >
           Ride History
         </CustomText>
-        <View style={{ width: 40 }} />
+        <View style={{ width: scale(50) }} />
       </View>
 
       {/* Ride List */}
