@@ -130,7 +130,7 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
   },
   arrived: {
     condition: ({ driver, pickupLocation }) =>
-      !!(driver?.coordinates && pickupLocation.coords.latitude),
+      !!(driver?.coords && pickupLocation.coords.latitude),
     action: (mapView: any, { driver, pickupLocation }) => {
       const pickupLat = Number(pickupLocation.coords.latitude);
       const pickupLng = Number(pickupLocation.coords.longitude);

@@ -42,7 +42,7 @@ export const useLocation = () => {
       });
 
       if (!location?.coords) {
-        throw new Error("Unable to get valid location coordinates");
+        throw new Error("Unable to get valid location coords");
       }
 
       setUserLocation(location);
@@ -111,7 +111,7 @@ export const useLocation = () => {
         }
 
         if (!data.results || data.results.length === 0) {
-          throw new Error("No address found for these coordinates");
+          throw new Error("No address found for these coords");
         }
 
         setPickupLocation({
