@@ -22,7 +22,12 @@ export const useSocket = () => {
     addMessage,
   } = useAppStore();
 
-  const { rideId } = rideState;
+  const { rideId, driver } = rideState;
+
+  // // Ask the server for current rooms
+  // socketRef?.current?.emit("ride:get-rooms", (rooms) => {
+  //   console.log("Rider is in rooms:", rooms);
+  // });
 
   useEffect(() => {
     const initializeSocket = async () => {
@@ -64,7 +69,6 @@ export const useSocket = () => {
         });
 
         socketRef.current.on(`driver:location-update`, (data) => {
-          console.log("driver:location-update", data);
           updateDriverLocation({
             latitude: data.coords?.latitude,
             longitude: data.coords?.longitude,
@@ -115,7 +119,13 @@ export const useSocket = () => {
 
     initializeSocket();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rideId, pickupLocation, bottomSheetRef, socketRef]);
+  }, [
+    rideId,
+    pickupLocation,
+    bottomSheetRef,
+    socketRef,
+    driver?.location.latitude,
+  ]);
 
   return socketRef;
 };
