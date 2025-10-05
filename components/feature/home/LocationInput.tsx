@@ -2,6 +2,8 @@ import CustomInput from "@/components/common/CustomInput";
 import CustomText from "@/components/common/CustomText";
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
+import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
 import { debounce } from "lodash";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -216,6 +218,74 @@ export default function LocationInput({
     [handleLocationSelect]
   );
 
+  const handleCurrentLocation = useCallback(async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setState((prev) => ({
+          ...prev,
+          error: "Location permission denied. Please enable location services.",
+        }));
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      // Reverse geocode to get address
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.coords.latitude},${location.coords.longitude}&key=AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE`
+      );
+      const data = await response.json();
+
+      if (data.status === "OK" && data.results.length > 0) {
+        const address = data.results[0].formatted_address;
+        const pickupLocation = {
+          address,
+          coords: {
+            latitude: String(location.coords.latitude),
+            longitude: String(location.coords.longitude),
+          },
+        };
+        setState((prev) => ({
+          ...prev,
+          pickup: {
+            ...prev.pickup,
+            input: address,
+            showSuggestions: false,
+            coords: pickupLocation.coords,
+          },
+          error: "",
+        }));
+        setPickupLocation(pickupLocation);
+      } else {
+        setState((prev) => ({
+          ...prev,
+          error: "Unable to determine your current location.",
+        }));
+      }
+    } catch (err) {
+      setState((prev) => ({
+        ...prev,
+        error: "Failed to get current location. Please try again.",
+      }));
+    }
+  }, [setPickupLocation]);
+
+  const handleClearInput = useCallback((type: "pickup" | "destination") => {
+    inputRef.current[type] = "";
+    setState((prev) => ({
+      ...prev,
+      [type]: {
+        ...prev[type],
+        input: "",
+        suggestions: [],
+        showSuggestions: false,
+      },
+    }));
+  }, []);
+
   const commonItemStyles = {
     padding: scale(12),
     borderBottomWidth: 1,
@@ -249,11 +319,34 @@ export default function LocationInput({
               }))
             }
             editable={type === "pickup" ? !isPickupLoading : true}
+            prefix={
+              type === "pickup" ? (
+                <Pressable
+                  style={styles.locationButton}
+                  onPress={handleCurrentLocation}
+                  accessibilityLabel="Use current location"
+                >
+                  <Ionicons name="locate" size={20} color={COLORS.primary} />
+                </Pressable>
+              ) : undefined
+            }
             suffix={
               type === "pickup" && isPickupLoading ? (
                 <View style={{ marginRight: scale(12) }}>
                   <ActivityIndicator size="small" color={COLORS.primary} />
                 </View>
+              ) : state[type].input.length > 0 ? (
+                <Pressable
+                  style={styles.clearButton}
+                  onPress={() => handleClearInput(type)}
+                  accessibilityLabel="Clear input"
+                >
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color={COLORS.secondaryText}
+                  />
+                </Pressable>
               ) : undefined
             }
           />
@@ -270,9 +363,17 @@ export default function LocationInput({
                       style={commonItemStyles}
                       onPress={() => handleSuggestionSelect(item, type)}
                     >
-                      <CustomText style={commonTextStyles}>
-                        {item.description}
-                      </CustomText>
+                      <View style={styles.suggestionItem}>
+                        <Ionicons
+                          name="location"
+                          size={16}
+                          color={COLORS.secondaryText}
+                          style={styles.suggestionIcon}
+                        />
+                        <CustomText style={commonTextStyles} numberOfLines={2}>
+                          {item.description}
+                        </CustomText>
+                      </View>
                     </Pressable>
                   )}
                   keyExtractor={(item) => item.place_id}
@@ -309,6 +410,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingRight: scale(40), // Space for loading indicator
   },
+  locationButton: {
+    paddingLeft: scale(12),
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  clearButton: {
+    paddingRight: scale(12),
+    justifyContent: "center",
+    alignItems: "center",
+  },
   suggestionsContainer: {
     position: "absolute",
     top: scale(70),
@@ -316,16 +427,26 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: COLORS.background,
     borderRadius: 12,
-    maxHeight: scale(150),
+    maxHeight: scale(200),
     zIndex: 1000,
     elevation: 5,
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
   },
   suggestionsList: {
     width: "100%",
+    paddingHorizontal: scale(4),
+  },
+  suggestionItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    flex: 1,
+  },
+  suggestionIcon: {
+    marginRight: scale(8),
+    marginTop: scale(2),
   },
   loader: {
     marginTop: scale(16),
