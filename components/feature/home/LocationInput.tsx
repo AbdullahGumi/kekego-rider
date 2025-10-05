@@ -9,8 +9,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Pressable,
   StyleSheet,
+  TouchableOpacity,
   View,
 } from "react-native";
 import Animated, { ZoomIn } from "react-native-reanimated";
@@ -321,13 +321,14 @@ export default function LocationInput({
             editable={type === "pickup" ? !isPickupLoading : true}
             prefix={
               type === "pickup" ? (
-                <Pressable
+                <TouchableOpacity
+                  activeOpacity={0.7}
                   style={styles.locationButton}
                   onPress={handleCurrentLocation}
                   accessibilityLabel="Use current location"
                 >
                   <Ionicons name="locate" size={20} color={COLORS.primary} />
-                </Pressable>
+                </TouchableOpacity>
               ) : undefined
             }
             suffix={
@@ -336,7 +337,8 @@ export default function LocationInput({
                   <ActivityIndicator size="small" color={COLORS.primary} />
                 </View>
               ) : state[type].input.length > 0 ? (
-                <Pressable
+                <TouchableOpacity
+                  activeOpacity={0.7}
                   style={styles.clearButton}
                   onPress={() => handleClearInput(type)}
                   accessibilityLabel="Clear input"
@@ -346,7 +348,7 @@ export default function LocationInput({
                     size={20}
                     color={COLORS.secondaryText}
                   />
-                </Pressable>
+                </TouchableOpacity>
               ) : undefined
             }
           />
@@ -359,7 +361,8 @@ export default function LocationInput({
                 <FlatList
                   data={state[type].suggestions}
                   renderItem={({ item }) => (
-                    <Pressable
+                    <TouchableOpacity
+                      activeOpacity={0.7}
                       style={commonItemStyles}
                       onPress={() => handleSuggestionSelect(item, type)}
                     >
@@ -374,7 +377,7 @@ export default function LocationInput({
                           {item.description}
                         </CustomText>
                       </View>
-                    </Pressable>
+                    </TouchableOpacity>
                   )}
                   keyExtractor={(item) => item.place_id}
                   showsVerticalScrollIndicator={false}
