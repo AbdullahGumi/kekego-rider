@@ -26,7 +26,7 @@ export type Driver = {
   location: { latitude: number; longitude: number };
   profilePicture: string;
   phone: string;
-  rating?: number;
+  averageRating?: number;
 };
 
 type LocationData = {
@@ -107,6 +107,9 @@ type AppState = {
   // Bulk actions
   updateRideState: (updates: Partial<RideState>) => void;
 
+  // Active ride handling
+  setActiveRide: (activeRide: any) => void;
+
   // Utils
   resetRideState: () => void;
 };
@@ -175,10 +178,11 @@ export const useAppStore = create<AppStore>((set) => ({
     set((state) => ({
       rideState: { ...state.rideState, stage },
     })),
-  setDriver: (driver) =>
+  setDriver: (driver) => {
     set((state) => ({
       rideState: { ...state.rideState, driver },
-    })),
+    }));
+  },
   setEta: (eta) =>
     set((state) => ({
       rideState: { ...state.rideState, eta },
@@ -220,6 +224,71 @@ export const useAppStore = create<AppStore>((set) => ({
     set((state) => ({
       rideState: { ...state.rideState, ...updates },
     })),
+
+  // Active ride handling
+  setActiveRide: (activeRide) =>
+    set((state) => {
+      // Map status to stage
+      let stage: RideStage = "paired";
+      switch (activeRide.status) {
+        case "accepted":
+          stage = "paired";
+          break;
+        case "arrived":
+          stage = "arrived";
+          break;
+        case "in_progress":
+        case "started":
+          stage = "trip";
+          break;
+        default:
+          stage = "paired";
+      }
+
+      // Convert driver from API format to app format
+      const driver = activeRide.driver
+        ? {
+            id: activeRide.driver.id,
+            name: activeRide.driver.name,
+            phone: activeRide.driver.phone,
+            profilePicture: activeRide.driver.profilePicture,
+            vehicle: {
+              plateNumber: activeRide.driver.vehicle.plateNumber,
+              vehicleNumber: activeRide.driver.vehicle.vehicleNumber,
+            },
+            location: {
+              latitude: activeRide.driver.location.coords.latitude,
+              longitude: activeRide.driver.location.coords.longitude,
+            },
+            averageRating: activeRide.driver.averageRating,
+          }
+        : null;
+
+      return {
+        pickupLocation: {
+          address: activeRide.pickupLocation.address,
+          coords: {
+            latitude: activeRide.pickupLocation.coords.latitude.toString(),
+            longitude: activeRide.pickupLocation.coords.longitude.toString(),
+          },
+        },
+        destinationLocation: {
+          address: activeRide.dropoffLocation.address,
+          coords: {
+            latitude: activeRide.dropoffLocation.coords.latitude.toString(),
+            longitude: activeRide.dropoffLocation.coords.longitude.toString(),
+          },
+        },
+        rideState: {
+          ...state.rideState,
+          stage,
+          driver,
+          fare: activeRide.actualFare || activeRide.estimatedFare,
+          rideId: activeRide.id,
+          mapLoading: false,
+        },
+      };
+    }),
 
   // Utils
   resetRideState: () =>

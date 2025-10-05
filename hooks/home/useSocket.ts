@@ -21,8 +21,7 @@ export const useSocket = () => {
     resetRideState,
     addMessage,
   } = useAppStore();
-
-  const { rideId, driver } = rideState;
+  const { rideId, driver, stage } = rideState;
 
   // // Ask the server for current rooms
   // socketRef?.current?.emit("ride:get-rooms", (rooms) => {
@@ -126,6 +125,20 @@ export const useSocket = () => {
     socketRef,
     driver?.location.latitude,
   ]);
+
+  // Join ride room for active rides
+  useEffect(() => {
+    if (
+      socketRef?.current &&
+      rideId &&
+      stage !== "initial" &&
+      stage !== "input" &&
+      stage !== "confirm"
+    ) {
+      console.log("Joining ride room for active ride:", rideId);
+      socketRef.current.emit("ride:join-room", { rideId });
+    }
+  }, [rideId, stage, socketRef]);
 
   return socketRef;
 };

@@ -1,6 +1,7 @@
 import CustomText from "@/components/common/CustomText";
 import { CONFIG } from "@/constants/home";
 import { Driver } from "@/stores/useAppStore";
+import { Ionicons } from "@expo/vector-icons";
 import React, { memo } from "react";
 import { Image, View } from "react-native";
 import { homeStyles } from "../../../styles/home-styles";
@@ -10,38 +11,42 @@ interface DriverInfoProps {
   stage: string;
 }
 
-const DriverInfo = memo<DriverInfoProps>(({ driver, stage }) => (
-  <View style={homeStyles.confirmCard}>
-    <View style={homeStyles.rideOptionHeader}>
-      <Image
-        source={{ uri: driver?.profilePicture || CONFIG.MARKER_ICONS.user }}
-        style={homeStyles.driverPicture}
-      />
-      <View style={homeStyles.driverInfoContainer}>
-        <CustomText fontWeight="Bold" style={homeStyles.rideOptionTitle}>
-          {driver?.name || "Unknown Driver"}
-        </CustomText>
-        <View style={homeStyles.ratingContainer}>
-          <Image
-            source={{ uri: CONFIG.MARKER_ICONS.star }}
-            style={homeStyles.starIcon}
-          />
+const DriverInfo = memo<DriverInfoProps>(({ driver, stage }) => {
+  return (
+    <View style={homeStyles.confirmCard}>
+      <View style={homeStyles.rideOptionHeader}>
+        <Image
+          source={{ uri: driver?.profilePicture || CONFIG.MARKER_ICONS.user }}
+          style={homeStyles.driverPicture}
+        />
+        <View style={homeStyles.driverInfoContainer}>
+          <CustomText fontWeight="Bold" style={homeStyles.rideOptionTitle}>
+            {driver?.name || "Unknown Driver"}
+          </CustomText>
+          <View style={homeStyles.ratingContainer}>
+            <CustomText style={homeStyles.rideOptionDescription}>
+              <Ionicons
+                name="star"
+                size={16}
+                color="#FFD700"
+                style={{ marginRight: 4 }}
+              />
+              {driver?.averageRating}
+            </CustomText>
+          </View>
           <CustomText style={homeStyles.rideOptionDescription}>
-            {/* {driver?.rating?.toFixed(1) || "N/A"} */}5
+            Plate number: {driver?.vehicle.plateNumber}
           </CustomText>
         </View>
-        <CustomText style={homeStyles.rideOptionDescription}>
-          Plate number: {driver?.vehicle.plateNumber}
-        </CustomText>
       </View>
+      <CustomText style={homeStyles.rideOptionDescription}>
+        {stage === "paired"
+          ? "Arriving in approximately 2-3 minutes"
+          : "Your driver is at the pickup location"}
+      </CustomText>
     </View>
-    <CustomText style={homeStyles.rideOptionDescription}>
-      {stage === "paired"
-        ? "Arriving in approximately 2-3 minutes"
-        : "Your driver is at the pickup location"}
-    </CustomText>
-  </View>
-));
+  );
+});
 
 DriverInfo.displayName = "DriverInfo";
 
