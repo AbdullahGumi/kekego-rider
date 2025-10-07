@@ -11,7 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
 import { useCallback } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Alert, Linking, TouchableOpacity, View } from "react-native";
 
 interface MapControlsProps {
   geocodingLoading: boolean;
@@ -129,6 +129,31 @@ export const MapControls: React.FC<MapControlsProps> = ({
     [stage, driver, eta, setRideStage, setDestinationLocation, bottomSheetRef]
   );
 
+  const openGoogleMaps = useCallback(() => {
+    try {
+      if (!userLocation?.coords?.latitude || !userLocation?.coords?.longitude) {
+        throw new Error("Your location not available");
+      }
+
+      if (
+        !destinationLocation?.address ||
+        !destinationLocation?.coords?.latitude ||
+        !destinationLocation?.coords?.longitude
+      ) {
+        throw new Error("Destination location not available");
+      }
+
+      const originLat = userLocation.coords.latitude.toString();
+      const originLng = userLocation.coords.longitude.toString();
+      const destLat = destinationLocation.coords.latitude;
+      const destLng = destinationLocation.coords.longitude;
+      const url = `https://www.google.com/maps/dir/?api=1&origin=${originLat},${originLng}&destination=${destLat},${destLng}&travelmode=driving&dir_action=navigate`;
+      Linking.openURL(url);
+    } catch (error) {
+      Alert.alert("Error", "Failed to open Google Maps directions.");
+    }
+  }, [userLocation, destinationLocation]);
+
   // Define common button styles
   const baseButtonStyle = {
     width: scale(50),
@@ -207,6 +232,32 @@ export const MapControls: React.FC<MapControlsProps> = ({
       break;
 
     case "search":
+      leftButton = (
+        <TouchableOpacity
+          onPress={handleCancel}
+          activeOpacity={0.7}
+          style={actionButtonStyle}
+        >
+          <Ionicons name="close" size={24} color="#333" />
+        </TouchableOpacity>
+      );
+      rightButton = (
+        <TouchableOpacity
+          onPress={centerMapOnUser}
+          activeOpacity={0.7}
+          style={[
+            locationButtonStyle,
+            {
+              width: scale(50),
+              height: scale(50),
+            },
+          ]}
+        >
+          <Ionicons name="locate" size={24} color={COLORS.primary} />
+        </TouchableOpacity>
+      );
+      break;
+
     case "paired":
       leftButton = (
         <TouchableOpacity
@@ -235,7 +286,6 @@ export const MapControls: React.FC<MapControlsProps> = ({
       break;
 
     case "arrived":
-    case "trip":
       leftButton = <DrawerButton />;
       rightButton = (
         <TouchableOpacity
@@ -251,6 +301,44 @@ export const MapControls: React.FC<MapControlsProps> = ({
         >
           <Ionicons name="locate" size={24} color={COLORS.primary} />
         </TouchableOpacity>
+      );
+      break;
+
+    case "trip":
+      leftButton = <DrawerButton />;
+      rightButton = (
+        <View style={{ alignItems: "center", position: "relative" }}>
+          <TouchableOpacity
+            onPress={centerMapOnUser}
+            activeOpacity={0.7}
+            style={[
+              locationButtonStyle,
+              {
+                width: scale(50),
+                height: scale(50),
+                marginBottom: scale(8),
+              },
+            ]}
+          >
+            <Ionicons name="locate" size={24} color={COLORS.primary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={openGoogleMaps}
+            activeOpacity={0.7}
+            style={[
+              locationButtonStyle,
+              {
+                borderColor: "#4285F4",
+                width: scale(50),
+                height: scale(50),
+                position: "absolute",
+                bottom: -scale(50),
+              },
+            ]}
+          >
+            <Ionicons name="logo-google" size={24} color="#4285F4" />
+          </TouchableOpacity>
+        </View>
       );
       break;
 
