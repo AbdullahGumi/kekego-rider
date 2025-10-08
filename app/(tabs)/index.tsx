@@ -1,7 +1,7 @@
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import React, { useEffect, useMemo, useRef } from "react";
 import { ActivityIndicator, Keyboard, View } from "react-native";
-import MapView from "react-native-maps";
+import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { Socket } from "socket.io-client";
 
@@ -94,7 +94,7 @@ const HomeScreen = () => {
         <MapView
           ref={mapRef}
           showsMyLocationButton={false}
-          provider="google"
+          provider={PROVIDER_GOOGLE}
           onPress={Keyboard.dismiss}
           initialRegion={
             userLocation?.coords

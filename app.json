@@ -13,7 +13,7 @@
       "googleServicesFile": "./GoogleService-Info.plist",
       "bundleIdentifier": "com.quiickride.rider",
       "config": {
-        "googleMapsApiKey": "AIzaSyBuP8LdBuLUQkiT_DMt6Ol6QgIZP3O6j4g"
+        "googleMapsApiKey": "AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE"
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
