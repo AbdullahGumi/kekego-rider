@@ -19,4 +19,16 @@ export const authApi = {
   }) => {
     return await apiService.post("/auth/register", data);
   },
+  registerDeviceToken: async (
+    deviceToken: string,
+    platform: "ios" | "android"
+  ) => {
+    return await apiService.post("/auth/register-device-token", {
+      deviceToken,
+      platform,
+    });
+  },
+  removeDeviceToken: async () => {
+    return await apiService.delete("/auth/remove-device-token");
+  },
 };

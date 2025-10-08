@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "useNextNotificationsApi": true,
+      "bundleIdentifier": "com.quiickride.rider"
     },
     "android": {
       "adaptiveIcon": {
@@ -26,6 +29,9 @@
           "apiKey": "AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE"
         }
       },
+      "googleServicesFile": "./google-services.json",
+      "useNextNotificationsApi": true,
+      "package": "com.quiickride.rider",
       "edgeToEdgeEnabled": true
     },
     "web": {
@@ -45,7 +51,14 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#ffffff"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
