@@ -11,8 +11,13 @@
     "ios": {
       "supportsTablet": true,
       "googleServicesFile": "./GoogleService-Info.plist",
-      "useNextNotificationsApi": true,
-      "bundleIdentifier": "com.quiickride.rider"
+      "bundleIdentifier": "com.quiickride.rider",
+      "config": {
+        "googleMapsApiKey": "AIzaSyBuP8LdBuLUQkiT_DMt6Ol6QgIZP3O6j4g"
+      },
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -30,7 +35,6 @@
         }
       },
       "googleServicesFile": "./google-services.json",
-      "useNextNotificationsApi": true,
       "package": "com.quiickride.rider",
       "edgeToEdgeEnabled": true
     },
@@ -51,7 +55,13 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-dev-client",
+        {
+          "launchMode": "most-recent"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
