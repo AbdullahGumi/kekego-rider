@@ -14,8 +14,8 @@ export const CONFIG = {
     user: "https://img.icons8.com/ios/50/000000/user.png",
     star: "https://img.icons8.com/color/24/000000/star.png",
   },
-  // SOCKET_URL: "http://172.20.10.2:3000",
-  SOCKET_URL: "https://api.betterkaduna.com",
+  SOCKET_URL: "http://172.20.10.2:3000",
+  // SOCKET_URL: "https://api.betterkaduna.com",
   RECENT_DESTINATIONS: [
     {
       id: "1",

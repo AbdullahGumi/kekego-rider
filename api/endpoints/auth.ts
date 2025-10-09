@@ -4,8 +4,18 @@ export const authApi = {
   requestOtp: async (phone: string) => {
     return await apiService.post("/auth/request-otp", { phone });
   },
-  verifyOtp: async (phone: string, otp: string) => {
-    return await apiService.post("/auth/verify-otp", { phone, otp });
+  verifyOtp: async (
+    phone: string,
+    otp: string,
+    deviceToken: string,
+    platform: string
+  ) => {
+    return await apiService.post("/auth/verify-otp", {
+      phone,
+      otp,
+      deviceToken,
+      platform,
+    });
   },
   checkPhone: async (phone: string, role: string) => {
     return await apiService.post("/auth/check-phone", { phone, role });
@@ -16,6 +26,8 @@ export const authApi = {
     gender: string;
     phone: string;
     role: string;
+    deviceToken: string;
+    platform: string;
   }) => {
     return await apiService.post("/auth/register", data);
   },
@@ -28,7 +40,9 @@ export const authApi = {
       platform,
     });
   },
-  removeDeviceToken: async () => {
-    return await apiService.delete("/auth/remove-device-token");
+  removeDeviceToken: async (deviceToken: string) => {
+    return await apiService.post("/auth/remove-device-token", {
+      deviceToken,
+    });
   },
 };

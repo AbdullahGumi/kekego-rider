@@ -4,12 +4,13 @@ import CustomText from "@/components/common/CustomText";
 import Header from "@/components/common/Header";
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
+import { useNotification } from "@/hooks/useNotification";
 import { useAppStore } from "@/stores/useAppStore";
 import { Storage } from "@/utility/asyncStorageHelper";
 import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { SafeAreaView, View } from "react-native";
+import { Platform, SafeAreaView, View } from "react-native";
 import { OtpInput } from "react-native-otp-entry";
 import Toast from "react-native-toast-message";
 
@@ -23,6 +24,7 @@ export default function OTPScreen() {
   }>();
   const router = useRouter();
   const { setUser } = useAppStore();
+  const { fcmToken } = useNotification();
 
   const sendCode = async () => {
     try {
@@ -76,7 +78,14 @@ export default function OTPScreen() {
     }
 
     try {
-      const { status, data } = await authApi.verifyOtp(phone, otp);
+      setLoading(true);
+      const platform = Platform.OS as "ios" | "android";
+      const { status, data } = await authApi.verifyOtp(
+        phone,
+        otp,
+        fcmToken || "",
+        platform
+      );
 
       if (status === 200) {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -97,7 +106,10 @@ export default function OTPScreen() {
           router.push("/(tabs)");
         } else {
           // User is not registered, navigate to registration
-          router.push({ pathname: "/(auth)/register", params: { phone } });
+          router.push({
+            pathname: "/(auth)/register",
+            params: { phone, fcmToken: fcmToken, platform },
+          });
         }
       } else {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -108,13 +120,15 @@ export default function OTPScreen() {
         });
       }
     } catch (err: any) {
-      console.log(err.response?.data.error);
+      console.log(err.response?.data);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Toast.show({
         type: "customToast",
         text1: err.response?.data?.error || "Failed to verify OTP",
         props: { type: "Error" },
       });
+    } finally {
+      setLoading(false);
     }
   };
 

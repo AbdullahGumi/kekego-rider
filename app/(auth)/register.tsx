@@ -28,7 +28,7 @@ const RegisterScreen = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState("");
-  const { phone }: any = useLocalSearchParams();
+  const { phone, fcmToken, platform }: any = useLocalSearchParams();
 
   const [isBottomSheetOpen, setBottomSheetOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -81,6 +81,8 @@ const RegisterScreen = () => {
         gender,
         phone,
         role: CONSTANTS.USER_ROLE,
+        deviceToken: fcmToken || "",
+        platform: platform || "android",
       });
 
       if (data.data.token) {
