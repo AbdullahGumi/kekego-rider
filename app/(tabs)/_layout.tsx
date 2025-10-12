@@ -1,5 +1,6 @@
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
+import { useAppStore } from "@/stores/useAppStore";
 import { Storage } from "@/utility/asyncStorageHelper";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -15,6 +16,7 @@ export default function DrawerLayout() {
   const handleLogout = async () => {
     // TODO: add your logout logic here (clear tokens, reset store, etc.)
     await Storage.clear();
+    await useAppStore.getState().resetStore();
     router.replace("/(auth)/phone");
   };
 

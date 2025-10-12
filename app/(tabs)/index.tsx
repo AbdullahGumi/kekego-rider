@@ -75,7 +75,7 @@ const HomeScreen = () => {
     };
 
     fetchActiveRide();
-  }, [setActiveRide]);
+  }, []);
 
   return (
     <View style={homeStyles.container}>

@@ -85,63 +85,56 @@ export const useLocation = () => {
     async (latitude: number, longitude: number) => {
       setGeocodingLoading(true);
       try {
-        // Check if API key is available
-        if (!CONFIG.GOOGLE_MAPS_API_KEY) {
-          throw new Error("Google Maps API key not configured");
-        }
-
-        const response = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${CONFIG.GOOGLE_MAPS_API_KEY}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-
-        if (data.status !== "OK") {
-          throw new Error(`Geocoding failed: ${data.status}`);
-        }
-
-        if (!data.results || data.results.length === 0) {
-          throw new Error("No address found for these coords");
-        }
-
-        setPickupLocation({
-          address: data.results[0].formatted_address || "Unknown Location",
-          coords: { latitude: String(latitude), longitude: String(longitude) },
+        const addresses = await Location.reverseGeocodeAsync({
+          latitude,
+          longitude,
         });
 
-        clearError("API_ERROR");
+        if (addresses.length > 0) {
+          const address = addresses[0];
+          // Create a formatted address from available components
+          const formattedAddress =
+            [
+              address.streetNumber && address.street
+                ? `${address.streetNumber} ${address.street}`
+                : address.street,
+              address.city,
+              address.region,
+              address.country,
+            ]
+              .filter(Boolean)
+              .join(", ") || "Unknown Location";
+
+          setPickupLocation({
+            address: formattedAddress,
+            coords: {
+              latitude: String(latitude),
+              longitude: String(longitude),
+            },
+          });
+
+          clearError("LOCATION_ERROR");
+        } else {
+          throw new Error("No address found for these coordinates");
+        }
       } catch (error: any) {
-        // Handle different types of API errors
-        handleApiError(error, {
+        handleLocationError(error, {
           latitude,
           longitude,
           action: "reverseGeocode",
           retryCount,
-          apiKeyConfigured: !!CONFIG.GOOGLE_MAPS_API_KEY,
         });
 
         let errorMessage = "Unable to fetch address";
 
-        if (error?.message?.includes("REQUEST_DENIED")) {
+        if (error?.message?.includes("Location permission not granted")) {
           errorMessage =
-            "Google Maps API access denied. Please check your API key configuration.";
-        } else if (error?.message?.includes("OVER_QUERY_LIMIT")) {
-          errorMessage = "API request limit exceeded. Please try again later.";
-        } else if (error?.message?.includes("ZERO_RESULTS")) {
+            "Location services permission needed for address lookup.";
+        } else if (error?.message?.includes("Network")) {
+          errorMessage =
+            "Network error while getting address. Please check connection.";
+        } else if (error?.message?.includes("No address found")) {
           errorMessage = "Address not found for your location.";
-        } else if (error?.message?.includes("API key not configured")) {
-          errorMessage =
-            "Google Maps API key missing. Please configure your environment variables.";
         }
 
         setPickupLocation({
@@ -152,7 +145,7 @@ export const useLocation = () => {
         setGeocodingLoading(false);
       }
     },
-    [handleApiError, clearError, retryCount]
+    [handleLocationError, clearError, retryCount]
   );
 
   useEffect(() => {

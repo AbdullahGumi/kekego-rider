@@ -1,5 +1,6 @@
 import SafeAreaWrapper from "@/components/common/SafeAreaWrapper";
 import { toastConfig } from "@/config/toast";
+
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -16,6 +17,7 @@ import {
   UrbanistRegular,
   UrbanistSemiBold,
 } from "../assets/fonts";
+import { useNotification } from "../hooks/useNotification";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -23,6 +25,13 @@ SplashScreen.setOptions({
   duration: 400,
   fade: true,
 });
+
+function RootLayoutContent() {
+  // Initialize notification handler at root level
+  useNotification();
+
+  return <Stack screenOptions={{ headerShown: false }} />;
+}
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -57,7 +66,7 @@ export default function RootLayout() {
             "bank_transfer",
           ]}
         >
-          <Stack screenOptions={{ headerShown: false }} />
+          <RootLayoutContent />
           <Toast config={toastConfig} />
         </PaystackProvider>
       </GestureHandlerRootView>

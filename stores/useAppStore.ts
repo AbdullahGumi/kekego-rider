@@ -59,6 +59,7 @@ type RideState = {
 type AppState = {
   user: User | null;
   token: string | null;
+  fcmToken: string | null;
 
   mapRef: RefObject<MapView | null> | null;
   setMapRef: (ref: RefObject<MapView | null> | null) => void;
@@ -81,6 +82,7 @@ type AppState = {
   messages: IMessage[];
 
   // Actions
+  setFcmToken: (token: string | null) => void;
   setUserLocation: (location: Location.LocationObject | null) => void;
   setPickupLocation: (location: LocationData) => void;
   setDestinationLocation: (location: LocationData) => void;
@@ -122,9 +124,64 @@ type AppActions = {
 
 type AppStore = AppState & AppActions;
 
+const initialState: AppState = {
+  user: null,
+  token: null,
+  fcmToken: null,
+
+  mapRef: null,
+  setMapRef: () => {},
+  bottomSheetRef: null,
+  setBottomSheetRef: () => {},
+  socketRef: null,
+  setSocketRef: () => {},
+
+  userLocation: null,
+  pickupLocation: { address: "", coords: { latitude: "", longitude: "" } },
+  destinationLocation: { address: "", coords: { latitude: "", longitude: "" } },
+
+  rideState: {
+    stage: "initial",
+    driver: null,
+    eta: "",
+    fare: null,
+    tripDuration: null,
+    destinationDistance: 0,
+    destinationDuration: 0,
+    rideId: null,
+    mapLoading: true,
+  },
+
+  messages: [],
+
+  setFcmToken: () => {},
+  setUserLocation: () => {},
+  setPickupLocation: () => {},
+  setDestinationLocation: () => {},
+  updateDriverLocation: () => {},
+
+  setRideStage: () => {},
+  setDriver: () => {},
+  setEta: () => {},
+  setFare: () => {},
+  setTripDuration: () => {},
+  setDestinationDistance: () => {},
+  setDestinationDuration: () => {},
+  setRideId: () => {},
+  setMapLoading: () => {},
+
+  setMessages: () => {},
+  addMessage: () => {},
+
+  updateRideState: () => {},
+  setActiveRide: () => {},
+  resetRideState: () => {},
+};
+
 export const useAppStore = create<AppStore>((set) => ({
   user: null,
   token: null,
+  fcmToken: null,
 
   mapRef: null,
   setMapRef: (ref) => set({ mapRef: ref }),
@@ -155,6 +212,9 @@ export const useAppStore = create<AppStore>((set) => ({
 
   // Chat state initialization
   messages: [],
+
+  // Notification actions
+  setFcmToken: (token) => set({ fcmToken: token }),
 
   // Location actions
   setUserLocation: (location) => set({ userLocation: location }),
@@ -335,14 +395,16 @@ export const useAppStore = create<AppStore>((set) => ({
       console.error("Failed to load from storage", err);
     }
   },
-
   resetStore: async () => {
     try {
       await Promise.all([
         Storage.remove("user"),
         Storage.remove("access_token"),
       ]);
-      set({ user: null, token: null, messages: [] });
+      set((state) => ({
+        ...initialState,
+        fcmToken: state.fcmToken, // preserve device token
+      }));
     } catch (err) {
       console.error("Failed to reset store", err);
     }

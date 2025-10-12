@@ -264,7 +264,7 @@ export const homeStyles = StyleSheet.create({
     marginTop: scale(12),
   },
   markerIcon: { width: scale(32), height: scale(32) },
-  tricycleMarker: { width: scale(40), height: scale(40) },
+  tricycleMarker: { width: scale(35), height: scale(35) },
   driverPicture: {
     width: scale(48),
     height: scale(48),

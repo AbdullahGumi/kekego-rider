@@ -1,9 +1,9 @@
 import CustomText from "@/components/common/CustomText";
 import LocationCard from "@/components/feature/home/LocationCard";
 import { CONSTANTS } from "@/constants/constants";
-import { CONFIG } from "@/constants/home";
 import { useAppStore } from "@/stores/useAppStore";
 import { numberWithCommas } from "@/utility";
+import { Ionicons } from "@expo/vector-icons";
 import { Image, View } from "react-native";
 import Animated, { SlideInDown, SlideOutDown } from "react-native-reanimated";
 import { homeStyles } from "../../../../styles/home-styles";
@@ -39,12 +39,14 @@ const TripStage: React.FC<TripStageProps> = ({ geocodingLoading }) => {
               {driver?.name}
             </CustomText>
             <View style={homeStyles.ratingContainer}>
-              <Image
-                source={{ uri: CONFIG.MARKER_ICONS.star }}
-                style={homeStyles.starIcon}
+              <Ionicons
+                name="star"
+                size={16}
+                color="#FFD700"
+                style={{ marginRight: 4 }}
               />
               <CustomText style={homeStyles.rideOptionDescription}>
-                {/* {driver?.rating?.toFixed(1) || "N/A"} */}5
+                {driver?.averageRating}
               </CustomText>
             </View>
             <CustomText style={homeStyles.rideOptionDescription}>

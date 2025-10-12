@@ -34,6 +34,7 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
             }}
             title={nearbyDriver.name}
             description={`${nearbyDriver.vehicle.plateNumber}`}
+            anchor={{ x: 0.5, y: 0 }}
           >
             <Image source={KekeImage} style={homeStyles.tricycleMarker} />
           </Marker>
@@ -95,6 +96,7 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
               }}
               title={driver.name}
               description={`${driver.vehicle.plateNumber}`}
+              anchor={{ x: 0.5, y: 0 }}
             >
               <Image source={KekeImage} style={homeStyles.tricycleMarker} />
             </Marker>
@@ -126,6 +128,7 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
               }}
               title={driver.name}
               description={`${driver.vehicle.plateNumber}`}
+              anchor={{ x: 0.5, y: 0 }}
             >
               <Image source={KekeImage} style={homeStyles.tricycleMarker} />
             </Marker>

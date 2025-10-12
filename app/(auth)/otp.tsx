@@ -4,7 +4,6 @@ import CustomText from "@/components/common/CustomText";
 import Header from "@/components/common/Header";
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
-import { useNotification } from "@/hooks/useNotification";
 import { useAppStore } from "@/stores/useAppStore";
 import { Storage } from "@/utility/asyncStorageHelper";
 import * as Haptics from "expo-haptics";
@@ -23,8 +22,7 @@ export default function OTPScreen() {
     isRegistered: string;
   }>();
   const router = useRouter();
-  const { setUser } = useAppStore();
-  const { fcmToken } = useNotification();
+  const { setUser, fcmToken } = useAppStore();
 
   const sendCode = async () => {
     try {
