@@ -90,7 +90,17 @@ export default function OTPScreen() {
         if (isRegistered === "true" && data.data.token) {
           // User is registered, store token and user, then navigate to tabs
           await Storage.set("access_token", data.data.token);
-          await setUser(data.data.user, data.data.token);
+          await setUser(
+            {
+              id: data.data.user.id,
+              phone: data.data.user.phone,
+              role: data.data.user.role,
+              name: data.data.user.name,
+              email: data.data.user.email,
+              gender: data.data.user.gender,
+            },
+            data.data.token
+          );
           router.push("/(tabs)");
         } else {
           // User is not registered, navigate to registration
@@ -149,7 +159,16 @@ export default function OTPScreen() {
             <CustomText style={{ color: COLORS.primary }}>{phone}</CustomText>
           </CustomText>
         </View>
-
+        <CustomText
+          fontWeight="Medium"
+          style={{
+            fontSize: scaleText(12),
+            color: COLORS.primary,
+            marginBottom: scale(8),
+          }}
+        >
+          Test Mode: Use OTP &quot;123456&quot; for verification
+        </CustomText>
         <OtpInput
           numberOfDigits={6}
           blurOnFilled={true}
