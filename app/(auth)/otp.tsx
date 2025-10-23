@@ -160,9 +160,9 @@ export default function OTPScreen() {
           </CustomText>
         </View>
         <CustomText
-          fontWeight="Medium"
+          fontWeight="Bold"
           style={{
-            fontSize: scaleText(12),
+            fontSize: scaleText(20),
             color: COLORS.primary,
             marginBottom: scale(8),
           }}
