@@ -41,7 +41,7 @@ const DriverInfo = memo<DriverInfoProps>(({ driver, stage }) => {
       </View>
       <CustomText style={homeStyles.rideOptionDescription}>
         {stage === "paired"
-          ? "Arriving in approximately 2-3 minutes"
+          ? "Your driver is on the way to the pickup location"
           : "Your driver is at the pickup location"}
       </CustomText>
     </View>
