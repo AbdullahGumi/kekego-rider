@@ -1,3 +1,4 @@
+import { CONSTANTS } from "@/constants/constants";
 import apiService from "../client/apiService";
 
 export const authApi = {
@@ -15,6 +16,7 @@ export const authApi = {
       otp,
       deviceToken,
       platform,
+      role: CONSTANTS.USER_ROLE,
     });
   },
   checkPhone: async (phone: string, role: string) => {

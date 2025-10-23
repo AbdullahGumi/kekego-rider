@@ -9,15 +9,22 @@ import {
 } from "@react-navigation/drawer";
 import { router } from "expo-router";
 import { Drawer } from "expo-router/drawer";
-import { Text, TouchableOpacity, View } from "react-native";
+
+import { Image, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function DrawerLayout() {
+  const { user } = useAppStore();
+
   const handleLogout = async () => {
     // TODO: add your logout logic here (clear tokens, reset store, etc.)
     await Storage.clear();
     await useAppStore.getState().resetStore();
     router.replace("/(auth)/phone");
+  };
+
+  const handleProfilePress = () => {
+    router.push("/profile");
   };
 
   return (
@@ -39,6 +46,70 @@ export default function DrawerLayout() {
         drawerContent={(props) => (
           <View style={{ flex: 1 }}>
             <DrawerContentScrollView {...props}>
+              {/* Profile Header */}
+              <TouchableOpacity
+                onPress={handleProfilePress}
+                activeOpacity={0.7}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingBottom: scale(20),
+                  borderBottomWidth: 1,
+                  borderBottomColor: COLORS.white,
+                }}
+              >
+                {/* Profile Picture */}
+                <View style={{ marginRight: scale(15) }}>
+                  {user?.profilePicture ? (
+                    <Image
+                      source={{ uri: user.profilePicture }}
+                      style={{
+                        width: scale(75),
+                        height: scale(75),
+                        borderRadius: scale(100),
+                        borderWidth: 2,
+                        borderColor: COLORS.primary,
+                      }}
+                    />
+                  ) : (
+                    <View
+                      style={{
+                        width: scale(75),
+                        height: scale(75),
+                        borderRadius: scale(100),
+                        backgroundColor: COLORS.white,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        borderWidth: 2,
+                        borderColor: COLORS.primary,
+                      }}
+                    >
+                      <Ionicons
+                        name="person"
+                        size={50}
+                        color={COLORS.secondaryText}
+                      />
+                    </View>
+                  )}
+                </View>
+
+                {/* Driver Name */}
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      fontSize: scaleText(18),
+                      fontFamily: "Urbanist-SemiBold",
+                      color: COLORS.text,
+                      marginBottom: scale(2),
+                    }}
+                    numberOfLines={2}
+                  >
+                    {user?.name}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* Drawer Navigation Items */}
               <DrawerItemList {...props} />
             </DrawerContentScrollView>
 
@@ -80,8 +151,8 @@ export default function DrawerLayout() {
         <Drawer.Screen
           name="index"
           options={{
-            drawerLabel: "Home",
             headerShown: false,
+            drawerLabel: "Home",
             drawerIcon: ({ color }) => (
               <Ionicons name="home-outline" size={24} color={color} />
             ),
@@ -97,14 +168,26 @@ export default function DrawerLayout() {
             ),
           }}
         />
+
         <Drawer.Screen
           name="ride-history"
           options={{
-            drawerLabel: "Ride History",
             headerShown: false,
+            drawerLabel: "Ride History",
             drawerIcon: ({ color }) => (
               <Ionicons name="time-outline" size={24} color={color} />
             ),
+          }}
+        />
+        <Drawer.Screen
+          name="profile"
+          options={{
+            headerShown: false,
+            drawerLabel: "Profile",
+            drawerIcon: ({ color }) => (
+              <Ionicons name="person-outline" size={24} color={color} />
+            ),
+            drawerItemStyle: { display: "none" },
           }}
         />
       </Drawer>

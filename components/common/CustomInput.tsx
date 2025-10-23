@@ -57,14 +57,16 @@ const CustomInput = ({
 
   return (
     <View style={containerStyle}>
-      <View style={styles.labelWrapper}>
-        <Text style={styles.label}>{label}</Text>
-        {required && (
-          <View style={{ marginLeft: scale(4) }}>
-            <AsteriskIcon />
-          </View>
-        )}
-      </View>
+      {label && (
+        <View style={styles.labelWrapper}>
+          <Text style={styles.label}>{label}</Text>
+          {required && (
+            <View style={{ marginLeft: scale(4) }}>
+              <AsteriskIcon />
+            </View>
+          )}
+        </View>
+      )}
       <View
         style={[
           styles.inputWrapper,
@@ -99,7 +101,7 @@ const CustomInput = ({
         <TextInput
           {...textInputProps}
           secureTextEntry={isSecure}
-          style={[styles.input, textInputProps.style] as any}
+          style={[styles.input, textInputProps.style]}
           onFocus={() => (isFocusable ? setIsFocused(true) : {})}
           onBlur={handleBlur}
         />

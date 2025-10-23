@@ -17,7 +17,7 @@ import {
   UrbanistRegular,
   UrbanistSemiBold,
 } from "../assets/fonts";
-import { useNotification } from "../hooks/useNotification";
+// import { useNotification } from "../hooks/useNotification";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -28,7 +28,7 @@ SplashScreen.setOptions({
 
 function RootLayoutContent() {
   // Initialize notification handler at root level
-  useNotification();
+  // useNotification();
 
   return <Stack screenOptions={{ headerShown: false }} />;
 }

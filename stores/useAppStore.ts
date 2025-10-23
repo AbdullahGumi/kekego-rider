@@ -14,6 +14,7 @@ type User = {
   email: string;
   gender: string;
   role: string;
+  profilePicture?: string;
 };
 
 export type Driver = {
@@ -118,6 +119,7 @@ type AppState = {
 
 type AppActions = {
   setUser: (user: User | null, token?: string) => Promise<void>;
+  updateUserProfile: (updates: Partial<User>) => Promise<void>;
   loadFromStorage: () => Promise<void>;
   resetStore: () => Promise<void>;
 };
@@ -178,7 +180,7 @@ const initialState: AppState = {
   resetRideState: () => {},
 };
 
-export const useAppStore = create<AppStore>((set) => ({
+export const useAppStore = create<AppStore>((set, get) => ({
   user: null,
   token: null,
   fcmToken: null,
@@ -380,6 +382,18 @@ export const useAppStore = create<AppStore>((set) => ({
       }
     } catch (err) {
       console.error("Failed to set user", err);
+    }
+  },
+  updateUserProfile: async (updates) => {
+    try {
+      const currentState = get();
+      if (currentState.user) {
+        const updatedUser = { ...currentState.user, ...updates };
+        await Storage.set("user", JSON.stringify(updatedUser));
+        set({ user: updatedUser });
+      }
+    } catch (err) {
+      console.error("Failed to update user profile", err);
     }
   },
 

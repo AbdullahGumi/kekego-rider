@@ -1,5 +1,10 @@
 import apiService from "../client/apiService";
-
+export interface UpdateProfileData {
+  name?: string;
+  email?: string;
+  gender?: string;
+  profilePicture?: string;
+}
 export const riderApi = {
   calculateFare: async (data: {
     distanceInKm: number;
@@ -86,5 +91,14 @@ export const riderApi = {
       amount,
       status,
     });
+  },
+
+  // Profile Management
+  getProfile: async () => {
+    return await apiService.get("/rider/profile");
+  },
+
+  updateProfile: async (data: UpdateProfileData) => {
+    return await apiService.put("/rider/profile", data);
   },
 };
