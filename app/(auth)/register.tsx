@@ -152,7 +152,7 @@ const RegisterScreen = () => {
                 />
                 <CustomInput
                   editable={isBottomSheetOpen ? false : true}
-                  placeholder="Enter your email (optional)"
+                  placeholder="Enter your email"
                   placeholderTextColor={"#E2E2E2"}
                   label="Email"
                   value={email}
