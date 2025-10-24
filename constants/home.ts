@@ -1,9 +1,9 @@
 export const CONFIG = {
   GOOGLE_MAPS_API_KEY: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-  DEFAULT_COORDS: { latitude: "6.5244", longitude: "3.3792" },
+  DEFAULT_COORDS: { latitude: "10.5105", longitude: "7.4165" },
   INITIAL_REGION: {
-    latitude: 6.5244,
-    longitude: 3.3792,
+    latitude: 10.5105,
+    longitude: 7.4165,
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   },
@@ -19,18 +19,13 @@ export const CONFIG = {
   RECENT_DESTINATIONS: [
     {
       id: "1",
-      address: "Lekki Phase 1, Lagos",
-      coords: { latitude: "6.4412", longitude: "3.4584" },
-    },
-    {
-      id: "2",
-      address: "Ikeja City Mall, Lagos",
-      coords: { latitude: "6.6148", longitude: "3.3576" },
+      address: "Kaduna City Center",
+      coords: { latitude: "10.5105", longitude: "7.4165" },
     },
     {
       id: "3",
-      address: "Victoria Island, Lagos",
-      coords: { latitude: "6.4299", longitude: "3.4219" },
+      address: "Murtala Square, Kaduna",
+      coords: { latitude: "10.5189", longitude: "7.4386" },
     },
   ],
 } as const;

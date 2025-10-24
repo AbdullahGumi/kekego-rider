@@ -1,4 +1,4 @@
-import { LogoIcon } from "@/assets/svg";
+// import { LogoIcon } from "@/assets/svg";
 import { scale } from "@/constants/Layout";
 import React from "react";
 import { View } from "react-native";
@@ -27,7 +27,7 @@ const Header = ({
       <View
         style={{ marginLeft: "auto", width: scale(100), height: scale(100) }}
       >
-        <LogoIcon />
+        {/* <LogoIcon /> */}
       </View>
     </View>
   );

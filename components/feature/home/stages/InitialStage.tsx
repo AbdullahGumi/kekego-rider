@@ -13,7 +13,7 @@ const InitialStage = () => {
 
   const handleWhereTo = useCallback(() => {
     setRideStage("input");
-    bottomSheetRef?.current?.snapToIndex(1);
+    bottomSheetRef?.current?.snapToIndex(3);
   }, [setRideStage, bottomSheetRef]);
 
   const handleSelectRecentDestination = useCallback(
@@ -40,7 +40,7 @@ const InitialStage = () => {
         </CustomText>
       </TouchableOpacity>
       <CustomText fontWeight="Medium" style={homeStyles.sectionSubTitle}>
-        Recent Destinations
+        Popular Destinations
       </CustomText>
       <FlatList
         data={CONFIG.RECENT_DESTINATIONS}

@@ -2,6 +2,7 @@ import CustomInput from "@/components/common/CustomInput";
 import CustomText from "@/components/common/CustomText";
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
+import { useAppStore } from "@/stores/useAppStore";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { debounce } from "lodash";
@@ -61,8 +62,9 @@ export default function LocationInput({
     error: "",
     loading: false,
   });
+  const bottomSheetRef = useAppStore((state) => state.bottomSheetRef);
 
-  const { pickup, destination, error, loading } = state;
+  const { loading } = state;
   const abortControllerRef = useRef<AbortController | null>(null);
   const inputRef = useRef<{ pickup: string; destination: string }>({
     pickup: initialPickup,
@@ -311,6 +313,7 @@ export default function LocationInput({
             onSubmitEditing={() =>
               handleLocationSelect(type, state[type].input)
             }
+            onPress={() => bottomSheetRef?.current?.snapToIndex(3)}
             onFocus={() =>
               setState((prev) => ({
                 ...prev,
@@ -322,12 +325,12 @@ export default function LocationInput({
             prefix={
               type === "pickup" ? (
                 <TouchableOpacity
-                  activeOpacity={0.7}
+                  activeOpacity={0.5}
                   style={styles.locationButton}
                   onPress={handleCurrentLocation}
                   accessibilityLabel="Use current location"
                 >
-                  <Ionicons name="locate" size={20} color={COLORS.primary} />
+                  <Ionicons name="locate" size={25} color={COLORS.primary} />
                 </TouchableOpacity>
               ) : undefined
             }

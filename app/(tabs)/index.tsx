@@ -1,12 +1,10 @@
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import React, { useEffect, useMemo, useRef } from "react";
-import { ActivityIndicator, Keyboard, View } from "react-native";
+import { Keyboard, View } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { Socket } from "socket.io-client";
 
-import CustomText from "@/components/common/CustomText";
-import { COLORS } from "@/constants/Colors";
 import { CONFIG } from "@/constants/home";
 import { homeStyles } from "@/styles/home-styles";
 
@@ -26,12 +24,13 @@ import { useLocation } from "@/hooks/home/useLocation";
 import { useMapRegionManager } from "@/hooks/home/useMapRegionManager";
 import { useSocket } from "@/hooks/home/useSocket";
 import { useAppStore } from "@/stores/useAppStore";
+import HideKeyboardOnTouch from "@/utility/HideKeyboardOnTouch";
 
 const HomeScreen = () => {
   const rideState = useAppStore((state) => state.rideState);
   const userLocation = useAppStore((state) => state.userLocation);
   const { setMapLoading, setActiveRide } = useAppStore();
-  const { mapLoading, stage, driver } = rideState;
+  const { stage, driver } = rideState;
 
   const mapRef = useRef<MapView>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
@@ -42,7 +41,7 @@ const HomeScreen = () => {
   const setSocketRef = useAppStore((state) => state.setSocketRef);
 
   const { geocodingLoading } = useLocation();
-  const snapPoints = useMemo(() => ["55%", "70%", "80%", "90%"], []);
+  const snapPoints = useMemo(() => ["55%", "70%", "85%", "90%"], []);
 
   useMapRegionManager(mapRef);
   useSocket();
@@ -78,19 +77,8 @@ const HomeScreen = () => {
   }, []);
 
   return (
-    <View style={homeStyles.container}>
-      {mapLoading ? (
-        <Animated.View
-          entering={FadeIn}
-          exiting={FadeOut}
-          style={homeStyles.loadingContainer}
-        >
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <CustomText fontWeight="Medium" style={homeStyles.loadingText}>
-            Loading your map...
-          </CustomText>
-        </Animated.View>
-      ) : (
+    <HideKeyboardOnTouch>
+      <View style={homeStyles.container}>
         <MapView
           ref={mapRef}
           showsMyLocationButton={false}
@@ -111,50 +99,50 @@ const HomeScreen = () => {
         >
           <MapContent />
         </MapView>
-      )}
 
-      <Animated.View
-        entering={FadeIn.delay(200)}
-        style={homeStyles.buttonContainer}
-      >
-        <MapControls geocodingLoading={geocodingLoading} />
-      </Animated.View>
+        <Animated.View
+          entering={FadeIn.delay(200)}
+          style={homeStyles.buttonContainer}
+        >
+          <MapControls geocodingLoading={geocodingLoading} />
+        </Animated.View>
 
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={0}
-        snapPoints={snapPoints}
-        backgroundStyle={homeStyles.bottomSheetBackground}
-        handleIndicatorStyle={homeStyles.bottomSheetHandle}
-        enablePanDownToClose={false}
-        enableDynamicSizing
-        style={homeStyles.bottomSheet}
-        keyboardBehavior="extend"
-        animateOnMount
-      >
-        <BottomSheetView style={homeStyles.bottomSheetContent}>
-          {stage === "initial" && <InitialStage />}
+        <BottomSheet
+          ref={bottomSheetRef}
+          index={0}
+          snapPoints={snapPoints}
+          backgroundStyle={homeStyles.bottomSheetBackground}
+          handleIndicatorStyle={homeStyles.bottomSheetHandle}
+          enablePanDownToClose={false}
+          enableDynamicSizing
+          style={homeStyles.bottomSheet}
+          keyboardBehavior="extend"
+          animateOnMount
+        >
+          <BottomSheetView style={homeStyles.bottomSheetContent}>
+            {stage === "initial" && <InitialStage />}
 
-          {stage === "input" && (
-            <InputStage geocodingLoading={geocodingLoading} />
-          )}
+            {stage === "input" && (
+              <InputStage geocodingLoading={geocodingLoading} />
+            )}
 
-          {stage === "confirm" && <ConfirmStage />}
+            {stage === "confirm" && <ConfirmStage />}
 
-          {stage === "search" && (
-            <SearchStage geocodingLoading={geocodingLoading} />
-          )}
+            {stage === "search" && (
+              <SearchStage geocodingLoading={geocodingLoading} />
+            )}
 
-          {(stage === "paired" || stage === "arrived") && driver && (
-            <PairedArrivedStage />
-          )}
+            {(stage === "paired" || stage === "arrived") && driver && (
+              <PairedArrivedStage />
+            )}
 
-          {stage === "trip" && driver && (
-            <TripStage geocodingLoading={geocodingLoading} />
-          )}
-        </BottomSheetView>
-      </BottomSheet>
-    </View>
+            {stage === "trip" && driver && (
+              <TripStage geocodingLoading={geocodingLoading} />
+            )}
+          </BottomSheetView>
+        </BottomSheet>
+      </View>
+    </HideKeyboardOnTouch>
   );
 };
 
