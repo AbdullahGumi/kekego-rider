@@ -85,7 +85,7 @@ const TopupScreen = () => {
       style={{ flex: 1, backgroundColor: COLORS.background }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <View style={{ paddingTop: scale(40), paddingHorizontal: scale(16) }}>
+      <View style={{ paddingHorizontal: scale(16) }}>
         <Header />
       </View>
       <View
@@ -130,7 +130,7 @@ const TopupScreen = () => {
               flexDirection: "row",
               alignItems: "center",
               marginBottom: scale(20),
-              borderColor: COLORS.secondary,
+              borderColor: COLORS.secondaryText,
               borderWidth: 1,
               borderRadius: scale(8),
             }}
