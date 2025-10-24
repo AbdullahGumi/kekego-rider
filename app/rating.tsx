@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -44,22 +43,12 @@ const RatingScreen: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (rating === 0) {
-      Alert.alert("Error", "Please select a rating");
-      //       return;
-    }
-
-    if (!rideId) {
-      Alert.alert("Error", "No ride ID available");
-      return;
-    }
-
     setLoading(true);
 
     try {
-      await riderApi.submitRating(rideId, rating, feedback);
+      await riderApi.submitRating(rideId!, rating, feedback);
       Toast.show({
-        type: "success",
+        type: "customToast",
         text1: "Rating Submitted",
         text2: "Thank you for your feedback!",
       });
@@ -71,7 +60,7 @@ const RatingScreen: React.FC = () => {
     } catch (error: any) {
       console.log("error", error.response.data);
       Toast.show({
-        type: "error",
+        type: "customToast",
         text1: "Submit Failed",
         text2: "Please try again",
       });

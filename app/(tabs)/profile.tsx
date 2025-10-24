@@ -27,6 +27,7 @@ import {
 } from "react-native";
 
 import { ChevronIcon } from "@/assets/svg";
+import Toast from "react-native-toast-message";
 
 // Cloudinary configuration
 const cld = {
@@ -214,7 +215,11 @@ const ProfileScreen = () => {
               profilePicture: profilePictureUrl,
             }));
           }
-          Alert.alert("Success", "Profile picture updated successfully");
+          Toast.show({
+            type: "customToast",
+            text1: "Success",
+            text2: "Profile picture updated successfully",
+          });
         }
       } catch (error: any) {
         console.error("Profile picture update error:", error);
@@ -281,7 +286,11 @@ const ProfileScreen = () => {
         }
 
         setIsEditing(false);
-        Alert.alert("Success", "Profile updated successfully");
+        Toast.show({
+          type: "customToast",
+          text1: "Success",
+          text2: "Profile updated successfully",
+        });
       }
     } catch (error: any) {
       console.error("Failed to update profile:", error);

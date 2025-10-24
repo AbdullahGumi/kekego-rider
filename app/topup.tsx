@@ -45,14 +45,14 @@ const TopupScreen = () => {
           setTopUpAmount("");
           router.back();
           Toast.show({
-            type: "success",
+            type: "customToast",
             text1: "Success",
             text2: "Wallet topped up successfully",
           });
         } catch (err: any) {
           console.log(err.response?.data);
           Toast.show({
-            type: "error",
+            type: "customToast",
             text1: "Error",
             text2: "Failed to top up wallet",
           });
@@ -61,7 +61,7 @@ const TopupScreen = () => {
       onCancel: () => {
         console.log("User cancelled");
         Toast.show({
-          type: "info",
+          type: "customToast",
           text1: "Cancelled",
           text2: "Top-up cancelled",
         });
@@ -70,7 +70,7 @@ const TopupScreen = () => {
       onError: (err) => {
         console.log("Paystack Error:", err);
         Toast.show({
-          type: "error",
+          type: "customToast",
           text1: "Error",
           text2: "Payment error occurred",
         });

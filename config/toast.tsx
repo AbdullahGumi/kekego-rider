@@ -1,76 +1,61 @@
-import { WarningIcon } from "@/assets/svg";
+import { LogoIcon } from "@/assets/svg";
 import CustomText from "@/components/common/CustomText";
-import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
 import { View } from "react-native";
 import { ToastConfig, ToastConfigParams } from "react-native-toast-message";
 
-type ToastType = "Success" | "Info" | "Warning" | "Error";
-
-const toastStyles = {
-  Success: {
-    backgroundColor: COLORS.primary,
-    color: "white",
-    Icon: WarningIcon,
-  },
-  Info: {
-    backgroundColor: "#FFFFFF",
-    color: "black",
-    Icon: WarningIcon,
-  },
-  Warning: {
-    backgroundColor: "#FFF7DB",
-    color: "white",
-    Icon: WarningIcon,
-  },
-  Error: {
-    backgroundColor: COLORS.error,
-    color: "white",
-    Icon: WarningIcon,
-  },
-};
-
 export const toastConfig: ToastConfig = {
-  customToast: ({ text1 = "", text2, props }: ToastConfigParams<any>) => {
-    const { backgroundColor, Icon, color } =
-      toastStyles[props.type as ToastType];
+  customToast: ({ text1 = "", text2 }: ToastConfigParams<any>) => {
     return (
       <View
         style={{
-          width: "85%",
-          backgroundColor,
-          alignItems: "center",
-          paddingHorizontal: scale(12),
-          paddingVertical: scale(6),
-          borderRadius: 50,
+          width: "90%",
+          backgroundColor: "#ffffffff",
+          borderRadius: scale(12),
           flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: scale(14),
+          paddingVertical: scale(12),
+          shadowColor: "#000",
+          shadowOpacity: 0.15,
+          shadowRadius: 6,
+          shadowOffset: { width: 0, height: 2 },
+          elevation: 4,
         }}
       >
-        <View
-          style={{ width: scale(17), height: scale(17), marginRight: scale(8) }}
-        >
-          <Icon color={color} />
-        </View>
         <View style={{ flex: 1 }}>
           <CustomText
-            fontWeight="Medium"
+            fontWeight="SemiBold"
             style={{
-              fontSize: scaleText(12),
-              color: color,
+              fontSize: scaleText(13),
+              color: "#000",
             }}
           >
             {text1}
           </CustomText>
+
           {text2 && (
             <CustomText
               style={{
-                fontSize: scaleText(8),
-                color: color,
+                fontSize: scaleText(11),
+                color: "#8f8f8fff",
+                marginTop: scale(2),
               }}
             >
               {text2}
             </CustomText>
           )}
+        </View>
+        <View
+          style={{
+            width: scale(50),
+            height: scale(50),
+            marginRight: scale(10),
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <LogoIcon />
         </View>
       </View>
     );

@@ -97,7 +97,6 @@ export default function PhoneNumberScreen() {
         Toast.show({
           type: "customToast",
           text1: otpResponse.data.message || "Failed to send OTP",
-          props: { type: "Error" },
         });
       }
     } catch (err: any) {
@@ -110,7 +109,6 @@ export default function PhoneNumberScreen() {
       Toast.show({
         type: "customToast",
         text1: errorMessage,
-        props: { type: "Error" },
       });
     }
   };

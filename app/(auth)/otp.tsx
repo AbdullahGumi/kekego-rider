@@ -35,14 +35,12 @@ export default function OTPScreen() {
         Toast.show({
           type: "customToast",
           text1: "OTP sent successfully",
-          props: { type: "Success" },
         });
       } else {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         Toast.show({
           type: "customToast",
           text1: "Failed to send OTP",
-          props: { type: "Error" },
         });
       }
     } catch (err: any) {
@@ -50,7 +48,6 @@ export default function OTPScreen() {
       Toast.show({
         type: "customToast",
         text1: err.response?.data?.message || "Failed to send OTP",
-        props: { type: "Error" },
       });
     }
   };
@@ -70,7 +67,6 @@ export default function OTPScreen() {
       Toast.show({
         type: "customToast",
         text1: "Please enter a 6-digit OTP",
-        props: { type: "Error" },
       });
       return;
     }
@@ -104,7 +100,6 @@ export default function OTPScreen() {
         Toast.show({
           type: "customToast",
           text1: data.message || "Invalid OTP",
-          props: { type: "Error" },
         });
       }
     } catch (err: any) {
@@ -113,7 +108,6 @@ export default function OTPScreen() {
       Toast.show({
         type: "customToast",
         text1: err.response?.data?.error || "Failed to verify OTP",
-        props: { type: "Error" },
       });
     } finally {
       setLoading(false);

@@ -55,7 +55,7 @@ export default function WalletScreen() {
       setBalance(response.data.data.balance);
     } catch (err) {
       Toast.show({
-        type: "error",
+        type: "customToast",
         text1: "Error",
         text2: "Unable to load balance",
       });
@@ -78,7 +78,7 @@ export default function WalletScreen() {
       setHasMore(pageNum < (response.data?.data.pagination?.totalPages || 1));
     } catch (err) {
       Toast.show({
-        type: "error",
+        type: "customToast",
         text1: "Error",
         text2: "Unable to load transactions",
       });

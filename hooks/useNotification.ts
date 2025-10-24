@@ -232,24 +232,6 @@ export const useNotification = ({
   const { fcmToken, setFcmToken, setRideStage, setDriver, resetRideState } =
     useAppStore();
 
-  // Get appropriate toast type based on notification type
-  const getToastType = useCallback((notificationType: string) => {
-    switch (notificationType) {
-      case NOTIFICATION_TYPES.RIDE_ACCEPTED:
-      case NOTIFICATION_TYPES.DRIVER_ARRIVED:
-      case NOTIFICATION_TYPES.RIDE_STARTED:
-        return "Info";
-      case NOTIFICATION_TYPES.RIDE_COMPLETED:
-        return "Info";
-      case NOTIFICATION_TYPES.RIDE_CANCELLED:
-        return "Info";
-      case NOTIFICATION_TYPES.RIDE_REQUEST:
-        return "Info";
-      default:
-        return "Info";
-    }
-  }, []);
-
   // Handle notification actions based on processed notification data
   const handleNotificationAction = useCallback(
     async (notificationData: any) => {
@@ -306,11 +288,10 @@ export const useNotification = ({
           type: "customToast",
           text1: title || "Notification",
           text2: body,
-          props: { type: getToastType(data.type) },
         });
       }
     },
-    [setRideStage, setDriver, resetRideState, getToastType]
+    [setRideStage, setDriver, resetRideState]
   );
 
   useEffect(() => {
