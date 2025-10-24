@@ -31,6 +31,7 @@ const ConfirmStage = () => {
   const { setRideId, setRideStage } = useAppStore();
   const [bookingLoading, setBookingLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const bottomSheetRef = useAppStore((state) => state.bottomSheetRef);
 
   const { fare, tripDuration, destinationDistance, destinationDuration } =
     rideState;
@@ -71,6 +72,7 @@ const ConfirmStage = () => {
         const responseRideId = response.data.data.ride.id;
         setRideId(responseRideId);
         setRideStage("search");
+        bottomSheetRef?.current?.snapToIndex(0);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
     } catch (error: any) {
