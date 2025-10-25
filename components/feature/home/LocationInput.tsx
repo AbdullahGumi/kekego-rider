@@ -15,6 +15,7 @@ import {
   View,
 } from "react-native";
 import Animated, { ZoomIn } from "react-native-reanimated";
+import { v4 as uuidv4 } from "uuid";
 
 interface Location {
   address: string;
@@ -31,6 +32,7 @@ interface LocationState {
   suggestions: PlaceSuggestion[];
   showSuggestions: boolean;
   coords?: { latitude: string; longitude: string };
+  sessionToken?: string;
 }
 
 interface LocationInputProps {
@@ -71,11 +73,16 @@ export default function LocationInput({
     destination: initialDestination,
   });
 
+  const generateSessionToken = useCallback(() => {
+    return uuidv4();
+  }, []);
+
   const fetchSuggestions = useRef(
     debounce(
       async (
         input: string,
         type: "pickup" | "destination",
+        sessionToken: string,
         setSuggestions: (suggestions: PlaceSuggestion[]) => void
       ) => {
         if (!input.trim()) {
@@ -92,7 +99,7 @@ export default function LocationInput({
           const response = await fetch(
             `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
               input
-            )}&components=country:NG&key=AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE`,
+            )}&components=country:NG&sessiontoken=${sessionToken}&key=AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE`,
             { signal: abortControllerRef.current.signal }
           );
           const data = await response.json();
@@ -126,19 +133,43 @@ export default function LocationInput({
   const handleInputChange = useCallback(
     (text: string, type: "pickup" | "destination") => {
       inputRef.current[type] = text;
+
+      // Generate new session token if input is empty (new session) or doesn't exist
+      const currentSessionToken = state[type].sessionToken;
+      const shouldGenerateNewToken = !text.trim() || !currentSessionToken;
+
+      let newSessionToken = currentSessionToken;
+      if (shouldGenerateNewToken) {
+        newSessionToken = generateSessionToken();
+      }
+
       setState((prev) => ({
         ...prev,
-        [type]: { ...prev[type], input: text, showSuggestions: true },
+        [type]: {
+          ...prev[type],
+          input: text,
+          showSuggestions: true,
+          sessionToken: newSessionToken,
+        },
         error: "",
       }));
-      fetchSuggestions(text, type, (suggestions) =>
+
+      if (text.trim() && newSessionToken) {
+        fetchSuggestions(text, type, newSessionToken, (suggestions) =>
+          setState((prev) => ({
+            ...prev,
+            [type]: { ...prev[type], suggestions },
+          }))
+        );
+      } else {
+        // Clear suggestions if input is empty
         setState((prev) => ({
           ...prev,
-          [type]: { ...prev[type], suggestions },
-        }))
-      );
+          [type]: { ...prev[type], suggestions: [], showSuggestions: false },
+        }));
+      }
     },
-    []
+    [state, generateSessionToken, fetchSuggestions]
   );
 
   const handleLocationSelect = useCallback(
@@ -183,6 +214,7 @@ export default function LocationInput({
               input: location.address,
               showSuggestions: false,
               coords: location.coords,
+              sessionToken: undefined, // Reset session token when location is selected
             },
             error: "",
             loading: false,
@@ -215,6 +247,15 @@ export default function LocationInput({
 
   const handleSuggestionSelect = useCallback(
     (suggestion: PlaceSuggestion, type: "pickup" | "destination") => {
+      // Reset session token when user selects a suggestion (session ends)
+      setState((prev) => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          sessionToken: undefined,
+          showSuggestions: false,
+        },
+      }));
       handleLocationSelect(type, suggestion.description, suggestion.place_id);
     },
     [handleLocationSelect]
@@ -236,13 +277,19 @@ export default function LocationInput({
       });
 
       // Reverse geocode to get address
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${location.coords.latitude},${location.coords.longitude}&key=AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE`
-      );
-      const data = await response.json();
+      const addresses = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
 
-      if (data.status === "OK" && data.results.length > 0) {
-        const address = data.results[0].formatted_address;
+      if (addresses.length > 0) {
+        const address = `${addresses[0].name || ""} ${
+          addresses[0].streetNumber || ""
+        } ${addresses[0].street || ""} ${addresses[0].city || ""} ${
+          addresses[0].region || ""
+        } ${addresses[0].country || ""}`
+          .replace(/\s+/g, " ")
+          .trim();
         const pickupLocation = {
           address,
           coords: {
@@ -284,6 +331,7 @@ export default function LocationInput({
         input: "",
         suggestions: [],
         showSuggestions: false,
+        sessionToken: undefined, // Reset session token when clearing input
       },
     }));
   }, []);
@@ -314,13 +362,28 @@ export default function LocationInput({
               handleLocationSelect(type, state[type].input)
             }
             onPress={() => bottomSheetRef?.current?.snapToIndex(3)}
-            onFocus={() =>
-              setState((prev) => ({
-                ...prev,
-                [type]: { ...prev[type], showSuggestions: true },
-                error: "",
-              }))
-            }
+            onFocus={() => {
+              // Generate new session token if one doesn't exist when focusing
+              const currentSessionToken = state[type].sessionToken;
+              if (!currentSessionToken) {
+                const newSessionToken = generateSessionToken();
+                setState((prev) => ({
+                  ...prev,
+                  [type]: {
+                    ...prev[type],
+                    sessionToken: newSessionToken,
+                    showSuggestions: true,
+                  },
+                  error: "",
+                }));
+              } else {
+                setState((prev) => ({
+                  ...prev,
+                  [type]: { ...prev[type], showSuggestions: true },
+                  error: "",
+                }));
+              }
+            }}
             editable={type === "pickup" ? !isPickupLoading : true}
             prefix={
               type === "pickup" ? (

@@ -5,7 +5,7 @@ import { Storage } from "@/utility/asyncStorageHelper";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useEffect } from "react";
-import { Alert } from "react-native";
+import Toast from "react-native-toast-message";
 import io from "socket.io-client";
 
 export const useSocket = () => {
@@ -49,6 +49,10 @@ export const useSocket = () => {
 
         socketRef.current.on("ride:accepted", (data) => {
           console.log("ride:accepted", data);
+          Toast.show({
+            type: "customToast",
+            text1: `${data.driver.name} is on the way!`,
+          });
 
           if (data.driver) {
             setDriver(data.driver);
@@ -65,6 +69,10 @@ export const useSocket = () => {
 
         socketRef.current.on("message:receive", (msg) => {
           addMessage(msg);
+          Toast.show({
+            type: "customToast",
+            text1: `New message from driver`,
+          });
         });
 
         socketRef.current.on(`driver:location-update`, (data) => {
@@ -76,18 +84,29 @@ export const useSocket = () => {
 
         socketRef.current.on("ride:arrived", (data) => {
           console.log("ride:arrived", data);
+          Toast.show({
+            type: "customToast",
+            text1: `Driver is at pickup location!`,
+          });
           setRideStage("arrived");
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         });
         socketRef.current.on("ride:started", (data) => {
           console.log("ride:started", data);
-
+          Toast.show({
+            type: "customToast",
+            text1: `Your trip has started!`,
+          });
           setRideStage("trip");
 
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         });
         socketRef.current.on("ride:completed", (data) => {
           console.log("ride:completed", data);
+          Toast.show({
+            type: "customToast",
+            text1: `You've arrived at your destination!`,
+          });
           router.push("/rating");
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         });
@@ -95,8 +114,11 @@ export const useSocket = () => {
           console.log("ride:cancelled", data);
 
           resetRideState();
-
-          Alert.alert("Ride Cancelled", data.reason);
+          Toast.show({
+            type: "customToast",
+            text1: "Ride Cancelled",
+            text2: data.reason,
+          });
         });
 
         socketRef.current.on("connect_error", (error) => {
@@ -109,10 +131,12 @@ export const useSocket = () => {
           socketRef.current?.off("ride:started");
           socketRef.current?.off("ride:completed");
           socketRef.current?.off("ride:cancelled");
+          socketRef.current?.off("message:receive");
+          socketRef.current?.off("driver:location-update");
           socketRef.current?.disconnect();
         };
-      } catch (error) {
-        logError("Socket Initialization", error);
+      } catch (error: any) {
+        logError("Socket Initialization", error.response?.data);
       }
     };
 
