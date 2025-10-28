@@ -35,6 +35,21 @@ type LocationData = {
   coords: { latitude: string; longitude: string };
 };
 
+export type DirectionsData = {
+  distance: number;
+  duration: number;
+  coordinates: { latitude: number; longitude: number }[];
+  legs: {
+    distance: number;
+    duration: number;
+    startLocation: { latitude: number; longitude: number };
+    endLocation: { latitude: number; longitude: number };
+    instructions: string;
+    polyline: { lat: number; lng: number }[];
+  }[];
+  waypointOrder: number[];
+};
+
 type RideStage =
   | "initial"
   | "input"
@@ -75,6 +90,8 @@ type AppState = {
   userLocation: Location.LocationObject | null;
   pickupLocation: LocationData;
   destinationLocation: LocationData;
+  pickupDirections: DirectionsData | null;
+  destinationDirections: DirectionsData | null;
 
   // Ride State
   rideState: RideState;
@@ -102,6 +119,8 @@ type AppState = {
   setDestinationDuration: (duration: number) => void;
   setRideId: (rideId: string | null) => void;
   setMapLoading: (loading: boolean) => void;
+  setPickupDirections: (directions: DirectionsData | null) => void;
+  setDestinationDirections: (directions: DirectionsData | null) => void;
 
   // Chat Actions
   setMessages: (messages: IMessage[]) => void;
@@ -153,6 +172,8 @@ const initialState: AppState = {
     rideId: null,
     mapLoading: true,
   },
+  pickupDirections: null,
+  destinationDirections: null,
 
   messages: [],
 
@@ -171,6 +192,8 @@ const initialState: AppState = {
   setDestinationDuration: () => {},
   setRideId: () => {},
   setMapLoading: () => {},
+  setPickupDirections: () => {},
+  setDestinationDirections: () => {},
 
   setMessages: () => {},
   addMessage: () => {},
@@ -187,6 +210,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   mapRef: null,
   setMapRef: (ref) => set({ mapRef: ref }),
+
+  pickupDirections: null,
+  destinationDirections: null,
 
   bottomSheetRef: null,
   setBottomSheetRef: (ref) => set({ bottomSheetRef: ref }),
@@ -273,6 +299,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set((state) => ({
       rideState: { ...state.rideState, mapLoading: loading },
     })),
+  setPickupDirections: (directions) => set({ pickupDirections: directions }),
+  setDestinationDirections: (directions) =>
+    set({ destinationDirections: directions }),
 
   // Chat actions
   setMessages: (messages) => set({ messages }),

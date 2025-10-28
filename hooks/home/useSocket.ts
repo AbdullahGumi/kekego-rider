@@ -20,6 +20,9 @@ export const useSocket = () => {
     updateDriverLocation,
     resetRideState,
     addMessage,
+    setPickupDirections,
+    setDestinationDirections,
+    setEta,
   } = useAppStore();
   const { rideId, driver, stage } = rideState;
 
@@ -120,7 +123,27 @@ export const useSocket = () => {
             text2: data.reason,
           });
         });
+        socketRef.current.on("trip:driver-to-pickup-directions", (data) => {
+          console.log("driver-to-pickup data", data.directions);
+          if (data.directions) {
+            setPickupDirections(data.directions);
+            setEta(`${Math.ceil(data.directions.duration)} min`);
+          }
+        });
 
+        socketRef.current.on(
+          "trip:driver-to-destination-directions",
+          (data) => {
+            console.log("driver-to-destination data", data.directions);
+            if (data.directions) {
+              setDestinationDirections(data.directions);
+              // Don't override ETA during active trip
+              if (stage === "arrived") {
+                setEta(`${Math.ceil(data.directions.duration)} min`);
+              }
+            }
+          }
+        );
         socketRef.current.on("connect_error", (error) => {
           logError("Socket Connection", error);
         });
@@ -133,6 +156,8 @@ export const useSocket = () => {
           socketRef.current?.off("ride:cancelled");
           socketRef.current?.off("message:receive");
           socketRef.current?.off("driver:location-update");
+          socketRef.current?.off("trip:driver-to-pickup-directions");
+          socketRef.current?.off("trip:driver-to-destination-directions");
           socketRef.current?.disconnect();
         };
       } catch (error: any) {

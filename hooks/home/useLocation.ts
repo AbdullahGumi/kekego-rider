@@ -38,7 +38,7 @@ export const useLocation = () => {
       }
 
       const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.BestForNavigation,
+        accuracy: Location.Accuracy.Balanced,
       });
 
       if (!location?.coords) {

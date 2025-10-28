@@ -1,5 +1,5 @@
 import { riderApi } from "@/api/endpoints/rider";
-import { KekeImage } from "@/assets/images/Index";
+import { KekeOptionImage } from "@/assets/images/Index";
 import CustomText from "@/components/common/CustomText";
 import { COLORS } from "@/constants/Colors";
 import { CONSTANTS } from "@/constants/constants";
@@ -103,7 +103,7 @@ const ConfirmStage = () => {
       </CustomText>
       <View style={homeStyles.confirmCard}>
         <View style={homeStyles.rideOptionHeader}>
-          <Image source={KekeImage} style={homeStyles.rideOptionIcon} />
+          <Image source={KekeOptionImage} style={homeStyles.rideOptionIcon} />
           <View>
             <CustomText fontWeight="Bold" style={homeStyles.rideOptionTitle}>
               Tricycle

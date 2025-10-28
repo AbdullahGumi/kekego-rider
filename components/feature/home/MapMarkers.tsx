@@ -36,7 +36,7 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
             description={`${nearbyDriver.vehicle.plateNumber}`}
             anchor={{ x: 0.5, y: 0 }}
           >
-            <Image source={KekeImage} style={homeStyles.tricycleMarker} />
+            <Image source={KekeImage} />
           </Marker>
         ))}
 
@@ -98,7 +98,7 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
               description={`${driver.vehicle.plateNumber}`}
               anchor={{ x: 0.5, y: 0 }}
             >
-              <Image source={KekeImage} style={homeStyles.tricycleMarker} />
+              <Image source={KekeImage} />
             </Marker>
           </>
         )}
@@ -130,7 +130,7 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
               description={`${driver.vehicle.plateNumber}`}
               anchor={{ x: 0.5, y: 0 }}
             >
-              <Image source={KekeImage} style={homeStyles.tricycleMarker} />
+              <Image source={KekeImage} />
             </Marker>
           </>
         )}
