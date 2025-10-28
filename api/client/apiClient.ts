@@ -5,8 +5,8 @@ import axios from "axios";
 import { useAppStore } from "@/stores/useAppStore";
 
 const apiClient = axios.create({
-  baseURL: "http://172.20.10.2:3000/api",
-  // baseURL: "https://api.betterkaduna.com/api",
+  // baseURL: "http://172.20.10.2:3000/api",
+  baseURL: "https://api.betterkaduna.com/api",
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
