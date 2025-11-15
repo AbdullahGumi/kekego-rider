@@ -17,7 +17,7 @@ import DrawerButton from "@/components/common/DrawerButton";
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
 import { numberWithCommas } from "@/utility";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import Toast from "react-native-toast-message";
 
 dayjs.extend(relativeTime);
@@ -41,6 +41,7 @@ interface Transaction {
 }
 
 export default function WalletScreen() {
+  const { refresh } = useLocalSearchParams<{ refresh?: string }>();
   const [balance, setBalance] = useState<WalletBalance | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,6 +109,15 @@ export default function WalletScreen() {
     fetchTransactions(1, false);
     setLoading(false);
   }, []);
+
+  // Handle auto-refresh from successful top-up
+  useEffect(() => {
+    if (refresh === "true" && !loading) {
+      onRefresh();
+      // Clear the refresh parameter after processing
+      router.replace("/(tabs)/wallet");
+    }
+  }, [refresh, loading]);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {

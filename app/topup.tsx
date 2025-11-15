@@ -1,19 +1,14 @@
 import { riderApi } from "@/api/endpoints/rider";
 import { generateReference } from "@/utility";
 import React, { useState } from "react";
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, TouchableOpacity, View } from "react-native";
 import { usePaystack } from "react-native-paystack-webview";
 
+import AmountDisplay from "@/components/common/AmountDisplay";
 import CustomButton from "@/components/common/CustomButton";
 import CustomText from "@/components/common/CustomText";
 import Header from "@/components/common/Header";
+import NumPad from "@/components/common/NumPad";
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
 import { router } from "expo-router";
@@ -43,7 +38,7 @@ const TopupScreen = () => {
             res.status
           );
           setTopUpAmount("");
-          router.back();
+          router.replace("/(tabs)/wallet?refresh=true");
           Toast.show({
             type: "customToast",
             text1: "Success",
@@ -80,11 +75,21 @@ const TopupScreen = () => {
 
   const quickAmounts = [500, 1000, 2000];
 
+  const handleNumPadKeyPress = (key: string) => {
+    if (key === "C") {
+      setTopUpAmount("");
+    } else if (key === "⌫") {
+      setTopUpAmount((prev) => prev.slice(0, -1));
+    } else {
+      // Prevent leading zeros and limit to reasonable length
+      if (key === "0" && !topUpAmount) return;
+      if (topUpAmount.length >= 9) return; // Max 9 digits before decimal/comma formatting
+      setTopUpAmount((prev) => prev + key);
+    }
+  };
+
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: COLORS.background }}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <View style={{ flex: 1, backgroundColor: COLORS.background }}>
       <View style={{ paddingHorizontal: scale(16) }}>
         <Header />
       </View>
@@ -125,42 +130,14 @@ const TopupScreen = () => {
             elevation: 3,
           }}
         >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
+          <AmountDisplay
+            value={topUpAmount}
+            placeholder="0"
+            containerStyle={{
               marginBottom: scale(20),
-              borderColor: COLORS.secondaryText,
-              borderWidth: 1,
-              borderRadius: scale(8),
             }}
-          >
-            <CustomText
-              fontWeight="Regular"
-              style={{
-                fontSize: scaleText(16),
-                color: COLORS.text,
-                paddingHorizontal: scale(12),
-                paddingVertical: scale(12),
-              }}
-            >
-              ₦
-            </CustomText>
-            <TextInput
-              placeholder="Enter amount"
-              placeholderTextColor={COLORS.secondaryText}
-              value={topUpAmount}
-              onChangeText={setTopUpAmount}
-              keyboardType="numeric"
-              style={{
-                flex: 1,
-                fontSize: scaleText(16),
-                color: COLORS.text,
-                paddingVertical: scale(12),
-                paddingRight: scale(12),
-              }}
-            />
-          </View>
+            maxLength={9}
+          />
           <View
             style={{
               flexDirection: "row",
@@ -182,10 +159,10 @@ const TopupScreen = () => {
                 }}
               >
                 <CustomText
-                  fontWeight="Medium"
+                  fontWeight="Bold"
                   style={{
                     fontSize: scaleText(14),
-                    color: COLORS.secondaryText,
+                    color: COLORS.black,
                     textAlign: "center",
                   }}
                 >
@@ -198,10 +175,15 @@ const TopupScreen = () => {
             onPress={handleTopUp}
             title="Pay"
             backgroundColor={COLORS.primary}
+            disabled={!topUpAmount || Number(topUpAmount) <= 0}
           />
         </View>
+
+        <View style={{ width: "100%", marginTop: scale(16) }}>
+          <NumPad onKeyPress={handleNumPadKeyPress} />
+        </View>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
