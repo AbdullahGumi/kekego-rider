@@ -96,6 +96,7 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
               }}
               title={driver.name}
               description={`${driver.vehicle.plateNumber}`}
+              rotation={driver.location.heading ?? 0}
               anchor={{ x: 0.5, y: 0 }}
             >
               <Image source={KekeImage} />
@@ -128,6 +129,7 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
               }}
               title={driver.name}
               description={`${driver.vehicle.plateNumber}`}
+              rotation={driver.location.heading ?? 0}
               anchor={{ x: 0.5, y: 0 }}
             >
               <Image source={KekeImage} />

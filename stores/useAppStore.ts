@@ -24,7 +24,7 @@ export type Driver = {
     plateNumber: string;
     vehicleNumber: string;
   };
-  location: { latitude: number; longitude: number };
+  location: { latitude: number; longitude: number; heading?: number };
   profilePicture: string;
   phone: string;
   averageRating?: number;
@@ -107,6 +107,7 @@ type AppState = {
   updateDriverLocation: (location: {
     latitude: number;
     longitude: number;
+    heading?: number;
   }) => void;
 
   // Ride State Actions

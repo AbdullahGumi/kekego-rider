@@ -9,7 +9,6 @@ import {
   updateMapRegion,
 } from "@/utility";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "expo-router";
 import { useCallback } from "react";
 import { Alert, Linking, TouchableOpacity, View } from "react-native";
 
@@ -37,10 +36,6 @@ export const MapControls: React.FC<MapControlsProps> = ({
     setEta,
     setRideId,
   } = useAppStore();
-
-  const navigation = useNavigation<any>();
-
-  const handleDrawer = () => navigation.toggleDrawer();
 
   const centerMapOnUser = useCallback(() => {
     if (userLocation?.coords) {

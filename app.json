@@ -21,6 +21,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": [
+          "remote-notification",
           "remote-notification"
         ]
       }
@@ -31,6 +32,10 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "FOREGROUND_SERVICE",
+        "POST_NOTIFICATIONS",
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "FOREGROUND_SERVICE",
@@ -111,7 +116,7 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/4fbdeb48-29da-4590-9698-b71daff7a19a"
+      "url": "https://u.expo.dev/9f69d1e5-9c29-479e-8665-64a23b5e8982"
     }
   }
 }

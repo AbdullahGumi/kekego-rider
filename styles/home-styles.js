@@ -177,8 +177,8 @@ export const homeStyles = StyleSheet.create({
     alignItems: "center",
     marginVertical: scale(8),
   },
-  locationIcon: { width: scale(24), height: scale(24), marginRight: scale(12) },
-  locationText: { fontSize: scaleText(14), color: COLORS.text, flex: 1 },
+  locationIcon: { width: scale(18), height: scale(18), marginRight: scale(8) },
+  locationText: { fontSize: scaleText(12), color: COLORS.text, flex: 1 },
   locationDivider: {
     height: 1,
     backgroundColor: COLORS.secondaryText,

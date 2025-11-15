@@ -82,7 +82,23 @@ export const useSocket = () => {
           updateDriverLocation({
             latitude: data.coords?.latitude,
             longitude: data.coords?.longitude,
+            heading: data.heading,
           });
+        });
+
+        socketRef.current.on("driver:route-updated", (data) => {
+          console.log("driver:route-updated", data.newDirections);
+          //data === routeType can either be "pickup" | "destination"
+          if (data.routeType === "pickup") {
+            setPickupDirections(data.newDirections);
+            setEta(`${Math.ceil(data.newDirections.duration)} min`);
+          } else if (data.routeType === "destination") {
+            setDestinationDirections(data.newDirections);
+            // Don't override ETA during active trip
+            if (stage === "arrived") {
+              setEta(`${Math.ceil(data.newDirections.duration)} min`);
+            }
+          }
         });
 
         socketRef.current.on("ride:arrived", (data) => {
@@ -124,7 +140,6 @@ export const useSocket = () => {
           });
         });
         socketRef.current.on("trip:driver-to-pickup-directions", (data) => {
-          console.log("driver-to-pickup data", data.directions);
           if (data.directions) {
             setPickupDirections(data.directions);
             setEta(`${Math.ceil(data.directions.duration)} min`);
@@ -134,7 +149,6 @@ export const useSocket = () => {
         socketRef.current.on(
           "trip:driver-to-destination-directions",
           (data) => {
-            console.log("driver-to-destination data", data.directions);
             if (data.directions) {
               setDestinationDirections(data.directions);
               // Don't override ETA during active trip
