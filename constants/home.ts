@@ -1,5 +1,4 @@
 export const CONFIG = {
-  GOOGLE_MAPS_API_KEY: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "",
   DEFAULT_COORDS: { latitude: "10.5105", longitude: "7.4165" },
   INITIAL_REGION: {
     latitude: 10.5105,
@@ -14,8 +13,6 @@ export const CONFIG = {
     user: "https://cdn-icons-png.flaticon.com/128/456/456212.png",
     star: "https://img.icons8.com/color/24/000000/star.png",
   },
-  // SOCKET_URL: "http://172.20.10.2:3000",
-  SOCKET_URL: "https://api.betterkaduna.com",
   RECENT_DESTINATIONS: [
     {
       id: "1",

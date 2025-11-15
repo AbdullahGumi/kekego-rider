@@ -1,6 +1,5 @@
 import { riderApi } from "@/api/endpoints/rider";
 import { COLORS } from "@/constants/Colors";
-import { CONFIG } from "@/constants/home";
 import { Driver, useAppStore } from "@/stores/useAppStore";
 import { LocationData } from "@/types/home";
 import { logError } from "@/utility";
@@ -152,7 +151,7 @@ export const MapDirections: React.FC<MapDirectionsProps> = ({
           latitude: Number(destinationLocation.coords.latitude),
           longitude: Number(destinationLocation.coords.longitude),
         }}
-        apikey={CONFIG.GOOGLE_MAPS_API_KEY}
+        apikey={process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
         strokeWidth={Platform.OS === "android" ? 3 : 4}
         strokeColor={COLORS.primary}
         onReady={async (result) => {

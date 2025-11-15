@@ -1,4 +1,3 @@
-import { CONFIG } from "@/constants/home";
 import { useAppStore } from "@/stores/useAppStore";
 import { logError } from "@/utility";
 import { Storage } from "@/utility/asyncStorageHelper";
@@ -44,7 +43,7 @@ export const useSocket = () => {
         }
 
         const token = await Storage.get("access_token");
-        socketRef.current = io(CONFIG.SOCKET_URL, {
+        socketRef.current = io(process.env.EXPO_PUBLIC_BASE_URL, {
           auth: {
             token: token,
           },
