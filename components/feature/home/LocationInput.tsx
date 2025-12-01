@@ -99,7 +99,7 @@ export default function LocationInput({
           const response = await fetch(
             `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
               input
-            )}&components=country:NG&sessiontoken=${sessionToken}&key=AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE`,
+            )}&components=country:NG&sessiontoken=${sessionToken}&key=AIzaSyA1aP5EbZ8gPrLVJjT_SOBcpFj21n8tjgs`,
             { signal: abortControllerRef.current.signal }
           );
           const data = await response.json();

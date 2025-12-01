@@ -16,7 +16,8 @@
         "aps-environment": "production"
       },
       "config": {
-        "googleMapsApiKey": "AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE"
+        "googleMapsApiKey": "AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE",
+        "jsEngine": "hermes"
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -44,7 +45,8 @@
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE"
-        }
+        },
+        "jsEngine": "hermes"
       },
       "googleServicesFile": "./google-services.json",
       "package": "com.quiickride.rider",
