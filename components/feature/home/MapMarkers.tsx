@@ -32,8 +32,6 @@ export const MapMarkers: React.FC<MapMarkersProps> = ({
               latitude: nearbyDriver.location.latitude,
               longitude: nearbyDriver.location.longitude,
             }}
-            title={nearbyDriver.name}
-            description={`${nearbyDriver.vehicle.plateNumber}`}
             anchor={{ x: 0.5, y: 0 }}
           >
             <Image source={KekeImage} />

@@ -38,15 +38,16 @@ const InputStage: React.FC<InputStageProps> = ({ geocodingLoading }) => {
   return (
     <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
       <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
-        Enter Your Destination
+        Where are you going?
       </CustomText>
-      <LocationInput
-        setPickupLocation={setPickupLocation}
-        setDestinationLocation={handleDestinationSelected}
-        initialPickup={pickupAddress}
-        initialDestination={destinationAddress}
-        isPickupLoading={geocodingLoading}
-      />
+      
+        <LocationInput
+          setPickupLocation={setPickupLocation}
+          setDestinationLocation={handleDestinationSelected}
+          initialPickup={pickupAddress}
+          initialDestination={destinationAddress}
+          isPickupLoading={geocodingLoading}
+        />
     </Animated.View>
   );
 };

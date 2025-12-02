@@ -4,9 +4,9 @@ import { COLORS } from "@/constants/Colors";
 import { useAppStore } from "@/stores/useAppStore";
 import { ActivityIndicator } from "react-native";
 import Animated, {
-  SlideInDown,
-  SlideOutDown,
-  ZoomIn,
+    SlideInDown,
+    SlideOutDown,
+    ZoomIn,
 } from "react-native-reanimated";
 import { homeStyles } from "../../../../styles/home-styles";
 
@@ -22,15 +22,17 @@ const SearchStage: React.FC<SearchStageProps> = ({ geocodingLoading }) => {
       <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
         Finding Your Keke...
       </CustomText>
+      
       <LocationCard
         pickupLocation={pickupLocation}
         destinationLocation={destinationLocation}
         geocodingLoading={geocodingLoading}
       />
+      
       <Animated.View entering={ZoomIn} style={homeStyles.searchAnimation}>
         <ActivityIndicator size="large" color={COLORS.primary} />
         <CustomText style={homeStyles.searchText}>
-          Searching for nearby drivers...
+          Connecting you to nearby drivers...
         </CustomText>
       </Animated.View>
     </Animated.View>

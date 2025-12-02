@@ -101,15 +101,16 @@ const ConfirmStage = () => {
       <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
         Confirm Your Ride
       </CustomText>
+      
       <View style={homeStyles.confirmCard}>
         <View style={homeStyles.rideOptionHeader}>
           <Image source={KekeOptionImage} style={homeStyles.rideOptionIcon} />
           <View>
             <CustomText fontWeight="Bold" style={homeStyles.rideOptionTitle}>
-              Tricycle
+              Standard Keke
             </CustomText>
             <CustomText style={homeStyles.rideOptionDescription}>
-              Local tricycle (Keke)
+              Fast & Reliable
             </CustomText>
           </View>
         </View>
@@ -133,7 +134,7 @@ const ConfirmStage = () => {
       {/* Payment Method Selector */}
       <View style={homeStyles.paymentMethodContainer}>
         <CustomText fontWeight="SemiBold" style={homeStyles.paymentMethodTitle}>
-          Select Payment Method
+          Payment Method
         </CustomText>
         <View style={homeStyles.paymentMethodOptions}>
           <TouchableOpacity
@@ -219,7 +220,7 @@ const ConfirmStage = () => {
             <ActivityIndicator size="small" color={COLORS.white} />
           ) : (
             <CustomText fontWeight="Bold" style={homeStyles.bookButtonText}>
-              Book Keke Ride
+              Book Ride
             </CustomText>
           )}
         </Animated.View>
