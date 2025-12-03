@@ -101,7 +101,7 @@ const ConfirmStage = () => {
       <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
         Confirm Your Ride
       </CustomText>
-      
+
       <View style={homeStyles.confirmCard}>
         <View style={homeStyles.rideOptionHeader}>
           <Image source={KekeOptionImage} style={homeStyles.rideOptionIcon} />

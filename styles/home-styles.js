@@ -208,14 +208,15 @@ export const homeStyles = StyleSheet.create({
   rideOptionDetails: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     marginTop: scale(8),
   },
   rideOptionPrice: {
-    fontSize: scaleText(14),
+    fontSize: scaleText(30),
     color: COLORS.text,
     fontWeight: "700",
   },
-  rideOptionDuration: { fontSize: scaleText(14), color: COLORS.secondaryText },
+  rideOptionDuration: { fontSize: scaleText(30), color: COLORS.secondaryText },
   bookButton: {
     backgroundColor: COLORS.primary,
     borderRadius: scale(12),
