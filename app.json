@@ -1,17 +1,17 @@
 {
   "expo": {
-    "name": "quiick-ride-rider",
-    "slug": "quiick-ride-rider",
+    "name": "kekego-rider",
+    "slug": "kekego-rider",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "quiickriderider",
+    "scheme": "kekegorider",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "googleServicesFile": "./GoogleService-Info.plist",
-      "bundleIdentifier": "com.quiickride.rider",
+      "bundleIdentifier": "com.kekego.rider",
       "entitlements": {
         "aps-environment": "production"
       },
@@ -49,7 +49,7 @@
         "jsEngine": "hermes"
       },
       "googleServicesFile": "./google-services.json",
-      "package": "com.quiickride.rider",
+      "package": "com.kekego.rider",
       "edgeToEdgeEnabled": true
     },
     "web": {
