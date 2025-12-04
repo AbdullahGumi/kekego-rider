@@ -146,13 +146,13 @@ type AppActions = {
 
 type AppStore = AppState & AppActions;
 
-const initialState: AppState = {
+const initialDataState: AppState = {
   user: null,
   token: null,
   fcmToken: null,
 
   mapRef: null,
-  setMapRef: () => {},
+  setMapRef: () => {}, // Keep these as they are part of the state definition in the interface but will be overwritten by the store creator
   bottomSheetRef: null,
   setBottomSheetRef: () => {},
   socketRef: null,
@@ -205,47 +205,14 @@ const initialState: AppState = {
 };
 
 export const useAppStore = create<AppStore>((set, get) => ({
-  user: null,
-  token: null,
-  fcmToken: null,
+  ...initialDataState,
 
-  mapRef: null,
   setMapRef: (ref) => set({ mapRef: ref }),
-
-  pickupDirections: null,
-  destinationDirections: null,
-
-  bottomSheetRef: null,
   setBottomSheetRef: (ref) => set({ bottomSheetRef: ref }),
-
-  socketRef: null,
   setSocketRef: (ref) => set({ socketRef: ref }),
 
-  // Location state initialization
-  userLocation: null,
-  pickupLocation: { address: "", coords: { latitude: "", longitude: "" } },
-  destinationLocation: { address: "", coords: { latitude: "", longitude: "" } },
-
-  // Ride state initialization
-  rideState: {
-    stage: "initial",
-    driver: null,
-    eta: "",
-    fare: null,
-    tripDuration: null,
-    destinationDistance: 0,
-    destinationDuration: 0,
-    rideId: null,
-    mapLoading: true,
-  },
-
-  // Chat state initialization
-  messages: [],
-
-  // Notification actions
   setFcmToken: (token) => set({ fcmToken: token }),
 
-  // Location actions
   setUserLocation: (location) => set({ userLocation: location }),
   setPickupLocation: (location) => set({ pickupLocation: location }),
   setDestinationLocation: (location) => set({ destinationLocation: location }),
@@ -262,7 +229,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
       },
     })),
 
-  // Ride state actions
   setRideStage: (stage) =>
     set((state) => ({
       rideState: { ...state.rideState, stage },
@@ -304,23 +270,19 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setDestinationDirections: (directions) =>
     set({ destinationDirections: directions }),
 
-  // Chat actions
   setMessages: (messages) => set({ messages }),
   addMessage: (message) =>
     set((state) => ({
       messages: GiftedChat.append(state.messages, [message]),
     })),
 
-  // Bulk actions
   updateRideState: (updates) =>
     set((state) => ({
       rideState: { ...state.rideState, ...updates },
     })),
 
-  // Active ride handling
   setActiveRide: (activeRide) =>
     set((state) => {
-      // Map status to stage
       let stage: RideStage = "paired";
       switch (activeRide.status) {
         case "accepted":
@@ -337,7 +299,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
           stage = "paired";
       }
 
-      // Convert driver from API format to app format
       const driver = activeRide.driver
         ? {
             id: activeRide.driver.id,
@@ -382,7 +343,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
       };
     }),
 
-  // Utils
   resetRideState: () =>
     set({
       rideState: {
@@ -396,7 +356,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         rideId: null,
         mapLoading: false,
       },
-      messages: [], // also reset messages when ride ends
+      messages: [],
     }),
 
   setUser: async (user, token) => {
@@ -445,9 +405,36 @@ export const useAppStore = create<AppStore>((set, get) => ({
         Storage.remove("user"),
         Storage.remove("access_token"),
       ]);
+      // Only reset data properties, NOT actions
       set((state) => ({
-        ...initialState,
+        user: null,
+        token: null,
         fcmToken: state.fcmToken, // preserve device token
+        
+        // Reset refs to null, but DO NOT overwrite the setter functions
+        mapRef: null,
+        bottomSheetRef: null,
+        socketRef: null,
+
+        userLocation: null,
+        pickupLocation: { address: "", coords: { latitude: "", longitude: "" } },
+        destinationLocation: { address: "", coords: { latitude: "", longitude: "" } },
+
+        rideState: {
+          stage: "initial",
+          driver: null,
+          eta: "",
+          fare: null,
+          tripDuration: null,
+          destinationDistance: 0,
+          destinationDuration: 0,
+          rideId: null,
+          mapLoading: true,
+        },
+        pickupDirections: null,
+        destinationDirections: null,
+
+        messages: [],
       }));
     } catch (err) {
       console.error("Failed to reset store", err);
