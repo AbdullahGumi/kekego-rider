@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "kekego-rider",
-    "slug": "kekego-rider",
+    "name": "kekego",
+    "slug": "kekego",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "kekegorider",
+    "scheme": "kekego",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
