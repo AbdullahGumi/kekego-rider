@@ -2,14 +2,14 @@ import { NOTIFICATION_TYPES } from "@/constants/constants";
 import { useAppStore } from "@/stores/useAppStore";
 import { getApp } from "@react-native-firebase/app";
 import messaging, {
-  AuthorizationStatus,
-  getMessaging,
-  getToken,
-  requestPermission,
-  setBackgroundMessageHandler,
+    AuthorizationStatus,
+    getMessaging,
+    getToken,
+    requestPermission,
+    setBackgroundMessageHandler,
 } from "@react-native-firebase/messaging";
 import * as Haptics from "expo-haptics";
-import { router } from "expo-router";
+import { router, usePathname } from "expo-router";
 import { useCallback, useEffect } from "react";
 import { PermissionsAndroid, Platform } from "react-native";
 import Toast from "react-native-toast-message";
@@ -231,6 +231,7 @@ export const useNotification = ({
 }: UseNotificationProps = {}) => {
   const { fcmToken, setFcmToken, setRideStage, setDriver, resetRideState } =
     useAppStore();
+  const pathname = usePathname();
 
   // Handle notification actions based on processed notification data
   const handleNotificationAction = useCallback(
@@ -267,7 +268,9 @@ export const useNotification = ({
             break;
 
           case "navigateToRating":
-            router.push("/rating");
+            if (pathname !== "/rating") {
+              router.push("/rating");
+            }
             break;
 
           case "cancelRide":
@@ -291,7 +294,7 @@ export const useNotification = ({
         });
       }
     },
-    [setRideStage, setDriver, resetRideState]
+    [setRideStage, setDriver, resetRideState, pathname]
   );
 
   useEffect(() => {
