@@ -208,26 +208,6 @@ export const ChevronLeftIcon = ({ color }: { color?: string }) => (
   </Svg>
 );
 
-export const MenuIcon = ({ color }: { color?: string }) => (
-  <Svg width={18} height={14} fill="none">
-    <Path
-      stroke="#fff"
-      strokeLinecap="round"
-      strokeWidth={2}
-      d="M17 1H1M17 7H1M17 13H1"
-    />
-  </Svg>
-);
-
-export const GpsIcon = ({ color }: { color?: string }) => (
-  <Svg width={22} height={22} fill="none">
-    <Path
-      fill={color}
-      d="M12 22h-2v-2.06A9 9 0 0 1 2.06 12H0v-2h2.06A8.993 8.993 0 0 1 10 2.06V0h2v2.06A9 9 0 0 1 19.94 10H22v2h-2.06A9 9 0 0 1 12 19.94V22ZM11 4a7 7 0 1 0 4.951 2.049A6.955 6.955 0 0 0 11 4Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"
-    />
-  </Svg>
-);
-
 export const MarkIcon = ({ color }: { color?: string }) => (
   <Svg width={12} height={18} fill="none">
     <Path

@@ -168,7 +168,7 @@ export default function RideHistoryScreen() {
         <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
           <Ionicons
             name="person-circle-sharp"
-            size={40}
+            size={scale(40)}
             color={COLORS.primary}
           />
           <View style={{ marginLeft: scale(12), flex: 1 }}>
@@ -212,7 +212,11 @@ export default function RideHistoryScreen() {
             marginBottom: scale(4),
           }}
         >
-          <Ionicons name="radio-button-on" size={16} color={COLORS.primary} />
+          <Ionicons
+            name="radio-button-on"
+            size={scale(16)}
+            color={COLORS.primary}
+          />
           <CustomText
             style={{
               fontSize: scaleText(14),
@@ -228,7 +232,7 @@ export default function RideHistoryScreen() {
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Ionicons
             name="location"
-            size={16}
+            size={scale(16)}
             color={getStatusColor(item.status)}
           />
           <CustomText
@@ -262,7 +266,7 @@ export default function RideHistoryScreen() {
         </View>
         {item.myRating && (
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Ionicons name="star" size={16} color="#FFD700" />
+            <Ionicons name="star" size={scale(16)} color="#FFD700" />
             <CustomText
               style={{
                 fontSize: scaleText(14),
@@ -288,7 +292,11 @@ export default function RideHistoryScreen() {
         paddingTop: scale(100),
       }}
     >
-      <Ionicons name="car-outline" size={80} color={COLORS.secondaryText} />
+      <Ionicons
+        name="car-outline"
+        size={scale(80)}
+        color={COLORS.secondaryText}
+      />
       <CustomText
         fontWeight="Medium"
         style={{

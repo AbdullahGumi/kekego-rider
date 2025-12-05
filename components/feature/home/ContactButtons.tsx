@@ -1,4 +1,5 @@
 import CustomText from "@/components/common/CustomText";
+import { scale } from "@/constants/Layout";
 import { useAppStore } from "@/stores/useAppStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -32,7 +33,7 @@ const ContactButtons = () => {
       >
         <Ionicons
           name="call"
-          size={23}
+          size={scale(23)}
           color="white"
           style={{ marginRight: 8 }}
         />
@@ -48,7 +49,7 @@ const ContactButtons = () => {
       >
         <Ionicons
           name="chatbubble"
-          size={23}
+          size={scale(23)}
           color="white"
           style={{ marginRight: 8 }}
         />

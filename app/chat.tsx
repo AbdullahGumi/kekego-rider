@@ -1,5 +1,6 @@
 import { riderApi } from "@/api/endpoints/rider";
 import { COLORS } from "@/constants/Colors";
+import { scale } from "@/constants/Layout";
 import { useAppStore } from "@/stores/useAppStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -62,7 +63,7 @@ const ChatScreen = () => {
         }}
       >
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#111" />
+          <Ionicons name="arrow-back" size={scale(24)} color="#111" />
         </TouchableOpacity>
         <View style={{ marginLeft: 12 }}>
           <Text style={{ fontSize: 18, fontWeight: "600", color: "#111" }}>
@@ -86,7 +87,7 @@ const ChatScreen = () => {
             style={{ marginRight: 10, marginBottom: 5 }}
             onPress={() => props.onSend?.({ text: props.text!.trim() }, true)}
           >
-            <Ionicons name="send" size={24} color={COLORS.primary} />
+            <Ionicons name="send" size={scale(24)} color={COLORS.primary} />
           </TouchableOpacity>
         )}
       />

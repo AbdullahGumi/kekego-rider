@@ -275,7 +275,11 @@ export default function WalletScreen() {
         paddingTop: scale(50),
       }}
     >
-      <Ionicons name="cash-outline" size={80} color={COLORS.secondaryText} />
+      <Ionicons
+        name="cash-outline"
+        size={scale(80)}
+        color={COLORS.secondaryText}
+      />
       <CustomText
         fontWeight="Medium"
         style={{

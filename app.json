@@ -21,6 +21,10 @@
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "Keke Go needs your location to find nearby drivers and track your ride.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Keke Go needs your location to provide accurate pickup estimates and ride tracking.",
+        "NSCameraUsageDescription": "Keke Go needs camera access to allow you to update your profile picture.",
+        "NSPhotoLibraryUsageDescription": "Keke Go needs photo library access to allow you to choose a profile picture.",
         "UIBackgroundModes": [
           "remote-notification",
           "remote-notification"
@@ -35,11 +39,6 @@
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
-        "FOREGROUND_SERVICE",
-        "POST_NOTIFICATIONS",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "FOREGROUND_SERVICE",
         "POST_NOTIFICATIONS"
       ],
       "config": {
@@ -107,18 +106,18 @@
     "experiments": {
       "typedRoutes": true
     },
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "9f69d1e5-9c29-479e-8665-64a23b5e8982"
-      }
-    },
-    "owner": "abdulgumi",
+    "owner": "abdullahgumi",
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/9f69d1e5-9c29-479e-8665-64a23b5e8982"
+      "url": "https://u.expo.dev/21841566-bb5f-4557-abe0-cd308f4b2acf"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "21841566-bb5f-4557-abe0-cd308f4b2acf"
+      }
     }
   }
 }

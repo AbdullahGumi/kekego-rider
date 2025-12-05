@@ -3,6 +3,7 @@ import { KekeOptionImage } from "@/assets/images/Index";
 import CustomText from "@/components/common/CustomText";
 import { COLORS } from "@/constants/Colors";
 import { CONSTANTS } from "@/constants/constants";
+import { scale } from "@/constants/Layout";
 import { useAppStore } from "@/stores/useAppStore";
 import { formatDuration, numberWithCommas } from "@/utility";
 import { Ionicons } from "@expo/vector-icons";
@@ -153,7 +154,7 @@ const ConfirmStage = () => {
           >
             <Ionicons
               name="cash-outline"
-              size={20}
+              size={scale(20)}
               style={{ marginRight: 6 }}
               color={
                 paymentMethod === "cash" ? COLORS.background : COLORS.black
@@ -186,7 +187,7 @@ const ConfirmStage = () => {
           >
             <Ionicons
               name="wallet-outline"
-              size={20}
+              size={scale(20)}
               style={{ marginRight: 6 }}
               color={
                 paymentMethod === "wallet" ? COLORS.background : COLORS.black

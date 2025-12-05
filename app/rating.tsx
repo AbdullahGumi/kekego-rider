@@ -17,6 +17,7 @@ import CustomButton from "@/components/common/CustomButton";
 import CustomText from "@/components/common/CustomText";
 import Header from "@/components/common/Header";
 import { COLORS } from "@/constants/Colors";
+import { scale } from "@/constants/Layout";
 import { useAppStore } from "@/stores/useAppStore";
 import HideKeyboardOnTouch from "@/utility/HideKeyboardOnTouch";
 
@@ -122,7 +123,7 @@ const RatingScreen: React.FC = () => {
                   >
                     <Ionicons
                       name={index < rating ? "star" : "star-outline"}
-                      size={40}
+                      size={scale(40)}
                       color={index < rating ? "#FFD700" : COLORS.secondaryText}
                     />
                   </TouchableOpacity>

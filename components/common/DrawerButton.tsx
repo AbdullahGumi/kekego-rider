@@ -1,10 +1,10 @@
-import { MenuIcon } from "@/assets/svg";
 import { COLORS } from "@/constants/Colors";
 import { scale } from "@/constants/Layout";
+import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions } from "@react-navigation/routers";
 import { useNavigation } from "expo-router";
 import React from "react";
-import { TouchableOpacity, View } from "react-native";
+import { TouchableOpacity } from "react-native";
 
 const DrawerButton = () => {
   const navigation = useNavigation();
@@ -26,9 +26,7 @@ const DrawerButton = () => {
       }}
       onPress={handleOpenDrawer}
     >
-      <View style={{ width: scale(18), height: scale(14) }}>
-        <MenuIcon />
-      </View>
+      <Ionicons name="menu" size={scale(24)} color={"white"} />
     </TouchableOpacity>
   );
 };

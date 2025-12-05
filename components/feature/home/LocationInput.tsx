@@ -393,7 +393,11 @@ export default function LocationInput({
                   onPress={handleCurrentLocation}
                   accessibilityLabel="Use current location"
                 >
-                  <Ionicons name="locate" size={25} color={COLORS.primary} />
+                  <Ionicons
+                    name="locate"
+                    size={scale(25)}
+                    color={COLORS.primary}
+                  />
                 </TouchableOpacity>
               ) : undefined
             }
@@ -411,7 +415,7 @@ export default function LocationInput({
                 >
                   <Ionicons
                     name="close-circle"
-                    size={20}
+                    size={scale(20)}
                     color={COLORS.secondaryText}
                   />
                 </TouchableOpacity>
@@ -435,7 +439,7 @@ export default function LocationInput({
                       <View style={styles.suggestionItem}>
                         <Ionicons
                           name="location"
-                          size={16}
+                          size={scale(16)}
                           color={COLORS.secondaryText}
                           style={styles.suggestionIcon}
                         />

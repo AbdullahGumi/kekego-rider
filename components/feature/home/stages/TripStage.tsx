@@ -1,6 +1,7 @@
 import CustomText from "@/components/common/CustomText";
 import LocationCard from "@/components/feature/home/LocationCard";
 import { CONSTANTS } from "@/constants/constants";
+import { scale } from "@/constants/Layout";
 import { useAppStore } from "@/stores/useAppStore";
 import { numberWithCommas } from "@/utility";
 import { Ionicons } from "@expo/vector-icons";
@@ -41,7 +42,7 @@ const TripStage: React.FC<TripStageProps> = ({ geocodingLoading }) => {
             <View style={homeStyles.ratingContainer}>
               <Ionicons
                 name="star"
-                size={16}
+                size={scale(16)}
                 color="#FFD700"
                 style={{ marginRight: 4 }}
               />

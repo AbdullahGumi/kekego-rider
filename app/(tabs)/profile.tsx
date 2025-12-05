@@ -7,23 +7,23 @@ import { scale, scaleText } from "@/constants/Layout";
 import { useAppStore } from "@/stores/useAppStore";
 import { Ionicons } from "@expo/vector-icons";
 import {
-  BottomSheetModal,
-  BottomSheetModalProvider,
+    BottomSheetModal,
+    BottomSheetModalProvider,
 } from "@gorhom/bottom-sheet";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Keyboard,
-  Pressable,
-  ScrollView,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    Keyboard,
+    Pressable,
+    ScrollView,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
 
 import { ChevronIcon } from "@/assets/svg";
@@ -64,7 +64,8 @@ interface EditFormData {
 }
 
 const ProfileScreen = () => {
-  const { user, updateUserProfile } = useAppStore();
+  const { user, updateUserProfile, resetStore } = useAppStore();
+  const router = useRouter();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -340,6 +341,47 @@ const ProfileScreen = () => {
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setLoading(true);
+              const response = await riderApi.deleteProfile();
+              if (response.data.success) {
+                await resetStore();
+                router.replace("/(auth)/login" as any);
+                Toast.show({
+                  type: "customToast",
+                  text1: "Account Deleted",
+                  text2: "Your account has been successfully deleted.",
+                });
+              }
+            } catch (error: any) {
+              console.error("Failed to delete account:", error);
+              Alert.alert(
+                "Error",
+                error.response?.data?.message ||
+                  "Failed to delete account. Please try again."
+              );
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   // Modal handlers
@@ -772,6 +814,25 @@ const ProfileScreen = () => {
                       : "Unknown"}
                   </CustomText>
                 </View>
+
+                {/* Delete Account Button */}
+                <TouchableOpacity
+                  style={{
+                    marginTop: scale(20),
+                    paddingVertical: scale(15),
+                    alignItems: "center",
+                    borderTopWidth: 1,
+                    borderTopColor: COLORS.inputBackground,
+                  }}
+                  onPress={handleDeleteAccount}
+                >
+                  <CustomText
+                    fontWeight="SemiBold"
+                    style={{ color: COLORS.error, fontSize: scaleText(16) }}
+                  >
+                    Delete Account
+                  </CustomText>
+                </TouchableOpacity>
               </View>
             </View>
           </ScrollView>

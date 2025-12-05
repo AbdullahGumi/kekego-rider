@@ -86,9 +86,13 @@ const NumPad: React.FC<NumPadProps> = ({ onKeyPress, disabled = false }) => {
           {row.map((key) => (
             <KeyButton key={key} keyValue={key}>
               {key === "⌫" ? (
-                <Ionicons name="backspace" size={30} color={COLORS.text} />
+                <Ionicons
+                  name="backspace"
+                  size={scale(30)}
+                  color={COLORS.text}
+                />
               ) : key === "C" ? (
-                <Ionicons name="close" size={30} color={COLORS.error} />
+                <Ionicons name="close" size={scale(30)} color={COLORS.error} />
               ) : (
                 <CustomText
                   fontWeight="Medium"

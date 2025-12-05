@@ -1,5 +1,6 @@
 import CustomText from "@/components/common/CustomText";
 import { CONFIG } from "@/constants/home";
+import { scale } from "@/constants/Layout";
 import { Driver } from "@/stores/useAppStore";
 import { Ionicons } from "@expo/vector-icons";
 import React, { memo } from "react";
@@ -27,7 +28,7 @@ const DriverInfo = memo<DriverInfoProps>(({ driver, stage }) => {
             <CustomText style={homeStyles.rideOptionDescription}>
               <Ionicons
                 name="star"
-                size={16}
+                size={scale(16)}
                 color="#FFD700"
                 style={{ marginRight: 4 }}
               />

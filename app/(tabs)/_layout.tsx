@@ -86,7 +86,7 @@ export default function DrawerLayout() {
                     >
                       <Ionicons
                         name="person"
-                        size={50}
+                        size={scale(50)}
                         color={COLORS.secondaryText}
                       />
                     </View>
@@ -130,7 +130,7 @@ export default function DrawerLayout() {
             >
               <Ionicons
                 name="log-out-outline"
-                size={22}
+                size={scale(22)}
                 color={COLORS.error}
                 style={{ marginRight: 8 }}
               />
@@ -154,7 +154,7 @@ export default function DrawerLayout() {
             headerShown: false,
             drawerLabel: "Home",
             drawerIcon: ({ color }) => (
-              <Ionicons name="home-outline" size={24} color={color} />
+              <Ionicons name="home-outline" size={scale(24)} color={color} />
             ),
           }}
         />
@@ -164,7 +164,7 @@ export default function DrawerLayout() {
             drawerLabel: "Wallet",
             headerShown: false,
             drawerIcon: ({ color }) => (
-              <Ionicons name="wallet-outline" size={24} color={color} />
+              <Ionicons name="wallet-outline" size={scale(24)} color={color} />
             ),
           }}
         />
@@ -175,7 +175,7 @@ export default function DrawerLayout() {
             headerShown: false,
             drawerLabel: "Ride History",
             drawerIcon: ({ color }) => (
-              <Ionicons name="time-outline" size={24} color={color} />
+              <Ionicons name="time-outline" size={scale(24)} color={color} />
             ),
           }}
         />
@@ -185,7 +185,7 @@ export default function DrawerLayout() {
             headerShown: false,
             drawerLabel: "Profile",
             drawerIcon: ({ color }) => (
-              <Ionicons name="person-outline" size={24} color={color} />
+              <Ionicons name="person-outline" size={scale(24)} color={color} />
             ),
             drawerItemStyle: { display: "none" },
           }}

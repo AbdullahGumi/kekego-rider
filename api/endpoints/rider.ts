@@ -101,4 +101,8 @@ export const riderApi = {
   updateProfile: async (data: UpdateProfileData) => {
     return await apiService.put("/rider/profile", data);
   },
+
+  deleteProfile: async () => {
+    return await apiService.delete("/rider/profile");
+  },
 };

@@ -193,7 +193,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
             },
           ]}
         >
-          <Ionicons name="locate" size={24} color={COLORS.primary} />
+          <Ionicons name="locate" size={scale(24)} color={COLORS.primary} />
         </TouchableOpacity>
       );
       break;
@@ -206,7 +206,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
           activeOpacity={0.7}
           style={actionButtonStyle}
         >
-          <Ionicons name="chevron-back" size={24} color="#333" />
+          <Ionicons name="chevron-back" size={scale(24)} color="#333" />
         </TouchableOpacity>
       );
       rightButton = (
@@ -221,7 +221,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
             },
           ]}
         >
-          <Ionicons name="locate" size={24} color={COLORS.primary} />
+          <Ionicons name="locate" size={scale(24)} color={COLORS.primary} />
         </TouchableOpacity>
       );
       break;
@@ -248,7 +248,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
             },
           ]}
         >
-          <Ionicons name="locate" size={24} color={COLORS.primary} />
+          <Ionicons name="locate" size={scale(24)} color={COLORS.primary} />
         </TouchableOpacity>
       );
       break;
@@ -275,7 +275,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
             },
           ]}
         >
-          <Ionicons name="locate" size={24} color={COLORS.primary} />
+          <Ionicons name="locate" size={scale(24)} color={COLORS.primary} />
         </TouchableOpacity>
       );
       break;
@@ -294,7 +294,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
             },
           ]}
         >
-          <Ionicons name="locate" size={24} color={COLORS.primary} />
+          <Ionicons name="locate" size={scale(24)} color={COLORS.primary} />
         </TouchableOpacity>
       );
       break;
@@ -315,7 +315,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
               },
             ]}
           >
-            <Ionicons name="locate" size={24} color={COLORS.primary} />
+            <Ionicons name="locate" size={scale(24)} color={COLORS.primary} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={openGoogleMaps}
@@ -344,7 +344,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
           activeOpacity={0.7}
           style={actionButtonStyle}
         >
-          <Ionicons name="chevron-back" size={24} color="#333" />
+          <Ionicons name="chevron-back" size={scale(24)} color="#333" />
         </TouchableOpacity>
       );
       rightButton = (
@@ -359,7 +359,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
             },
           ]}
         >
-          <Ionicons name="locate" size={24} color={COLORS.primary} />
+          <Ionicons name="locate" size={scale(24)} color={COLORS.primary} />
         </TouchableOpacity>
       );
       break;
