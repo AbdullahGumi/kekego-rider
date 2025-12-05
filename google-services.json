@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "1023833959995",
-    "project_id": "quiick-ride",
-    "storage_bucket": "quiick-ride.firebasestorage.app"
+    "project_number": "419408454612",
+    "project_id": "kekego-6709e",
+    "storage_bucket": "kekego-6709e.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1023833959995:android:fb01db38c37db832c1761e",
+        "mobilesdk_app_id": "1:419408454612:android:5f014d7bba13f639616c41",
         "android_client_info": {
-          "package_name": "com.quiickride.rider"
+          "package_name": "com.kekego.rider"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAeZS63g7VwActD240BOX5w05dp4lfqp0Q"
+          "current_key": "AIzaSyBFiNtsXXtimgMtm4tkMKOPTM-76e5vZDs"
         }
       ],
       "services": {
