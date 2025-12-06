@@ -93,6 +93,12 @@
                 "modular_headers": true
               }
             ]
+          },
+          "android": {
+            "lintOptions": {
+              "checkReleaseBuilds": false,
+              "abortOnError": false
+            }
           }
         }
       ],

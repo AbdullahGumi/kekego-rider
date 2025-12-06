@@ -4,8 +4,8 @@ import { useAppStore } from "@/stores/useAppStore";
 import { Storage } from "@/utility/asyncStorageHelper";
 import { Ionicons } from "@expo/vector-icons";
 import {
-  DrawerContentScrollView,
-  DrawerItemList,
+    DrawerContentScrollView,
+    DrawerItemList,
 } from "@react-navigation/drawer";
 import { router } from "expo-router";
 import { Drawer } from "expo-router/drawer";
@@ -176,6 +176,16 @@ export default function DrawerLayout() {
             drawerLabel: "Ride History",
             drawerIcon: ({ color }) => (
               <Ionicons name="time-outline" size={scale(24)} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="settings"
+          options={{
+            headerShown: false,
+            drawerLabel: "Settings",
+            drawerIcon: ({ color }) => (
+              <Ionicons name="settings-outline" size={scale(24)} color={color} />
             ),
           }}
         />

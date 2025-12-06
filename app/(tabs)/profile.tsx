@@ -64,7 +64,7 @@ interface EditFormData {
 }
 
 const ProfileScreen = () => {
-  const { user, updateUserProfile, resetStore } = useAppStore();
+  const { user, updateUserProfile } = useAppStore();
   const router = useRouter();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -343,46 +343,7 @@ const ProfileScreen = () => {
     Keyboard.dismiss();
   };
 
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      "Delete Account",
-      "Are you sure you want to delete your account? This action cannot be undone.",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              setLoading(true);
-              const response = await riderApi.deleteProfile();
-              if (response.data.success) {
-                await resetStore();
-                router.replace("/(auth)/login" as any);
-                Toast.show({
-                  type: "customToast",
-                  text1: "Account Deleted",
-                  text2: "Your account has been successfully deleted.",
-                });
-              }
-            } catch (error: any) {
-              console.error("Failed to delete account:", error);
-              Alert.alert(
-                "Error",
-                error.response?.data?.message ||
-                  "Failed to delete account. Please try again."
-              );
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ]
-    );
-  };
+
 
   // Modal handlers
   const handlePresentGenderModal = useCallback(() => {
@@ -815,24 +776,7 @@ const ProfileScreen = () => {
                   </CustomText>
                 </View>
 
-                {/* Delete Account Button */}
-                <TouchableOpacity
-                  style={{
-                    marginTop: scale(20),
-                    paddingVertical: scale(15),
-                    alignItems: "center",
-                    borderTopWidth: 1,
-                    borderTopColor: COLORS.inputBackground,
-                  }}
-                  onPress={handleDeleteAccount}
-                >
-                  <CustomText
-                    fontWeight="SemiBold"
-                    style={{ color: COLORS.error, fontSize: scaleText(16) }}
-                  >
-                    Delete Account
-                  </CustomText>
-                </TouchableOpacity>
+
               </View>
             </View>
           </ScrollView>
