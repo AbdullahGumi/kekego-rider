@@ -17,7 +17,8 @@
       },
       "config": {
         "googleMapsApiKey": "AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE",
-        "jsEngine": "hermes"
+        "jsEngine": "hermes",
+        "useNonExemptEncryption": false
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
