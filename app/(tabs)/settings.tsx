@@ -7,7 +7,14 @@ import { useAppStore } from "@/stores/useAppStore";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Toast from "react-native-toast-message";
 
 const SettingsScreen = () => {
@@ -33,7 +40,7 @@ const SettingsScreen = () => {
               const response = await riderApi.deleteProfile();
               if (response.data.success) {
                 await resetStore();
-                router.replace("/(auth)/login" as any);
+                router.replace("/(auth)/phone" as any);
                 Toast.show({
                   type: "customToast",
                   text1: "Account Deleted",
@@ -61,15 +68,21 @@ const SettingsScreen = () => {
       id: "terms",
       label: "Terms & Conditions",
       icon: "document-text-outline",
-      route: "/legal/terms",
+      url: "https://kekego.ng/terms/rider",
     },
     {
       id: "privacy",
       label: "Privacy Policy",
       icon: "shield-checkmark-outline",
-      route: "/legal/privacy",
+      url: "https://kekego.ng/privacy/rider",
     },
   ];
+
+  const openLink = (url: string) => {
+    Linking.openURL(url).catch((err) =>
+      console.error("Couldn't load page", err)
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.background }}>
@@ -101,17 +114,17 @@ const SettingsScreen = () => {
         style={{ flex: 1, marginTop: scale(20) }}
         contentContainerStyle={{ paddingHorizontal: scale(16) }}
       >
-         <CustomText
-            fontWeight="Bold"
-            style={{
-              fontSize: scaleText(16),
-              color: COLORS.secondaryText,
-              marginBottom: scale(10),
-              marginLeft: scale(4),
-            }}
-          >
-            Legal
-          </CustomText>
+        <CustomText
+          fontWeight="Bold"
+          style={{
+            fontSize: scaleText(16),
+            color: COLORS.secondaryText,
+            marginBottom: scale(10),
+            marginLeft: scale(4),
+          }}
+        >
+          Legal
+        </CustomText>
         <View
           style={{
             backgroundColor: COLORS.white,
@@ -130,7 +143,7 @@ const SettingsScreen = () => {
                 borderBottomWidth: index < legalItems.length - 1 ? 1 : 0,
                 borderBottomColor: COLORS.inputBackground,
               }}
-              onPress={() => router.push(item.route as any)}
+              onPress={() => openLink(item.url)}
             >
               <View
                 style={{
@@ -164,7 +177,6 @@ const SettingsScreen = () => {
           ))}
         </View>
 
-
         <TouchableOpacity
           style={{
             marginTop: scale(20),
@@ -177,7 +189,7 @@ const SettingsScreen = () => {
           disabled={loading}
         >
           {loading ? (
-             <ActivityIndicator size="small" color={COLORS.error} />
+            <ActivityIndicator size="small" color={COLORS.error} />
           ) : (
             <CustomText
               fontWeight="SemiBold"

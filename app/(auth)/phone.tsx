@@ -7,9 +7,10 @@ import { COLORS } from "@/constants/Colors";
 import { CONSTANTS } from "@/constants/constants";
 import { Layout, scale } from "@/constants/Layout";
 import * as Haptics from "expo-haptics";
+import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Keyboard, StyleSheet, View } from "react-native";
+import { Keyboard, StyleSheet, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 export default function PhoneNumberScreen() {
@@ -97,6 +98,7 @@ export default function PhoneNumberScreen() {
         Toast.show({
           type: "customToast",
           text1: otpResponse.data.message || "Failed to send OTP",
+          props: { type: "Error" },
         });
       }
     } catch (err: any) {
@@ -113,18 +115,27 @@ export default function PhoneNumberScreen() {
     }
   };
 
+  const openLink = (url: string) => {
+    Linking.openURL(url).catch((err) =>
+      console.error("Couldn't load page", err)
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <View
-        style={{
-          width: scale(150),
-          height: scale(90),
-          marginLeft: "auto",
-          marginRight: "auto",
-        }}
-      >
-        <LogoIcon />
+      <View style={{ position: "relative" }}>
+        <View
+          style={{
+            width: scale(150),
+            height: scale(90),
+            marginLeft: "auto",
+            marginRight: "auto",
+          }}
+        >
+          <LogoIcon />
+        </View>
       </View>
+
       <CustomText fontWeight="Bold" size={25}>
         Let&apos;s get you started
       </CustomText>
@@ -151,6 +162,29 @@ export default function PhoneNumberScreen() {
           loading={loading}
         />
       </View>
+
+      <View style={styles.legalContainer}>
+        <CustomText style={styles.legalText}>
+          By signing up, you agree to our
+        </CustomText>
+        <View style={styles.legalLinksRow}>
+          <TouchableOpacity
+            onPress={() => openLink("https://kekego.ng/terms/rider")}
+          >
+            <CustomText style={styles.legalLink}>Terms & Conditions</CustomText>
+          </TouchableOpacity>
+          <CustomText style={styles.legalText}>
+            {" "}
+            and acknowledge our{" "}
+          </CustomText>
+          <TouchableOpacity
+            onPress={() => openLink("https://kekego.ng/privacy/rider")}
+          >
+            <CustomText style={styles.legalLink}>Privacy Policy</CustomText>
+          </TouchableOpacity>
+          <CustomText style={styles.legalText}>.</CustomText>
+        </View>
+      </View>
     </View>
   );
 }
@@ -162,5 +196,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: Layout.APP_PADDING,
     paddingTop: scale(20),
     alignItems: "center",
+  },
+  logoContainer: {
+    width: scale(150),
+    height: scale(90),
+    marginLeft: "auto",
+    marginRight: "auto",
+  },
+  logoText: {
+    position: "absolute",
+    bottom: scale(-20),
+    alignSelf: "center",
+  },
+  legalContainer: {
+    marginTop: "auto",
+    marginBottom: scale(20),
+    alignItems: "center",
+    paddingHorizontal: scale(10),
+  },
+  legalLinksRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
+  legalText: {
+    fontSize: scale(12),
+    color: COLORS.secondaryText,
+    textAlign: "center",
+  },
+  legalLink: {
+    fontSize: scale(12),
+    color: COLORS.primary,
+    textDecorationLine: "underline",
+    fontWeight: "bold",
   },
 });
