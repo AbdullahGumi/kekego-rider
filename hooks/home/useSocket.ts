@@ -71,10 +71,14 @@ export const useSocket = () => {
 
         socketRef.current.on("message:receive", (msg) => {
           addMessage(msg);
-          Toast.show({
-            type: "customToast",
-            text1: `New message from driver`,
-          });
+          // Only show toast if the message is NOT from the current user
+          const currentUser = useAppStore.getState().user;
+          if (msg.user._id !== currentUser?.id) {
+            Toast.show({
+              type: "customToast",
+              text1: `New message from driver`,
+            });
+          }
         });
 
         socketRef.current.on(`driver:location-update`, (data) => {
