@@ -2,10 +2,28 @@ import { Storage } from "@/utility/asyncStorageHelper";
 import BottomSheet from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
 import { RefObject } from "react";
-import { GiftedChat, IMessage } from "react-native-gifted-chat";
 import MapView from "react-native-maps";
 import { Socket } from "socket.io-client";
 import { create } from "zustand";
+
+export interface IMessage {
+  _id: string | number;
+  text: string;
+  createdAt: Date | number;
+  user: {
+    _id: string | number;
+    name?: string;
+    avatar?: string | number;
+  };
+  image?: string;
+  video?: string;
+  audio?: string;
+  system?: boolean;
+  sent?: boolean;
+  received?: boolean;
+  pending?: boolean;
+  quickReplies?: any;
+}
 
 type User = {
   id: string;
@@ -273,7 +291,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setMessages: (messages) => set({ messages }),
   addMessage: (message) =>
     set((state) => ({
-      messages: GiftedChat.append(state.messages, [message]),
+      messages: [message, ...state.messages],
     })),
 
   updateRideState: (updates) =>
