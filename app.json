@@ -27,7 +27,6 @@
         "NSCameraUsageDescription": "Keke Go needs camera access to allow you to update your profile picture.",
         "NSPhotoLibraryUsageDescription": "Keke Go needs photo library access to allow you to choose a profile picture.",
         "UIBackgroundModes": [
-          "remote-notification",
           "remote-notification"
         ]
       }
