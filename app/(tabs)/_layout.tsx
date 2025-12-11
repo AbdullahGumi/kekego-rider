@@ -1,3 +1,4 @@
+import { authApi } from "@/api/endpoints/auth";
 import { COLORS } from "@/constants/Colors";
 import { scale, scaleText } from "@/constants/Layout";
 import { useAppStore } from "@/stores/useAppStore";
@@ -14,10 +15,16 @@ import { Image, Text, TouchableOpacity, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function DrawerLayout() {
-  const { user } = useAppStore();
+  const { user, fcmToken } = useAppStore();
 
   const handleLogout = async () => {
-    // TODO: add your logout logic here (clear tokens, reset store, etc.)
+    try {
+      if (fcmToken) {
+        await authApi.removeDeviceToken(fcmToken);
+      }
+    } catch (error) {
+      console.log("Failed to logout cleanly:", error);
+    }
     await Storage.clear();
     await useAppStore.getState().resetStore();
     router.replace("/(auth)/phone");

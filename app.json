@@ -79,6 +79,7 @@
         "expo-build-properties",
         {
           "ios": {
+            "useFrameworks": "static",
             "extraPods": [
               {
                 "name": "FirebaseCore",
@@ -90,6 +91,20 @@
               },
               {
                 "name": "GoogleUtilities",
+                "modular_headers": true
+              },
+              {
+                "name": "react-native-maps",
+                "modular_headers": true,
+                "path": "../node_modules/react-native-maps"
+              },
+              {
+                "name": "RNFBApp",
+                "modular_headers": true,
+                "path": "../node_modules/@react-native-firebase/app"
+              },
+              {
+                "name": "Google-Maps-iOS-Utils",
                 "modular_headers": true
               }
             ]
