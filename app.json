@@ -80,6 +80,7 @@
         {
           "ios": {
             "useFrameworks": "static",
+            "buildReactNativeFromSource": true,
             "extraPods": [
               {
                 "name": "FirebaseCore",
