@@ -129,9 +129,7 @@
       "typedRoutes": true
     },
     "owner": "abdullahgumi",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.1",
     "updates": {
       "url": "https://u.expo.dev/21841566-bb5f-4557-abe0-cd308f4b2acf"
     },
