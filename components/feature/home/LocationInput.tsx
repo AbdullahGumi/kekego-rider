@@ -15,7 +15,7 @@ import {
   View,
 } from "react-native";
 import Animated, { ZoomIn } from "react-native-reanimated";
-import { v4 as uuidv4 } from "uuid";
+import uuid from "react-native-uuid";
 
 interface Location {
   address: string;
@@ -74,7 +74,7 @@ export default function LocationInput({
   });
 
   const generateSessionToken = useCallback(() => {
-    return uuidv4();
+    return uuid.v4() as string;
   }, []);
 
   const fetchSuggestions = useRef(
@@ -192,8 +192,8 @@ export default function LocationInput({
         const url = placeId
           ? `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE`
           : `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-              value
-            )}&components=country:NG&key=AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE`;
+            value
+          )}&components=country:NG&key=AIzaSyCEgN-LLuqFBE7nDzqa2zdgE-iYq-bKhQE`;
         const response = await fetch(url, {
           signal: abortControllerRef.current.signal,
         });
@@ -283,11 +283,9 @@ export default function LocationInput({
       });
 
       if (addresses.length > 0) {
-        const address = `${addresses[0].name || ""} ${
-          addresses[0].streetNumber || ""
-        } ${addresses[0].street || ""} ${addresses[0].city || ""} ${
-          addresses[0].region || ""
-        } ${addresses[0].country || ""}`
+        const address = `${addresses[0].name || ""} ${addresses[0].streetNumber || ""
+          } ${addresses[0].street || ""} ${addresses[0].city || ""} ${addresses[0].region || ""
+          } ${addresses[0].country || ""}`
           .replace(/\s+/g, " ")
           .trim();
         const pickupLocation = {
