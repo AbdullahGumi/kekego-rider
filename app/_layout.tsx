@@ -56,7 +56,7 @@ export default function RootLayout() {
     <SafeAreaWrapper>
       <GestureHandlerRootView>
         <PaystackProvider
-          publicKey="pk_test_08bb5667257d01d52862726307e6f91c5cd1a25b"
+          publicKey="pk_live_28b1aaac096dd1b4970c7710e14e5764de0b1468"
           defaultChannels={[
             "card",
             "bank",
