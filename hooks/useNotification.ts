@@ -272,7 +272,7 @@ export const useNotification = ({
 
           case "navigateToRating":
             if (pathname !== "/rating") {
-              router.push("/rating");
+              router.replace("/rating");
             }
             break;
 

@@ -25,14 +25,18 @@ const RatingScreen: React.FC = () => {
   const router = useRouter();
   const { rideState, resetRideState, setDestinationLocation, bottomSheetRef } =
     useAppStore();
-  const { rideId, fare } = rideState;
-
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
 
+  if (!rideState.rideId) {
+    return null;
+  }
+
+  const { rideId, fare } = rideState;
+
   const resetState = () => {
-    router.back();
+    router.replace("/(tabs)");
     setTimeout(() => {
       bottomSheetRef?.current?.snapToIndex(0);
       resetRideState();
@@ -47,7 +51,7 @@ const RatingScreen: React.FC = () => {
     setLoading(true);
 
     try {
-      await riderApi.submitRating(rideId!, rating, feedback);
+      await riderApi.submitRating(rideId, rating, feedback);
       Toast.show({
         type: "customToast",
         text1: "Rating Submitted",

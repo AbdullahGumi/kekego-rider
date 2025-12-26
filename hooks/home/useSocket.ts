@@ -164,7 +164,7 @@ export const useSocket = () => {
             type: "customToast",
             text1: `You've arrived at your destination!`,
           });
-          router.push("/rating");
+          router.replace("/rating");
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         });
         socketRef.current.on("ride:cancelled", (data) => {
