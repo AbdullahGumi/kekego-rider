@@ -73,7 +73,7 @@ export default function OTPScreen() {
 
     try {
       setLoading(true);
-      const platform = Platform.OS as "ios" | "android";
+      const platform = Platform.OS;
       const { status, data } = await authApi.verifyOtp(
         phone,
         otp,
@@ -92,7 +92,7 @@ export default function OTPScreen() {
           // User is not registered, navigate to registration
           router.push({
             pathname: "/(auth)/register",
-            params: { phone, fcmToken: fcmToken, platform },
+            params: { phone, fcmToken: fcmToken, },
           });
         }
       } else {

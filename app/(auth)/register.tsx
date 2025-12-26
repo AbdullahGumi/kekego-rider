@@ -16,6 +16,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
+  Platform,
   Pressable,
   TouchableOpacity,
   TouchableWithoutFeedback,
@@ -28,7 +29,7 @@ const RegisterScreen = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [gender, setGender] = useState("");
-  const { phone, fcmToken, platform }: any = useLocalSearchParams();
+  const { phone, fcmToken }: any = useLocalSearchParams();
 
   const [isBottomSheetOpen, setBottomSheetOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -82,7 +83,7 @@ const RegisterScreen = () => {
         phone,
         role: CONSTANTS.USER_ROLE,
         deviceToken: fcmToken || "",
-        platform: platform || "android",
+        platform: Platform.OS
       });
 
       if (data.data.token) {
@@ -174,8 +175,8 @@ const RegisterScreen = () => {
                       gender === "male"
                         ? "Male"
                         : gender === "female"
-                        ? "Female"
-                        : ""
+                          ? "Female"
+                          : ""
                     }
                     suffix={
                       <View
