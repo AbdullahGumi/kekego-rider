@@ -2,7 +2,7 @@ import { CONFIG } from "@/constants/home";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
 import { useAppStore } from "@/stores/useAppStore";
 import * as Location from "expo-location";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export const useLocation = () => {
   const [geocodingLoading, setGeocodingLoading] = useState(true);
@@ -17,72 +17,15 @@ export const useLocation = () => {
   const setUserLocation = useAppStore((state) => state.setUserLocation);
   const setPickupLocation = useAppStore((state) => state.setPickupLocation);
 
-  const fetchLocation = useCallback(async () => {
-    try {
-      clearError("LOCATION_ERROR");
-      setLocationError(null);
-
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        handleLocationError(new Error("Location permission denied"), {
-          permissionStatus: status,
-        });
-        setLocationError(
-          "Location access denied. Please enable location services to use the app."
-        );
-        setPickupLocation({
-          address: "Location access required",
-          coords: CONFIG.DEFAULT_COORDS,
-        });
-        return;
-      }
-
-      const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-
-      if (!location?.coords) {
-        throw new Error("Unable to get valid location coords");
-      }
-
-      setUserLocation(location);
-      setPickupLocation({
-        ...pickupLocation,
-        coords: {
-          latitude: String(location.coords.latitude),
-          longitude: String(location.coords.longitude),
-        },
-      });
-
-      clearError("LOCATION_ERROR");
-    } catch (error: any) {
-      handleLocationError(error, {
-        retryCount,
-        action: "fetchLocation",
-      });
-
-      const fallbackMessage =
-        "Using default location. You can try again by restarting the app.";
-      setLocationError(
-        `${
-          error?.message || "Location service unavailable"
-        }. ${fallbackMessage}`
-      );
-
-      setPickupLocation({
-        address: "Location unavailable - using default",
-        coords: CONFIG.DEFAULT_COORDS,
-      });
-
-      // Increment retry count for potential retry logic
-      setRetryCount((prev) => prev + 1);
-    } finally {
-      setGeocodingLoading(false);
-    }
-  }, [handleLocationError, clearError, retryCount]);
+  // Use ref to prevent dependency issues
+  const isReverseGeocodingRef = useRef(false);
 
   const reverseGeocode = useCallback(
     async (latitude: number, longitude: number) => {
+      // Prevent concurrent reverse geocoding calls
+      if (isReverseGeocodingRef.current) return;
+
+      isReverseGeocodingRef.current = true;
       setGeocodingLoading(true);
       try {
         const addresses = await Location.reverseGeocodeAsync({
@@ -143,23 +86,99 @@ export const useLocation = () => {
         });
       } finally {
         setGeocodingLoading(false);
+        isReverseGeocodingRef.current = false;
       }
     },
-    [handleLocationError, clearError, retryCount]
+    [handleLocationError, clearError, retryCount, setPickupLocation]
   );
 
+  // Main effect to watch location
   useEffect(() => {
-    fetchLocation();
-  }, [fetchLocation]);
+    let locationSubscription: Location.LocationSubscription | null = null;
 
-  useEffect(() => {
-    if (userLocation?.coords) {
-      reverseGeocode(
-        userLocation.coords.latitude,
-        userLocation.coords.longitude
-      );
-    }
-  }, [userLocation?.coords, reverseGeocode]);
+    const startWatchingLocation = async () => {
+      try {
+        clearError("LOCATION_ERROR");
+        setLocationError(null);
+
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          handleLocationError(new Error("Location permission denied"), {
+            permissionStatus: status,
+          });
+          setLocationError(
+            "Location access denied. Please enable location services to use the app."
+          );
+          setPickupLocation({
+            address: "Location access required",
+            coords: CONFIG.DEFAULT_COORDS,
+          });
+          setGeocodingLoading(false);
+          return;
+        }
+
+        // Start watching position with continuous updates
+        locationSubscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            timeInterval: 5000, // Update every 5 seconds
+            distanceInterval: 10, // Or when moved 10 meters
+          },
+          (location) => {
+            if (location?.coords) {
+              setUserLocation(location);
+
+              // Update pickup location coordinates immediately
+              setPickupLocation({
+                address: pickupLocation.address || "Fetching address...",
+                coords: {
+                  latitude: String(location.coords.latitude),
+                  longitude: String(location.coords.longitude),
+                },
+              });
+
+              // Reverse geocode to get updated address
+              reverseGeocode(
+                location.coords.latitude,
+                location.coords.longitude
+              );
+            }
+          }
+        );
+
+        clearError("LOCATION_ERROR");
+      } catch (error: any) {
+        handleLocationError(error, {
+          retryCount,
+          action: "watchLocation",
+        });
+
+        const fallbackMessage =
+          "Using default location. You can try again by restarting the app.";
+        setLocationError(
+          `${error?.message || "Location service unavailable"
+          }. ${fallbackMessage}`
+        );
+
+        setPickupLocation({
+          address: "Location unavailable - using default",
+          coords: CONFIG.DEFAULT_COORDS,
+        });
+
+        setRetryCount((prev) => prev + 1);
+        setGeocodingLoading(false);
+      }
+    };
+
+    startWatchingLocation();
+
+    // Cleanup: stop watching location on unmount
+    return () => {
+      if (locationSubscription) {
+        locationSubscription.remove();
+      }
+    };
+  }, [handleLocationError, clearError, setUserLocation, setPickupLocation, reverseGeocode, retryCount]);
 
   return {
     userLocation,
