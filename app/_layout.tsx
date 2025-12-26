@@ -7,6 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
 
+import useNotification from "@/hooks/useNotification";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaystackProvider } from "react-native-paystack-webview";
 import Toast from "react-native-toast-message";
@@ -17,7 +18,6 @@ import {
   UrbanistRegular,
   UrbanistSemiBold,
 } from "../assets/fonts";
-import { useNotification } from "../hooks/useNotification";
 
 SplashScreen.preventAutoHideAsync();
 

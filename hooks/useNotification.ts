@@ -1,12 +1,14 @@
 import { NOTIFICATION_TYPES } from "@/constants/constants";
 import { useAppStore } from "@/stores/useAppStore";
 import { getApp } from "@react-native-firebase/app";
-import messaging, {
-    AuthorizationStatus,
-    getMessaging,
-    getToken,
-    requestPermission,
-    setBackgroundMessageHandler,
+import {
+  AuthorizationStatus,
+  getInitialNotification,
+  getMessaging,
+  getToken,
+  onMessage,
+  requestPermission,
+  setBackgroundMessageHandler,
 } from "@react-native-firebase/messaging";
 import * as Haptics from "expo-haptics";
 import { router, usePathname } from "expo-router";
@@ -162,7 +164,7 @@ const fcmNotificationService = {
   // Check if app was launched from notification
   checkInitialNotification: async () => {
     const initialNotification =
-      await messagingInstance.getInitialNotification();
+      await getInitialNotification(messagingInstance);
     if (initialNotification) {
       console.log("App launched from notification:", initialNotification);
       // Process the notification that launched the app and return processed data
@@ -229,7 +231,7 @@ interface UseNotificationProps {
 export const useNotification = ({
   onTokenUpdate,
 }: UseNotificationProps = {}) => {
-  const { fcmToken, setFcmToken, setRideStage, setDriver, resetRideState } =
+  const { fcmToken, setFcmToken, setRideStage, setDriver, resetRideState, refreshActiveRide } =
     useAppStore();
   const pathname = usePathname();
 
@@ -248,17 +250,18 @@ export const useNotification = ({
             break;
 
           case "updateRideStatus":
-            // For riders: update ride stage based on notification type
-            if (data.type === NOTIFICATION_TYPES.RIDE_ACCEPTED) {
-              setRideStage("paired");
-            } else if (data.type === NOTIFICATION_TYPES.DRIVER_ARRIVED) {
-              setRideStage("arrived");
-            } else if (data.type === NOTIFICATION_TYPES.RIDE_STARTED) {
-              setRideStage("trip");
-            } else if (data.type === NOTIFICATION_TYPES.RIDE_COMPLETED) {
-              // Handled by navigateToRating
+            // Special handling for completion: update store with final details so rating screen works
+            if (data.type === NOTIFICATION_TYPES.RIDE_COMPLETED) {
+              const { updateRideState } = useAppStore.getState();
+              updateRideState({
+                rideId: data.rideId,
+                fare: data.fare || data.earnings,
+              });
+            } else {
+              // Standard action for all other lifecycle updates: Refresh full state from API
+              await refreshActiveRide();
             }
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             break;
 
           case "setDriver":
@@ -274,7 +277,7 @@ export const useNotification = ({
             break;
 
           case "cancelRide":
-            resetRideState();
+            await refreshActiveRide();
             Toast.show({
               type: "customToast",
               text1: "Ride Cancelled",
@@ -308,7 +311,7 @@ export const useNotification = ({
       }
 
       // Set up foreground message handler
-      const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+      const unsubscribe = onMessage(messagingInstance, async (remoteMessage) => {
         console.log("Received message in foreground:", remoteMessage);
 
         const notificationData =
@@ -317,7 +320,9 @@ export const useNotification = ({
       });
 
       // Check for initial notification (app launched from notification)
-      const initialNotification = await messaging().getInitialNotification();
+      const initialNotification = await getInitialNotification(
+        messagingInstance
+      );
       if (initialNotification) {
         console.log("App launched from notification:", initialNotification);
 

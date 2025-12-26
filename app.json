@@ -2,7 +2,7 @@
   "expo": {
     "name": "KEKE GO",
     "slug": "kekego",
-    "version": "1.0.3",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "kekego",
@@ -129,7 +129,9 @@
       "typedRoutes": true
     },
     "owner": "abdullahgumi",
-    "runtimeVersion": "1.0.3",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "updates": {
       "url": "https://u.expo.dev/21841566-bb5f-4557-abe0-cd308f4b2acf"
     },

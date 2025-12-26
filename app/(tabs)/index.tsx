@@ -1,6 +1,6 @@
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import React, { useEffect, useMemo, useRef } from "react";
-import { Keyboard, View } from "react-native";
+import { AppState, Keyboard, View } from "react-native";
 import MapView, { PROVIDER_GOOGLE } from "react-native-maps";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { Socket } from "socket.io-client";
@@ -64,17 +64,25 @@ const HomeScreen = () => {
         const resActiveRides = await riderApi.getActiveRide();
         const activeRide = resActiveRides.data.data.ride;
         if (activeRide) {
-          console.log("active ride found on load:", activeRide);
+          console.log("active ride found on load/foreground:", activeRide);
           setActiveRide(activeRide);
-          console.log("rider-active ride restored", activeRide);
         }
       } catch (err: any) {
-        console.error("Failed to fetch active ride:", err.response.data);
+        console.error("Failed to fetch active ride:", err.response?.data);
       }
     };
 
     fetchActiveRide();
-  }, []);
+
+    // Re-fetch on foreground
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active") {
+        fetchActiveRide();
+      }
+    });
+
+    return () => subscription.remove();
+  }, [setActiveRide]);
 
   return (
     <HideKeyboardOnTouch>
@@ -87,11 +95,11 @@ const HomeScreen = () => {
           initialRegion={
             userLocation?.coords
               ? {
-                  latitude: userLocation.coords.latitude,
-                  longitude: userLocation.coords.longitude,
-                  latitudeDelta: 0.005,
-                  longitudeDelta: 0.005,
-                }
+                latitude: userLocation.coords.latitude,
+                longitude: userLocation.coords.longitude,
+                latitudeDelta: 0.005,
+                longitudeDelta: 0.005,
+              }
               : CONFIG.INITIAL_REGION
           }
           showsUserLocation={stage === "initial" || stage === "input"}

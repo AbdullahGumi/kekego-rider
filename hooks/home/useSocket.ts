@@ -4,6 +4,7 @@ import { Storage } from "@/utility/asyncStorageHelper";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useEffect } from "react";
+import { AppState, AppStateStatus } from "react-native";
 import Toast from "react-native-toast-message";
 import io from "socket.io-client";
 
@@ -44,9 +45,42 @@ export const useSocket = () => {
 
         const token = await Storage.get("access_token");
         socketRef.current = io(process.env.EXPO_PUBLIC_BASE_URL, {
+          transports: ["websocket"],
+          reconnection: true,
+          reconnectionAttempts: Infinity,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          timeout: 20000,
           auth: {
             token: token,
           },
+        });
+
+        // Force reconnect on app foreground if disconnected
+        const subscription = AppState.addEventListener("change", (nextAppState: AppStateStatus) => {
+          if (nextAppState === "active" && socketRef.current?.disconnected) {
+            console.log(
+              "App foregrounded: Disconnected socket detected. Reconnecting..."
+            );
+            socketRef.current.connect();
+          }
+        });
+
+
+        socketRef.current.on("connect", () => {
+          console.log("Socket connected");
+          const { rideState } = useAppStore.getState();
+          const { rideId, stage } = rideState;
+
+          if (
+            rideId &&
+            stage !== "initial" &&
+            stage !== "input" &&
+            stage !== "confirm"
+          ) {
+            console.log("Re-joining ride room on reconnect:", rideId);
+            socketRef.current?.emit("ride:join-room", { rideId });
+          }
         });
 
         socketRef.current.on("ride:accepted", (data) => {
@@ -82,6 +116,7 @@ export const useSocket = () => {
         });
 
         socketRef.current.on(`driver:location-update`, (data) => {
+          console.log("driver:location-update", data);
           updateDriverLocation({
             latitude: data.coords?.latitude,
             longitude: data.coords?.longitude,
@@ -166,6 +201,8 @@ export const useSocket = () => {
         });
 
         return () => {
+          subscription.remove();
+          socketRef.current?.off("connect");
           socketRef.current?.off("ride:accepted");
           socketRef.current?.off("ride:arrived");
           socketRef.current?.off("ride:started");

@@ -150,6 +150,7 @@ type AppState = {
 
   // Active ride handling
   setActiveRide: (activeRide: any) => void;
+  refreshActiveRide: () => Promise<void>;
 
   // Utils
   resetRideState: () => void;
@@ -170,11 +171,11 @@ const initialDataState: AppState = {
   fcmToken: null,
 
   mapRef: null,
-  setMapRef: () => {}, // Keep these as they are part of the state definition in the interface but will be overwritten by the store creator
+  setMapRef: () => { }, // Keep these as they are part of the state definition in the interface but will be overwritten by the store creator
   bottomSheetRef: null,
-  setBottomSheetRef: () => {},
+  setBottomSheetRef: () => { },
   socketRef: null,
-  setSocketRef: () => {},
+  setSocketRef: () => { },
 
   userLocation: null,
   pickupLocation: { address: "", coords: { latitude: "", longitude: "" } },
@@ -196,30 +197,31 @@ const initialDataState: AppState = {
 
   messages: [],
 
-  setFcmToken: () => {},
-  setUserLocation: () => {},
-  setPickupLocation: () => {},
-  setDestinationLocation: () => {},
-  updateDriverLocation: () => {},
+  setFcmToken: () => { },
+  setUserLocation: () => { },
+  setPickupLocation: () => { },
+  setDestinationLocation: () => { },
+  updateDriverLocation: () => { },
 
-  setRideStage: () => {},
-  setDriver: () => {},
-  setEta: () => {},
-  setFare: () => {},
-  setTripDuration: () => {},
-  setDestinationDistance: () => {},
-  setDestinationDuration: () => {},
-  setRideId: () => {},
-  setMapLoading: () => {},
-  setPickupDirections: () => {},
-  setDestinationDirections: () => {},
+  setRideStage: () => { },
+  setDriver: () => { },
+  setEta: () => { },
+  setFare: () => { },
+  setTripDuration: () => { },
+  setDestinationDistance: () => { },
+  setDestinationDuration: () => { },
+  setRideId: () => { },
+  setMapLoading: () => { },
+  setPickupDirections: () => { },
+  setDestinationDirections: () => { },
 
-  setMessages: () => {},
-  addMessage: () => {},
+  setMessages: () => { },
+  addMessage: () => { },
 
-  updateRideState: () => {},
-  setActiveRide: () => {},
-  resetRideState: () => {},
+  updateRideState: () => { },
+  setActiveRide: () => { },
+  refreshActiveRide: async () => { },
+  resetRideState: () => { },
 };
 
 export const useAppStore = create<AppStore>((set, get) => ({
@@ -240,9 +242,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
         ...state.rideState,
         driver: state.rideState.driver
           ? {
-              ...state.rideState.driver,
-              location: location,
-            }
+            ...state.rideState.driver,
+            location: location,
+          }
           : null,
       },
     })),
@@ -301,8 +303,11 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   setActiveRide: (activeRide) =>
     set((state) => {
-      let stage: RideStage = "paired";
+      let stage: RideStage = "search";
       switch (activeRide.status) {
+        case "requested":
+          stage = "search";
+          break;
         case "accepted":
           stage = "paired";
           break;
@@ -314,25 +319,25 @@ export const useAppStore = create<AppStore>((set, get) => ({
           stage = "trip";
           break;
         default:
-          stage = "paired";
+          stage = "search";
       }
 
       const driver = activeRide.driver
         ? {
-            id: activeRide.driver.id,
-            name: activeRide.driver.name,
-            phone: activeRide.driver.phone,
-            profilePicture: activeRide.driver.profilePicture,
-            vehicle: {
-              plateNumber: activeRide.driver.vehicle.plateNumber,
-              vehicleNumber: activeRide.driver.vehicle.vehicleNumber,
-            },
-            location: {
-              latitude: activeRide.driver.location.coords.latitude,
-              longitude: activeRide.driver.location.coords.longitude,
-            },
-            averageRating: activeRide.driver.averageRating,
-          }
+          id: activeRide.driver.id,
+          name: activeRide.driver.name,
+          phone: activeRide.driver.phone,
+          profilePicture: activeRide.driver.profilePicture,
+          vehicle: {
+            plateNumber: activeRide.driver.vehicle.plateNumber,
+            vehicleNumber: activeRide.driver.vehicle.vehicleNumber,
+          },
+          location: {
+            latitude: activeRide.driver.location.coords.latitude,
+            longitude: activeRide.driver.location.coords.longitude,
+          },
+          averageRating: activeRide.driver.averageRating,
+        }
         : null;
 
       return {
@@ -360,6 +365,21 @@ export const useAppStore = create<AppStore>((set, get) => ({
         },
       };
     }),
+
+  refreshActiveRide: async () => {
+    try {
+      const { riderApi } = require("@/api/endpoints/rider");
+      const response = await riderApi.getActiveRide();
+      const activeRide = response.data.data.ride;
+      if (activeRide) {
+        get().setActiveRide(activeRide);
+      } else {
+        get().resetRideState();
+      }
+    } catch (error) {
+      console.error("Failed to refresh active ride (Rider Store):", error);
+    }
+  },
 
   resetRideState: () =>
     set({
@@ -428,7 +448,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
         user: null,
         token: null,
         fcmToken: state.fcmToken, // preserve device token
-        
+
         // Reset refs to null, but DO NOT overwrite the setter functions
         mapRef: null,
         bottomSheetRef: null,
