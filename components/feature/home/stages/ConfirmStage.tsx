@@ -73,7 +73,6 @@ const ConfirmStage = () => {
         const responseRideId = response.data.data.ride.id;
         setRideId(responseRideId);
         setRideStage("search");
-        bottomSheetRef?.current?.snapToIndex(0);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
     } catch (error: any) {

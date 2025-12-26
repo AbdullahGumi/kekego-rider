@@ -43,6 +43,26 @@ const HomeScreen = () => {
   const { geocodingLoading } = useLocation();
   const snapPoints = useMemo(() => ["55%", "70%", "85%", "90%"], []);
 
+  useEffect(() => {
+    if (!bottomSheetRef.current) return;
+
+    switch (stage) {
+      case "initial":
+        bottomSheetRef.current.snapToIndex(0);
+        break;
+      case "input":
+        bottomSheetRef.current.snapToIndex(3);
+        break;
+      case "confirm":
+      case "search":
+      case "paired":
+      case "arrived":
+      case "trip":
+        bottomSheetRef.current.snapToIndex(0);
+        break;
+    }
+  }, [stage]);
+
   useMapRegionManager(mapRef);
   useSocket();
 

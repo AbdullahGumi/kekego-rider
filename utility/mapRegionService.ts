@@ -64,10 +64,10 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
         ],
         {
           edgePadding: {
-            top: scale(100),
-            right: scale(20),
-            bottom: scale(200),
-            left: scale(20),
+            top: scale(120),
+            right: scale(40),
+            bottom: scale(480),
+            left: scale(40),
           },
           animated: true,
         }
@@ -91,10 +91,10 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
         ],
         {
           edgePadding: {
-            top: scale(100),
-            right: scale(20),
-            bottom: scale(200),
-            left: scale(20),
+            top: scale(120),
+            right: scale(40),
+            bottom: scale(480),
+            left: scale(40),
           },
           animated: true,
         }
@@ -118,10 +118,10 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
         ],
         {
           edgePadding: {
-            top: scale(100),
-            right: scale(20),
-            bottom: scale(200),
-            left: scale(20),
+            top: scale(120),
+            right: scale(40),
+            bottom: scale(480),
+            left: scale(40),
           },
           animated: true,
         }
@@ -130,21 +130,28 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
   },
   arrived: {
     condition: ({ driver, pickupLocation }) =>
-      !!(driver?.coords && pickupLocation.coords.latitude),
+      !!(driver?.location && pickupLocation.coords.latitude),
     action: (mapView: any, { driver, pickupLocation }) => {
-      const pickupLat = Number(pickupLocation.coords.latitude);
-      const pickupLng = Number(pickupLocation.coords.longitude);
-      const driverLat = driver!.location.latitude;
-      const driverLng = driver!.location.longitude;
-
-      mapView.animateToRegion(
+      mapView.fitToCoordinates(
+        [
+          {
+            latitude: driver!.location.latitude,
+            longitude: driver!.location.longitude,
+          },
+          {
+            latitude: Number(pickupLocation.coords.latitude),
+            longitude: Number(pickupLocation.coords.longitude),
+          },
+        ],
         {
-          latitude: (driverLat + pickupLat) / 2,
-          longitude: (driverLng + pickupLng) / 2,
-          latitudeDelta: 0.002,
-          longitudeDelta: 0.002,
-        },
-        1000
+          edgePadding: {
+            top: scale(100),
+            right: scale(100),
+            bottom: scale(450),
+            left: scale(100),
+          },
+          animated: true,
+        }
       );
     },
   },
@@ -169,10 +176,10 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
         ],
         {
           edgePadding: {
-            top: scale(100),
-            right: scale(20),
-            bottom: scale(200),
-            left: scale(20),
+            top: scale(120),
+            right: scale(40),
+            bottom: scale(480),
+            left: scale(40),
           },
           animated: true,
         }
@@ -200,10 +207,10 @@ export const STAGE_CONFIGS: Record<string, MapRegionConfiguration> = {
         ],
         {
           edgePadding: {
-            top: scale(100),
-            right: scale(20),
-            bottom: scale(200),
-            left: scale(20),
+            top: scale(120),
+            right: scale(40),
+            bottom: scale(480),
+            left: scale(40),
           },
           animated: true,
         }

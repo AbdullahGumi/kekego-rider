@@ -13,16 +13,14 @@ const InitialStage = () => {
 
   const handleWhereTo = useCallback(() => {
     setRideStage("input");
-    bottomSheetRef?.current?.snapToIndex(3);
-  }, [setRideStage, bottomSheetRef]);
+  }, [setRideStage]);
 
   const handleSelectRecentDestination = useCallback(
     (destination: any) => {
       setDestinationLocation(destination);
       setRideStage("confirm");
-      bottomSheetRef?.current?.snapToIndex(0);
     },
-    [setDestinationLocation, setRideStage, bottomSheetRef]
+    [setDestinationLocation, setRideStage]
   );
 
   return (

@@ -30,9 +30,8 @@ const InputStage: React.FC<InputStageProps> = ({ geocodingLoading }) => {
       }
       setDestinationLocation(destination);
       setRideStage("confirm");
-      bottomSheetRef?.current?.snapToIndex(0);
     },
-    [setDestinationLocation, setRideStage, bottomSheetRef]
+    [setDestinationLocation, setRideStage]
   );
 
   return (
@@ -40,14 +39,14 @@ const InputStage: React.FC<InputStageProps> = ({ geocodingLoading }) => {
       <CustomText fontWeight="Bold" style={homeStyles.sectionTitle}>
         Where are you going?
       </CustomText>
-      
-        <LocationInput
-          setPickupLocation={setPickupLocation}
-          setDestinationLocation={handleDestinationSelected}
-          initialPickup={pickupAddress}
-          initialDestination={destinationAddress}
-          isPickupLoading={geocodingLoading}
-        />
+
+      <LocationInput
+        setPickupLocation={setPickupLocation}
+        setDestinationLocation={handleDestinationSelected}
+        initialPickup={pickupAddress}
+        initialDestination={destinationAddress}
+        isPickupLoading={geocodingLoading}
+      />
     </Animated.View>
   );
 };

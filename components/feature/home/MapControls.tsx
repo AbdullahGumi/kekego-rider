@@ -80,7 +80,6 @@ export const MapControls: React.FC<MapControlsProps> = ({
         setDriver(null);
         setEta("");
         setRideId(null);
-        bottomSheetRef?.current?.snapToIndex(0);
       } else {
         console.warn("Ride cancellation failed:", response?.data);
       }
@@ -111,14 +110,11 @@ export const MapControls: React.FC<MapControlsProps> = ({
           address: "",
           coords: { latitude: "", longitude: "" },
         });
-        bottomSheetRef?.current?.snapToIndex(0);
       } else if (stage === "confirm") {
         setRideStage("input");
-        bottomSheetRef?.current?.snapToIndex(1);
       } else if (stage === "chat") {
         // Handle chat stage back navigation based on driver state and ETA
         setRideStage(driver ? (eta ? "trip" : "arrived") : "paired");
-        bottomSheetRef?.current?.snapToIndex(2);
       }
     },
     [stage, driver, eta, setRideStage, setDestinationLocation, bottomSheetRef]
