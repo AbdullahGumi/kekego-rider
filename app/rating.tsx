@@ -22,7 +22,7 @@ import HideKeyboardOnTouch from "@/utility/HideKeyboardOnTouch";
 
 const RatingScreen: React.FC = () => {
   const router = useRouter();
-  const { rideState, resetRideState, setDestinationLocation, bottomSheetRef } =
+  const { rideState, resetRideState, setDestinationLocation, bottomSheetRef, currentSessionId } =
     useAppStore();
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState("");
@@ -33,6 +33,16 @@ const RatingScreen: React.FC = () => {
   }
 
   const { rideId, fare } = rideState;
+
+  // Mark this rating screen as SEEN in the current session
+  React.useEffect(() => {
+    if (rideId && currentSessionId) {
+      const { Storage } = require("@/utility/asyncStorageHelper");
+      Storage.set(`rating_seen_${rideId}`, currentSessionId).catch((err: any) =>
+        console.error("Failed to mark rating as seen", err)
+      );
+    }
+  }, [rideId, currentSessionId]);
 
   const resetState = () => {
     router.replace("/(tabs)");

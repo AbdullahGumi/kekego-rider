@@ -150,11 +150,14 @@ type AppState = {
   updateRideState: (updates: Partial<RideState>) => void;
 
   // Active ride handling
-  setActiveRide: (activeRide: any) => void;
+  setActiveRide: (activeRide: any) => Promise<void>;
   refreshActiveRide: () => Promise<void>;
 
   // Utils
   resetRideState: () => void;
+
+  // Session
+  currentSessionId: string;
 };
 
 type AppActions = {
@@ -220,13 +223,18 @@ const initialDataState: AppState = {
   addMessage: () => { },
 
   updateRideState: () => { },
-  setActiveRide: () => { },
+  setActiveRide: async () => { },
   refreshActiveRide: async () => { },
   resetRideState: () => { },
+  currentSessionId: "", // Placeholder, will be overwritten
 };
+
+// Generate unique session ID
+const SESSION_ID = Date.now().toString();
 
 export const useAppStore = create<AppStore>((set, get) => ({
   ...initialDataState,
+  currentSessionId: SESSION_ID,
 
   setMapRef: (ref) => set({ mapRef: ref }),
   setBottomSheetRef: (ref) => set({ bottomSheetRef: ref }),
@@ -302,7 +310,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       rideState: { ...state.rideState, ...updates },
     })),
 
-  setActiveRide: (activeRide) => {
+  setActiveRide: async (activeRide) => {
     let stage: RideStage = "search";
     let shouldNavigateToRating = false;
 
@@ -321,17 +329,30 @@ export const useAppStore = create<AppStore>((set, get) => ({
         stage = "trip";
         break;
       case "completed":
-        // For completed rides, we treat it as "trip" (or similar) to ensure data exists,
-        // but flag for navigation.
-        stage = "trip";
-        shouldNavigateToRating = true;
+        // Check for session mismatch logic
+        try {
+          const seenSessionId = await Storage.get<string>(`rating_seen_${activeRide.id}`);
+          const currentSessionId = get().currentSessionId;
+
+          if (seenSessionId && seenSessionId !== currentSessionId) {
+            console.log("Auto-skipping rating: User saw it in previous session", { seenSessionId, currentSessionId });
+            const { riderApi } = require("@/api/endpoints/rider");
+            // 0 rating indicates skip
+            await riderApi.submitRating(activeRide.id, 0, "Auto-skipped (Session Mismatch)");
+            get().resetRideState();
+            return;
+          }
+          // Show rating
+          shouldNavigateToRating = true;
+        } catch (error) {
+          console.warn("Session skip check failed", error);
+          shouldNavigateToRating = true;
+        }
         break;
       default:
         stage = "search";
     }
 
-    // Perform side effect outside of the set function if possible,
-    // or ensure it happens 
     if (shouldNavigateToRating) {
       router.replace("/rating");
     }
