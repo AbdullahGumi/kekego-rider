@@ -134,11 +134,9 @@ export const MapControls: React.FC<MapControlsProps> = ({
         throw new Error("Destination location not available");
       }
 
-      const originLat = userLocation.coords.latitude.toString();
-      const originLng = userLocation.coords.longitude.toString();
       const destLat = destinationLocation.coords.latitude;
       const destLng = destinationLocation.coords.longitude;
-      const url = `https://www.google.com/maps/dir/?api=1&origin=${originLat},${originLng}&destination=${destLat},${destLng}&travelmode=driving&dir_action=navigate`;
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=driving&dir_action=navigate`;
       Linking.openURL(url);
     } catch (error) {
       Alert.alert("Error", "Failed to open Google Maps directions.");
