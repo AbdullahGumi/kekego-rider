@@ -311,6 +311,9 @@ export const useAppStore = create<AppStore>((set, get) => ({
     })),
 
   setActiveRide: async (activeRide) => {
+    // Persist active_ride_id for background task and socket re-joining
+    await Storage.set("active_ride_id", activeRide.id);
+
     let stage: RideStage = "search";
     let shouldNavigateToRating = false;
 
@@ -374,7 +377,6 @@ export const useAppStore = create<AppStore>((set, get) => ({
         averageRating: activeRide.driver.averageRating,
       }
       : null;
-
     set((state) => ({
       pickupLocation: {
         address: activeRide.pickupLocation.address,
@@ -407,7 +409,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
       const response = await riderApi.getActiveRide();
       const activeRide = response.data.data.ride;
       if (activeRide) {
-        get().setActiveRide(activeRide);
+        await get().setActiveRide(activeRide);
       } else {
         get().resetRideState();
       }

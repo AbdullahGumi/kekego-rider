@@ -14,7 +14,6 @@ export default function Index() {
   });
 
   const loadFromStorage = useAppStore((state) => state.loadFromStorage);
-  const refreshActiveRide = useAppStore((state) => state.refreshActiveRide);
 
   useEffect(() => {
     const initialize = async () => {
@@ -22,9 +21,6 @@ export default function Index() {
         const token = await Storage.get("access_token");
         await loadFromStorage();
 
-        if (token) {
-          await refreshActiveRide();
-        }
 
         setStatus({
           loading: false,

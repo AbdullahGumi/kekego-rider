@@ -85,9 +85,11 @@ export default function OTPScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         if (isRegistered === "true" && data.data.token) {
           // User is registered, store token and user, then navigate to tabs
+          const { refreshActiveRide } = useAppStore.getState();
           await Storage.set("access_token", data.data.token);
           await setUser(data.data.user, data.data.token);
-          router.push("/(tabs)");
+          await refreshActiveRide();
+          router.replace("/(tabs)");
         } else {
           // User is not registered, navigate to registration
           router.push({
