@@ -1,6 +1,7 @@
 import { Storage } from "@/utility/asyncStorageHelper";
 import BottomSheet from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
+import { router } from "expo-router";
 import { RefObject } from "react";
 import MapView from "react-native-maps";
 import { Socket } from "socket.io-client";
@@ -301,70 +302,83 @@ export const useAppStore = create<AppStore>((set, get) => ({
       rideState: { ...state.rideState, ...updates },
     })),
 
-  setActiveRide: (activeRide) =>
-    set((state) => {
-      let stage: RideStage = "search";
-      switch (activeRide.status) {
-        case "requested":
-          stage = "search";
-          break;
-        case "accepted":
-          stage = "paired";
-          break;
-        case "arrived":
-          stage = "arrived";
-          break;
-        case "in_progress":
-        case "started":
-          stage = "trip";
-          break;
-        default:
-          stage = "search";
+  setActiveRide: (activeRide) => {
+    let stage: RideStage = "search";
+    let shouldNavigateToRating = false;
+
+    switch (activeRide.status) {
+      case "requested":
+        stage = "search";
+        break;
+      case "accepted":
+        stage = "paired";
+        break;
+      case "arrived":
+        stage = "arrived";
+        break;
+      case "in_progress":
+      case "started":
+        stage = "trip";
+        break;
+      case "completed":
+        // For completed rides, we treat it as "trip" (or similar) to ensure data exists,
+        // but flag for navigation.
+        stage = "trip";
+        shouldNavigateToRating = true;
+        break;
+      default:
+        stage = "search";
+    }
+
+    // Perform side effect outside of the set function if possible,
+    // or ensure it happens 
+    if (shouldNavigateToRating) {
+      router.replace("/rating");
+    }
+
+    const driver = activeRide.driver
+      ? {
+        id: activeRide.driver.id,
+        name: activeRide.driver.name,
+        phone: activeRide.driver.phone,
+        profilePicture: activeRide.driver.profilePicture,
+        vehicle: {
+          plateNumber: activeRide.driver.vehicle.plateNumber,
+          vehicleNumber: activeRide.driver.vehicle.vehicleNumber,
+        },
+        location: {
+          latitude: activeRide.driver.location.coords.latitude,
+          longitude: activeRide.driver.location.coords.longitude,
+        },
+        averageRating: activeRide.driver.averageRating,
       }
+      : null;
 
-      const driver = activeRide.driver
-        ? {
-          id: activeRide.driver.id,
-          name: activeRide.driver.name,
-          phone: activeRide.driver.phone,
-          profilePicture: activeRide.driver.profilePicture,
-          vehicle: {
-            plateNumber: activeRide.driver.vehicle.plateNumber,
-            vehicleNumber: activeRide.driver.vehicle.vehicleNumber,
-          },
-          location: {
-            latitude: activeRide.driver.location.coords.latitude,
-            longitude: activeRide.driver.location.coords.longitude,
-          },
-          averageRating: activeRide.driver.averageRating,
-        }
-        : null;
-
-      return {
-        pickupLocation: {
-          address: activeRide.pickupLocation.address,
-          coords: {
-            latitude: activeRide.pickupLocation.coords.latitude.toString(),
-            longitude: activeRide.pickupLocation.coords.longitude.toString(),
-          },
+    set((state) => ({
+      pickupLocation: {
+        address: activeRide.pickupLocation.address,
+        coords: {
+          latitude: activeRide.pickupLocation.coords.latitude.toString(),
+          longitude: activeRide.pickupLocation.coords.longitude.toString(),
         },
-        destinationLocation: {
-          address: activeRide.dropoffLocation.address,
-          coords: {
-            latitude: activeRide.dropoffLocation.coords.latitude.toString(),
-            longitude: activeRide.dropoffLocation.coords.longitude.toString(),
-          },
+      },
+      destinationLocation: {
+        address: activeRide.dropoffLocation.address,
+        coords: {
+          latitude: activeRide.dropoffLocation.coords.latitude.toString(),
+          longitude: activeRide.dropoffLocation.coords.longitude.toString(),
         },
-        rideState: {
-          ...state.rideState,
-          stage,
-          driver,
-          fare: activeRide.actualFare || activeRide.estimatedFare,
-          rideId: activeRide.id,
-          mapLoading: false,
-        },
-      };
-    }),
+      },
+      rideState: {
+        ...state.rideState,
+        stage,
+        driver,
+        fare: activeRide.actualFare || activeRide.estimatedFare,
+        rideId: activeRide.id,
+        mapLoading: false,
+      },
+    }));
+  },
 
   refreshActiveRide: async () => {
     try {

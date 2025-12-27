@@ -2,13 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import Toast from "react-native-toast-message";
 
@@ -74,6 +73,29 @@ const RatingScreen: React.FC = () => {
     }
   };
 
+  const handleSkip = async () => {
+    setLoading(true);
+    try {
+      // Submit a 0 rating to indicate skip
+      await riderApi.submitRating(rideId, 0, "Skipped");
+
+      setDestinationLocation({
+        address: "",
+        coords: { latitude: "", longitude: "" },
+      });
+      resetState();
+    } catch (error: any) {
+      console.log("error", error.response?.data || error.message);
+      Toast.show({
+        type: "customToast",
+        text1: "Failed to skip",
+        text2: "Please try again",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: COLORS.background }}
@@ -83,7 +105,7 @@ const RatingScreen: React.FC = () => {
         <HideKeyboardOnTouch>
           <View>
             <View style={{ paddingHorizontal: 16 }}>
-              <Header onBackPress={resetState} />
+              <Header onBackPress={handleSkip} />
             </View>
             <View style={{ justifyContent: "center", paddingHorizontal: 24 }}>
               <CustomText
@@ -174,10 +196,23 @@ const RatingScreen: React.FC = () => {
                 loading={loading}
                 disabled={rating === 0 || loading}
                 onPress={handleSubmit}
-                style={{ marginBottom: 24 }}
+                style={{ marginBottom: 16 }}
+              />
+
+              <TouchableOpacity
+                onPress={handleSkip}
+                disabled={loading}
+                style={{ padding: 12, alignItems: "center" }}
               >
-                {loading && <ActivityIndicator color={COLORS.white} />}
-              </CustomButton>
+                <CustomText
+                  style={{
+                    color: COLORS.secondaryText,
+                    fontSize: 16,
+                  }}
+                >
+                  Skip
+                </CustomText>
+              </TouchableOpacity>
             </View>
           </View>
         </HideKeyboardOnTouch>
