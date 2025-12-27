@@ -11,4 +11,5 @@ export const NOTIFICATION_TYPES = {
   RIDE_STARTED: "ride_started",
   RIDE_CANCELLED: "ride_cancelled",
   RIDE_COMPLETED: "ride_completed",
+  RIDE_MESSAGE: "ride_message",
 };

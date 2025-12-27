@@ -7,6 +7,7 @@ import {
   getMessaging,
   getToken,
   onMessage,
+  onNotificationOpenedApp,
   requestPermission,
   setBackgroundMessageHandler,
 } from "@react-native-firebase/messaging";
@@ -153,6 +154,12 @@ const fcmNotificationService = {
         result.shouldAlert = true;
         break;
 
+      case NOTIFICATION_TYPES.RIDE_MESSAGE:
+        console.log("Ride message notification received");
+        result.actions.push("navigateToChat");
+        result.shouldAlert = true;
+        break;
+
       default:
         console.log("Unknown notification type:", parsedData.type);
         result.shouldAlert = !!notification;
@@ -237,7 +244,7 @@ export const useNotification = ({
 
   // Handle notification actions based on processed notification data
   const handleNotificationAction = useCallback(
-    async (notificationData: any) => {
+    async (notificationData: any, wasInteraction = false) => {
       const { actions, title, body, data } = notificationData;
 
       console.log("Handling notification actions:", actions);
@@ -285,15 +292,35 @@ export const useNotification = ({
               props: { type: "Error" },
             });
             break;
+
+          case "navigateToChat":
+            if (wasInteraction) {
+              router.push({
+                pathname: "/chat",
+                params: { rideId: data.rideId },
+              });
+            }
+            break;
         }
       }
 
       // Show toast for notifications that require user attention
       if (notificationData.shouldAlert) {
+        // If it's a message and NOT an interaction (foreground), showing toast allows user to click
+        const isMessage = data.type === NOTIFICATION_TYPES.RIDE_MESSAGE;
+
         Toast.show({
           type: "customToast",
           text1: title || "Notification",
           text2: body,
+          onPress: () => {
+            if (isMessage) {
+              router.push({
+                pathname: "/chat",
+                params: { rideId: data.rideId },
+              });
+            }
+          }
         });
       }
     },
@@ -316,7 +343,15 @@ export const useNotification = ({
 
         const notificationData =
           fcmNotificationService.handleNotificationPayload(remoteMessage);
-        await handleNotificationAction(notificationData);
+        await handleNotificationAction(notificationData, false);
+      });
+
+      // Handle notification opened from background state
+      onNotificationOpenedApp(messagingInstance, async (remoteMessage) => {
+        console.log("App opened from background:", remoteMessage);
+        const notificationData =
+          fcmNotificationService.handleNotificationPayload(remoteMessage);
+        await handleNotificationAction(notificationData, true);
       });
 
       // Check for initial notification (app launched from notification)
@@ -328,7 +363,7 @@ export const useNotification = ({
 
         const notificationData =
           fcmNotificationService.handleNotificationPayload(initialNotification);
-        await handleNotificationAction(notificationData);
+        await handleNotificationAction(notificationData, true);
       }
 
       return unsubscribe;
