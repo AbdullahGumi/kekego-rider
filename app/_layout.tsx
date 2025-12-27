@@ -7,6 +7,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
 
+import useAppState from "@/hooks/useAppState";
 import useNotification from "@/hooks/useNotification";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaystackProvider } from "react-native-paystack-webview";
@@ -29,6 +30,7 @@ SplashScreen.setOptions({
 function RootLayoutContent() {
   // Initialize notification handler at root level
   useNotification();
+  useAppState();
 
   return <Stack screenOptions={{ headerShown: false }} />;
 }
